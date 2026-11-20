@@ -43,7 +43,7 @@ Cada persona solo puede usar los módulos **y las funciones** que tenga permitid
 
 ## Plan
 1. ✅ Boceto de la portada (20/11/2026).
-2. Organización `biofy-hub` en GitHub y primera publicación.
+2. ✅ Organización `biofy-hub` en GitHub y primera publicación (20/11).
 3. Entrada real: contraseña por persona, módulos capados, credencial de la TV.
 4. Meter los módulos que ya funcionan: Pizarra, Dashboard, Formularios.
 5. Panel de Accesos.

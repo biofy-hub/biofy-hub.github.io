@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="comun/estilo.css">
 <script src="comun/config.js"></script>
+<script src="comun/llaveros.js"></script>
 <script src="comun/nucleo.js"></script>
 </head>
 <body>
@@ -26,21 +27,28 @@
         <div class="lb"><img class="logo logo-l" src="comun/marca/logo-horizontal-blue.svg" alt="Culligan Biofy"><img class="logo logo-d" src="comun/marca/logo-horizontal-white.svg" alt="Culligan Biofy"><span class="etiqueta">${icono('hub')}Hub</span></div>
         <h1>Bienvenido al Hub</h1>
         <p>Todas nuestras herramientas en un solo sitio. Entra con tu contraseña.</p>
-        <form id="f"><input class="campo" type="password" placeholder="Tu contraseña" autocomplete="current-password" aria-label="Contraseña">
-        <button class="btn" type="submit">Entrar</button>
+        <form id="f"><input class="campo" id="pw" type="password" placeholder="Tu contraseña" autocomplete="current-password" aria-label="Contraseña" required>
+        <button class="btn" id="bt" type="submit">Entrar</button>
+        <p class="error" id="err" role="alert"></p>
         <label class="recordar"><input type="checkbox" id="rec"> Recordar en este dispositivo</label></form>
-        <div class="perfiles"><p class="muted"><span class="boceto">Boceto</span> Todavía sin contraseñas. Elige cómo quieres verlo:</p>
-          <div class="fila"><button data-p="admin">Administrador</button><button data-p="jefe">Jefe de equipo</button><button data-p="comercial">Comercial</button><button data-p="tv">TV de la sala</button></div></div>
       </div></div>`;
     app.querySelector('.theme').onclick = Hub.cambiaTema;
-    app.querySelector('#f').onsubmit = e => { e.preventDefault(); entra('admin'); };
-    app.querySelectorAll('[data-p]').forEach(b => b.onclick = () => entra(b.dataset.p));
+    const f = app.querySelector('#f'), bt = app.querySelector('#bt'), err = app.querySelector('#err'), pw = app.querySelector('#pw');
+    setTimeout(() => pw.focus(), 50);
+    f.onsubmit = async e => {
+      e.preventDefault();
+      bt.disabled = true; bt.textContent = 'Comprobando…'; err.textContent = '';
+      const ok = await Hub.entrar(pw.value, app.querySelector('#rec').checked);
+      bt.disabled = false; bt.textContent = 'Entrar';
+      if (!ok) { err.textContent = 'Contraseña incorrecta'; f.classList.remove('sacude'); void f.offsetWidth; f.classList.add('sacude'); pw.select(); return; }
+      pw.value = '';
+      inicio();
+    };
   }
-  function entra(p) {
-    Hub.entrar(p, document.getElementById('rec')?.checked);
+  // Quien solo tiene un módulo (la TV) va directo a él.
+  function inicio() {
     const mods = Hub.misModulos();
-    // Quien solo tiene un módulo (la TV) va directo a él.
-    if (mods.length === 1) location.href = `modulo.html?m=${mods[0].id}`; else portada();
+    if (mods.length === 1) location.replace(Hub.href(mods[0])); else portada();
   }
 
   /* ---------- Portada ---------- */
@@ -51,10 +59,10 @@
   }
   function tarjeta(m, n) {
     const uso = m.estado === 'uso';
-    return `<a class="card mod ${uso ? '' : 'en-obra'}" href="modulo.html?m=${m.id}" style="animation-delay:${n * 55}ms">
+    return `<a class="card mod ${uso ? '' : 'en-obra'}" href="${Hub.href(m)}" style="animation-delay:${n * 55}ms">
       <div class="cab"><div class="ic">${icono(m.icono)}</div><span class="estado ${uso ? 'uso' : 'obra'}">${uso ? 'En uso' : 'En construcción'}</span></div>
       <div><h3>${esc(m.nombre)}</h3><p>${esc(m.desc)}</p></div>
-      <div class="pie">${etapas(m)}<span class="ir">${uso ? 'Abrir' : 'Ver'}${icono('flecha')}</span></div></a>`;
+      <div class="pie">${etapas(m)}<span class="ir" ${m.fuera ? 'title="De momento se abre en su web de siempre"' : ''}>${uso || m.fuera ? 'Abrir' : 'Ver'}${icono(m.fuera ? 'fuera' : 'flecha')}</span></div></a>`;
   }
   function portada() {
     app.innerHTML = '';
@@ -70,11 +78,11 @@
     main.className = 'wrap';
     main.innerHTML = `<div class="hola"><div><h1>${saludo()}, ${esc(s.nombre)}</h1><p>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))} · Todo lo de Culligan Biofy en un solo sitio</p></div></div>
       ${grupos}
-      <footer>Biofy Hub · <span class="boceto">Boceto del 20/11/2026</span></footer>`;
+      <footer>Biofy Hub · Culligan Biofy</footer>`;
     app.appendChild(main);
   }
 
-  Hub.sesion() ? portada() : pantallaEntrada();
+  Hub.sesion() ? inicio() : pantallaEntrada();
 })();
 </script>
 </body>

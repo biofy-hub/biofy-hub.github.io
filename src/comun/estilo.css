@@ -73,6 +73,10 @@ svg{flex:none}
 .btn:hover{filter:brightness(1.06)}
 .btn:active{transform:scale(.98)}
 .recordar{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:12px;font-size:13px;color:var(--ink-2)}
+.error{color:var(--bad);font-size:13px;font-weight:600;min-height:18px;margin-top:8px}
+.sacude{animation:sacude .4s}
+@keyframes sacude{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.btn:disabled{opacity:.7;cursor:wait}
 .perfiles{margin-top:18px;border-top:1px dashed var(--line-2);padding-top:14px}
 .perfiles p{margin:0 0 10px;font-size:12.5px}
 .perfiles .fila{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
