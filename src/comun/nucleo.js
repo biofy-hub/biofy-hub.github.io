@@ -3,6 +3,7 @@
    Al mudarnos se cambia el «acceso» y los «datos» aquí y los módulos siguen igual. */
 (function () {
   const C = window.HUB_CONFIG, K = k => C.almacen + k;
+  const RAIZ = document.currentScript.src.replace(/comun\/nucleo\.js.*$/, '');
   const ls = () => { try { return localStorage; } catch (e) { return null; } };
   const ss = () => { try { return sessionStorage; } catch (e) { return null; } };
   const guarda = (k, v) => { try { v == null ? ls().removeItem(K(k)) : ls().setItem(K(k), v); } catch (e) {} };
@@ -40,7 +41,8 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   /* ---------- Acceso (tipo «cifrado») ----------
-     Cada persona tiene un LLAVERO cifrado con su contraseña (comun/llaveros.js, se genera al montar).
+     Cada persona tiene un LLAVERO cifrado con su contraseña (comun/llaveros.json: lo genera el montaje
+     o el panel de Accesos). Se lee siempre recién publicado, así un cambio de permisos llega al momento.
      Dentro: nombre, permisos por módulo y SOLO las llaves de sus módulos y funciones.
      Sin la llave, un módulo no tiene datos aunque se escriba su dirección.
      Con servidor propio, entrar() preguntará al servidor; la interfaz (sesion, puede, llave, salir) no cambia. */
@@ -53,8 +55,25 @@
   // La llave de cada llavero sale de la contraseña y del nombre del llavero (siempre el mismo para cada persona).
   // Se guarda la LLAVE (no la contraseña) para poder abrir el llavero nuevo tras cada publicación sin volver a pedirla.
   async function llaveDe(pw, sal) {
-    return crypto.subtle.deriveKey({ name:'PBKDF2', salt:sal, iterations:600000, hash:'SHA-256' }, await clave(pw), { name:'AES-GCM', length:256 }, true, ['decrypt']);
+    return crypto.subtle.deriveKey({ name:'PBKDF2', salt:sal, iterations:600000, hash:'SHA-256' }, await clave(pw), { name:'AES-GCM', length:256 }, true, ['decrypt', 'encrypt']);
   }
+  const b64 = b => { let t = ''; const a = new Uint8Array(b); for (let i = 0; i < a.length; i += 8192) t += String.fromCharCode(...a.subarray(i, i + 8192)); return btoa(t); };
+  const deHex = h => new Uint8Array(h.match(/../g).map(x => parseInt(x, 16)));
+  // Cierra un texto con una llave AES guardada (la de un llavero o la del registro de Accesos).
+  async function cierraCon(kB64, texto, sal) {
+    const k = await crypto.subtle.importKey('raw', u8(kB64), 'AES-GCM', false, ['encrypt']), iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, k, new TextEncoder().encode(texto));
+    return sal ? { n:600000, s:b64(sal), i:b64(iv), c:b64(c) } : { i:b64(iv), c:b64(c) };
+  }
+  async function abreConB64(kB64, b) {
+    try { return await abreCon(await crypto.subtle.importKey('raw', u8(kB64), 'AES-GCM', false, ['decrypt']), b); } catch (e) { return null; }
+  }
+  // Para el panel: de una contraseña nueva saca el nombre del llavero y su llave (la contraseña no se guarda nunca).
+  async function nuevaPersona(pw) {
+    const id = await idDe(pw), k = await llaveDe(pw, deHex(id));
+    return { id, k: b64(await crypto.subtle.exportKey('raw', k)) };
+  }
+  const cierraLlavero = (u, texto) => cierraCon(u.k, texto, deHex(u.id));
   async function abreCon(k, b) {
     try { return new TextDecoder().decode(await crypto.subtle.decrypt({ name:'AES-GCM', iv:u8(b.i) }, k, u8(b.c))); } catch (e) { return null; }
   }
@@ -69,20 +88,24 @@
     if (!txt) return false;
     const s = JSON.parse(txt);
     s.id = id;
-    s.k = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.exportKey('raw', k))));
+    s.k = b64(await crypto.subtle.exportKey('raw', k));
     s.build = window.HUB_BUILD;
     s.exp = Date.now() + (recordar ? C.acceso.recordarDias * 864e5 : 12 * 36e5);
     guardaSesion(s, recordar);
     return true;
   }
   // Tras cada publicación: abre el llavero nuevo con la llave guardada. Si ya no hay llavero (baja) o cambió la contraseña, cierra la sesión.
+  let LL = null;
   const listo = (async () => {
+    try { const r = await fetch(RAIZ + 'comun/llaveros.json?t=' + Date.now(), { cache:'no-store' }); if (r.ok) LL = await r.json(); } catch (e) {}
+    if (!LL) return;   // sin conexión: se sigue con la sesión que hay
+    window.HUB_BUILD = LL.build; window.HUB_LLAVEROS = LL.llaveros || {};
     const s = sesion();
     if (!s || s.build === window.HUB_BUILD) return;
     const recordar = !!(ls() && ls().getItem(K('sesion')));
     const b = (window.HUB_LLAVEROS || {})[s.id];
     let txt = null;
-    if (b && s.k) { try { txt = await abreCon(await crypto.subtle.importKey('raw', u8(s.k), 'AES-GCM', false, ['decrypt']), b); } catch (e) {} }
+    if (b && s.k) txt = await abreConB64(s.k, b);
     if (!txt) { salirSinIr(); return; }
     guardaSesion({ ...JSON.parse(txt), id: s.id, k: s.k, build: window.HUB_BUILD, exp: s.exp }, recordar);
   })();
@@ -95,6 +118,38 @@
   }
   function salirSinIr() { for (const st of [ss(), ls()]) { try { st.removeItem(K('sesion')); } catch (e) {} } }
   const salir = () => { salirSinIr(); location.href = Hub.raiz + 'index.html'; };
+
+  /* ---------- Panel de Accesos (solo administradores del Hub) ----------
+     El REGISTRO (personas, permisos y secretos de los módulos) va cifrado con la llave del Hub,
+     que solo está en los llaveros de los administradores. Publicar = reescribir comun/llaveros.json. */
+  async function registro() {
+    const k = llave('accesos');
+    if (!k || !LL || !LL.registro) return null;
+    const t = await abreConB64(k.clave, LL.registro);
+    return t ? JSON.parse(t) : null;
+  }
+  async function publicaAccesos(reg) {
+    const k = llave('accesos'), P = C.acceso.publicar;
+    if (!k) throw new Error('Sin permiso');
+    if (!k.gh) throw new Error('Falta la llave de publicar del Hub');
+    const llaveros = {};
+    for (const u of reg.usuarios) {
+      if (u.baja) continue;
+      if (llaveros[u.id]) throw new Error('Dos personas con la misma contraseña');
+      llaveros[u.id] = await cierraLlavero(u, JSON.stringify(HUB_CONTENIDO(u, reg.secretos)));
+    }
+    const nuevo = { build: Date.now().toString(36), llaveros, registro: await cierraCon(k.clave, JSON.stringify(reg)) };
+    const api = `https://api.github.com/repos/${P.owner}/${P.repo}/contents/${P.ruta}`, h = { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github+json' };
+    const ahora = await fetch(`${api}?ref=${P.rama}&t=${Date.now()}`, { headers: h, cache:'no-store' });
+    if (!ahora.ok) throw new Error('GitHub no deja leer (' + ahora.status + ')');
+    const j = await ahora.json(), sha = j.sha;
+    let actual = null; try { actual = JSON.parse(new TextDecoder().decode(u8((j.content || '').replace(/\n/g, '')))); } catch (e) {}
+    if (!actual || actual.build !== LL.build) throw new Error('Otra persona ha cambiado los accesos mientras tanto. Recarga la página y vuelve a hacer el cambio.');
+    const r = await fetch(api, { method:'PUT', headers: h, body: JSON.stringify({ message:'Accesos: cambios desde el panel (' + new Date().toISOString().slice(0, 10) + ')', content: b64(new TextEncoder().encode(JSON.stringify(nuevo))), sha, branch: P.rama }) });
+    if (!r.ok) throw new Error('GitHub no deja publicar (' + r.status + ')');
+    LL = nuevo; window.HUB_BUILD = nuevo.build; window.HUB_LLAVEROS = llaveros;
+    return nuevo;
+  }
   const modulo = id => window.HUB_MODULOS.find(m => m.id === id);
   // ¿Puede ver este módulo? Accesos: solo administradores del Hub. En construcción: con permiso o administrador.
   function puede(id) {
@@ -135,5 +190,5 @@
     document.title = `${etiqueta === 'Hub' ? '' : etiqueta + ' · '}${C.nombre}`;
   }
 
-  window.Hub = { raiz: document.currentScript.src.replace(/comun\/nucleo\.js.*$/, ''), config: C, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
+  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona }, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();

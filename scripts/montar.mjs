@@ -4,14 +4,22 @@
     1. copia src/ (portada, núcleo común, estilo, logos);
     2. mete los módulos que ya funcionan a partir de su código de siempre (Pizarra, Dashboard,
        Formularios, Academia). Cada módulo se cambia lo mínimo: la entrada pasa a ser la del Hub;
-    3. genera comun/llaveros.js: un llavero por persona, cifrado con SU contraseña de siempre,
-       con sus permisos y SOLO las llaves de sus módulos.
+    3. genera comun/llaveros.json: un llavero por persona, cifrado con SU contraseña de siempre,
+       con sus permisos y SOLO las llaves de sus módulos, más el REGISTRO cifrado del panel de Accesos.
+
+  Quién tiene acceso a qué sale del REGISTRO publicado (lo cambia el panel de Accesos), no del Mac:
+  así volver a montar nunca pisa lo que se haya hecho en el panel. Solo la primera vez (--importar)
+  se crea el registro a partir de accesos.json.
 
   Uso:
     node scripts/montar.mjs --accesos /Users/diseno/claves-biofy/accesos.json \
+      --hub /Users/diseno/claves-biofy/hub-secretos.json \
       --pizarra /Users/diseno/claves-pizarra/pizarra-secretos.json \
       --dashboard /Users/diseno/claves-biofy/dashboard-secretos.json \
       --formularios /Users/diseno/claves-formularios/formularios-secretos.json
+    [--importar]            crea el registro desde accesos.json (solo la primera vez)
+    [--registro-de f.json]  lee el registro de un archivo en vez de la web publicada (pruebas)
+    [--compat]              deja también comun/llaveros.js para páginas viejas en caché (solo al pasar a llaveros.json)
 
   Nunca escribe contraseñas ni claves en pantalla. Comprueba al final que ninguna sale en claro.
   Al mudarnos a nuestro servidor, este script deja de generar llaveros: el servidor da los permisos.
@@ -20,6 +28,8 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync, st
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { webcrypto as crypto, randomBytes } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import vm from 'node:vm';
 import { encrypt, decrypt } from './cifrar.mjs';
 
 const aqui = dirname(fileURLToPath(import.meta.url)), raiz = join(aqui, '..');
@@ -36,6 +46,7 @@ const accesos = JSON.parse(readFileSync(arg('accesos') || falla('falta --accesos
 const PZ = lee('pizarra', ['owner', 'repo', 'read_token', 'write_token']);
 const DB = lee('dashboard', ['owner', 'repo', 'read_token', 'write_token']);
 const FM = lee('formularios', ['owner', 'repo', 'token', 'claves']);
+const HB = lee('hub', ['clave']);   // llave del registro de Accesos y llave de publicar (gh), si ya existe
 const CURSO = randomBytes(33).toString('base64');   // llave nueva del curso en cada montaje
 const BUILD = Date.now().toString(36);              // cada publicación, una versión: el navegador no usa copias viejas
 const b64 = f => readFileSync(f).toString('base64');
@@ -44,9 +55,9 @@ const LOGO = '/Users/diseno/formularios/src/logo-horizontal-blue.svg', LOGO_W = 
 /* 1. Copia de src/ */
 rmSync(out, { recursive: true, force: true });
 cpSync(join(raiz, 'src'), out, { recursive: true });
-for (const f of ['index.html', 'modulo.html']) {
+for (const f of ['index.html', 'modulo.html', 'accesos/index.html']) {
   const p = join(out, f);
-  writeFileSync(p, readFileSync(p, 'utf8').replace(/(src|href)="(comun\/[^"?]+\.(js|css))"/g, `$1="$2?v=${BUILD}"`));
+  writeFileSync(p, readFileSync(p, 'utf8').replace(/(src|href)="((\.\.\/)?comun\/[^"?]+\.(js|css))"/g, `$1="$2?v=${BUILD}"`));
 }
 
 /* 2. Módulos. Cada cambio tiene que encontrar su sitio exacto; si no, se para (el código original cambió). */
@@ -58,7 +69,7 @@ function modulo(nombre, html, cambios) {
   mkdirSync(join(out, nombre), { recursive: true });
   writeFileSync(join(out, nombre, 'index.html'), html);
 }
-const HUB_HEAD = ['config', 'llaveros', 'nucleo', 'volver'].map(f => `<script src="../comun/${f}.js?v=${BUILD}"></script>`).join('\n') + '\n';
+const HUB_HEAD = ['config', 'nucleo', 'volver'].map(f => `<script src="../comun/${f}.js?v=${BUILD}"></script>`).join('\n') + '\n';
 
 // Pizarra
 {
@@ -137,62 +148,85 @@ const HUB_SCRIPTS=${JSON.stringify(HUB_HEAD).replace(/<\//g, '<\\/')};
 </script></body></html>`);
 }
 
-/* 3. Llaveros: solo las llaves de los módulos que cada persona tiene */
-const hex = b => Buffer.from(b).toString('hex');
+/* 3. Registro y llaveros */
+vm.runInThisContext(readFileSync(join(raiz, 'src/comun/perfiles.js'), 'utf8'));
+const { HUB_CONTENIDO } = globalThis;
+const hex = b => Buffer.from(b).toString('hex'), B = s => Buffer.from(s, 'base64');
 async function idDe(pw) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
   return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode('biofy-hub/llavero'), iterations: 100000, hash: 'SHA-256' }, base, 128));
 }
-function llaves(w) {
-  const L = {};
-  if (w.pizarra === 'admin') L.pizarra = { read: PZ.write_token, write: PZ.write_token };
-  else if (w.pizarra === 'ver') L.pizarra = { read: PZ.read_token };
-  if (w.dashboard === 'admin') L.dashboard = { read: DB.write_token, write: DB.write_token, role: 'admin' };
-  else if (w.dashboard === 'jefe') L.dashboard = { read: DB.read_token, write: DB.write_token, role: 'jefe' };  // los jefes guardan versiones (como hasta ahora)
-  if (w.formularios === 'panel') L.formularios = { t: FM.token, k: FM.claves.priv };
-  else if (w.formularios === 'responder') L.formularios = { t: FM.token };
-  if (w.curso) L.curso = { clave: CURSO };
-  return L;
-}
-// La sal de cada llavero es su nombre (fijo para cada contraseña): así la sesión guarda la llave y abre el llavero nuevo tras cada publicación.
-async function cifraLlavero(pw, id, texto) {
-  const s = Buffer.from(id, 'hex'), iv = randomBytes(12);
+async function llaveDe(pw, id) {   // la misma llave que saca el navegador al entrar
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
-  const k = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: s, iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
-  const c = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, new TextEncoder().encode(texto)));
-  return { n: 600000, s: s.toString('base64'), i: iv.toString('base64'), c: Buffer.from(c).toString('base64') };
+  const k = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: Buffer.from(id, 'hex'), iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+  return Buffer.from(await crypto.subtle.exportKey('raw', k)).toString('base64');
 }
+async function cierra(kB64, texto, sal) {
+  const k = await crypto.subtle.importKey('raw', B(kB64), 'AES-GCM', false, ['encrypt']), iv = randomBytes(12);
+  const c = Buffer.from(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, new TextEncoder().encode(texto))).toString('base64');
+  return sal ? { n: 600000, s: sal.toString('base64'), i: iv.toString('base64'), c } : { i: iv.toString('base64'), c };
+}
+async function abre(kB64, b) {
+  try { const k = await crypto.subtle.importKey('raw', B(kB64), 'AES-GCM', false, ['decrypt']); return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: B(b.i) }, k, B(b.c))); } catch (e) { return null; }
+}
+
+// Registro: el publicado (con lo que se haya cambiado en el panel) o, la primera vez, el de accesos.json.
+let usuarios, historial = [];
+if (process.argv.includes('--importar')) {
+  usuarios = [];
+  for (const u of accesos) if (u.pw && u.webs) { const id = await idDe(u.pw); usuarios.push({ uid: randomBytes(6).toString('hex'), nombre: u.nombre, rol: u.rol || '', webs: u.webs, alta: u.alta || '', id, k: await llaveDe(u.pw, id) }); }
+  historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: 'Registro creado con los accesos de siempre' });
+} else {
+  let pub;
+  try {
+    pub = arg('registro-de') ? readFileSync(arg('registro-de'), 'utf8')
+      : execFileSync('gh', ['api', 'repos/biofy-hub/biofy-hub.github.io/contents/comun/llaveros.json?ref=gh-pages', '-H', 'Accept: application/vnd.github.raw'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch (e) { falla('no puedo leer el registro publicado (¿sin conexión?). La primera vez se usa --importar'); }
+  const t = JSON.parse(pub).registro && await abre(HB.clave, JSON.parse(pub).registro);
+  if (!t) falla('el registro publicado no se abre con la llave del Hub');
+  ({ usuarios, historial = [] } = JSON.parse(t));
+}
+const secretos = {
+  pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
+  dashboard: { read_token: DB.read_token, write_token: DB.write_token },
+  formularios: { token: FM.token, priv: FM.claves.priv },
+  curso: CURSO,
+  hub: { clave: HB.clave, gh: HB.gh || null }
+};
 const llaveros = {}, resumen = [];
-for (const u of accesos) {
-  if (!u.pw || !u.webs) continue;
-  const dispositivo = /dispositivo/i.test(u.rol || '');
-  const contenido = { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: u.webs.hub === 'admin', permisos: u.webs, llaves: llaves(u.webs) };
-  const id = await idDe(u.pw);
-  if (llaveros[id]) falla('dos personas con la misma contraseña');
-  llaveros[id] = await cifraLlavero(u.pw, id, JSON.stringify(contenido));
+for (const u of usuarios) {
+  if (u.baja) continue;
+  if (llaveros[u.id]) falla('dos personas con la misma contraseña');
+  const contenido = HUB_CONTENIDO(u, secretos);
+  llaveros[u.id] = await cierra(u.k, JSON.stringify(contenido), Buffer.from(u.id, 'hex'));
   resumen.push({ u, contenido });
 }
-writeFileSync(join(out, 'comun/llaveros.js'),
-  '/* Llaveros del Biofy Hub: uno por persona, cifrado con su contraseña (AES-GCM, PBKDF2 600.000). Generado por scripts/montar.mjs. */\n' +
-  `window.HUB_BUILD = "${BUILD}";\n` + 'window.HUB_LLAVEROS = ' + JSON.stringify(llaveros) + ';\n');
+const registro = await cierra(HB.clave, JSON.stringify({ usuarios, secretos, historial }));
+writeFileSync(join(out, 'comun/llaveros.json'), JSON.stringify({ build: BUILD, llaveros, registro }));
+// --compat: solo en la publicación que cambia de llaveros.js a llaveros.json, para las páginas viejas que el navegador aún tenga guardadas (10 min)
+if (process.argv.includes('--compat')) writeFileSync(join(out, 'comun/llaveros.js'), `window.HUB_BUILD = "${BUILD}";\nwindow.HUB_LLAVEROS = ${JSON.stringify(llaveros)};\n`);
 
 /* Comprobaciones */
 let ok = true;
+const pwDe = {};
+for (const a of accesos) if (a.pw) pwDe[await idDe(a.pw)] = a.pw;
 for (const { u, contenido } of resumen) {
-  const abre = JSON.parse(await decrypt(llaveros[await idDe(u.pw)], u.pw) || 'null');
-  const bien = abre && JSON.stringify(abre) === JSON.stringify(contenido);
-  // nadie lleva llaves de módulos que no tiene, y «ver» nunca lleva escritura
-  const mods = { pizarra: 'pizarra', dashboard: 'dashboard', formularios: 'formularios', curso: 'curso' };
-  const sobran = Object.keys(abre?.llaves || {}).filter(m => !u.webs[mods[m]]);
-  const verSinEscritura = u.webs.pizarra !== 'ver' || !abre?.llaves?.pizarra?.write;
-  if (!bien || sobran.length || !verSinEscritura) ok = false;
-  console.log(`${bien && !sobran.length && verSinEscritura ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}llaves: ${Object.entries(u.webs).filter(([m]) => abre?.llaves?.[m]).map(([m, p]) => m + ' (' + p + ')').join(', ') || 'ninguna'}`);
+  const abreK = JSON.parse(await abre(u.k, llaveros[u.id]) || 'null');
+  // si la contraseña está en el Mac, se comprueba también que abre con ella (como en el navegador)
+  const pw = pwDe[u.id], abrePw = pw ? JSON.parse(await decrypt(llaveros[u.id], pw) || 'null') : abreK;
+  const bien = abreK && JSON.stringify(abreK) === JSON.stringify(contenido) && JSON.stringify(abrePw) === JSON.stringify(contenido);
+  const sobran = Object.keys(abreK?.llaves || {}).filter(m => !contenido.permisos[m]);
+  const verSinEscritura = contenido.permisos.pizarra !== 'ver' || !abreK?.llaves?.pizarra?.write;
+  const hubSoloAdmin = !abreK?.llaves?.hub || contenido.admin;
+  const bueno = bien && !sobran.length && verSinEscritura && hubSoloAdmin;
+  if (!bueno) ok = false;
+  console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const secretos = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, ...accesos.map(u => u.pw).filter(Boolean)];
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, ...usuarios.map(u => u.k), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');
-  if (secretos.some(s => t.includes(s)) || /github_pat_|ghp_/.test(t)) { ok = false; console.error('SECRETO EN CLARO en ' + f); }
+  if (enClaro.some(s => t.includes(s)) || /github_pat_|ghp_/.test(t)) { ok = false; console.error('SECRETO EN CLARO en ' + f); }
 }
 if (!ok) falla('las comprobaciones han fallado: NO publicar');
-console.log(`Hecho: ${resumen.length} llaveros · módulos: pizarra, dashboard, formularios, academia · ningún secreto en claro`);
+console.log(`Hecho: ${resumen.length} llaveros (${usuarios.filter(u => u.baja).length} bajas) · registro de Accesos cifrado · ${HB.gh ? 'con' : 'SIN'} llave de publicar · ningún secreto en claro`);

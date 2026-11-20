@@ -6,7 +6,9 @@ window.HUB_CONFIG = {
   // Dónde se guardan los datos. Hoy: «github» (repositorios privados). Mañana: «servidor».
   datos: { tipo: 'github' },
   // Cómo se entra. Hoy: «cifrado» (llavero por persona en comun/llaveros.js). Mañana: «servidor».
-  acceso: { tipo: 'cifrado', recordarDias: 14 },
+  acceso: { tipo: 'cifrado', recordarDias: 14,
+    // Dónde publica el panel de Accesos los llaveros nuevos (la propia web en GitHub Pages).
+    publicar: { owner: 'biofy-hub', repo: 'biofy-hub.github.io', rama: 'gh-pages', ruta: 'comun/llaveros.json' } },
   // Prefijo de lo que se guarda en el navegador (tema, sesión).
   almacen: 'hub_'
 };
@@ -25,7 +27,7 @@ window.HUB_MODULOS = [
   { id:'fichas',      permiso:'fichas',      nombre:'Fichas de producto', etiqueta:'Productos', icono:'ficha', grupo:'formacion', estado:'obra', etapa:'alfa', desc:'Todas nuestras máquinas con su foto y sus datos.' },
   { id:'formularios', permiso:'formularios', ruta:'formularios/', nombre:'Formularios', etiqueta:'Formularios', icono:'portapapeles', grupo:'herramientas', estado:'uso', etapa:'beta', desc:'Cuestionarios del equipo y sus respuestas.' },
   { id:'bot',         permiso:'bot',         nombre:'Bot de WhatsApp', etiqueta:'Bot', icono:'chat', grupo:'herramientas', estado:'obra', etapa:'concepto', desc:'Atención automática para las campañas.' },
-  { id:'accesos',     permiso:'hub',         nombre:'Accesos', etiqueta:'Accesos', icono:'llave', grupo:'admin', estado:'obra', etapa:'concepto', desc:'Altas, bajas y qué módulos ve cada persona.' }
+  { id:'accesos',     permiso:'hub',         ruta:'accesos/', nombre:'Accesos', etiqueta:'Accesos', icono:'llave', grupo:'admin', estado:'uso', etapa:'beta', desc:'Altas, bajas y qué módulos ve cada persona.' }
 ];
 
 window.HUB_GRUPOS = [

@@ -13,6 +13,9 @@ biofy-hub/
       estilo.css        estilo único (Estilo de nuestras webs)
       config.js         configuración: lo ÚNICO que cambia al mudarnos
       nucleo.js         tema, iconos, cabecera con etiqueta, sesión y permisos
+      perfiles.js       perfiles de cada módulo y qué llaves lleva cada uno (lo usan el panel y el montaje)
+      llaveros.json     SE GENERA: llaveros por persona + registro cifrado de Accesos
+    accesos/            panel de Accesos (solo administradores del Hub)
       marca/            logos
     <módulo>/           (siguiente fase) pizarra/, dashboard/, formularios/…
   scripts/              herramientas (capturas, montaje, cifrado)
@@ -46,6 +49,14 @@ Cada persona solo puede usar los módulos **y las funciones** que tenga permitid
 2. ✅ Organización `biofy-hub` en GitHub y primera publicación (20/11).
 3. ✅ Entrada real: llavero por persona con su contraseña de siempre, módulos capados, TV (20/11).
 4. ✅ Módulos que ya funcionan dentro del Hub: Pizarra, Dashboard, Formularios y Academia (20/11).
-5. Panel de Accesos.
+5. ✅ Panel de Accesos (20/11): altas, bajas, contraseña nueva y perfil por módulo. Opción A de Juan: el registro guarda la llave de cada persona (nunca la contraseña), cifrado con la llave del Hub, que solo tienen los administradores.
 6. Módulos nuevos: Fichas, Quinielas (con hojas de producción), Comisiones, Academia, Bot de WhatsApp.
 7. Mudanza a nuestro hosting.
+
+## Accesos: cómo funciona (opción A, Juan, 20/11)
+- `comun/llaveros.json` lleva los llaveros y el **registro** (personas, permisos, llave de cada llavero y secretos de los módulos), cifrado con la llave del Hub.
+- La llave del Hub y la llave de publicar (`gh`, token fine-grained solo para este repositorio, Contents lectura y escritura) están en `/Users/diseno/claves-biofy/hub-secretos.json` y en los llaveros de los administradores.
+- El panel cambia el registro y reescribe `comun/llaveros.json` en la rama `gh-pages`. Las sesiones abiertas se ponen al día solas; las bajas se quedan fuera.
+- `scripts/montar.mjs` lee el registro **publicado** (no `accesos.json`), así volver a montar no pisa lo hecho en el panel. `--importar` solo se usó la primera vez.
+- Las contraseñas nuevas se enseñan una vez, para el Excel ADMIN GRUPO ENGLOBA. Ni el Hub ni el Mac las guardan.
+- Pendiente de seguridad: al dar de baja a alguien, las llaves de los módulos (tokens) siguen siendo las mismas. Si la baja es delicada, cambiar los tokens de esos módulos y volver a montar.
