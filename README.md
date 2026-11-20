@@ -32,6 +32,15 @@ biofy-hub/
 7. **Archivos grandes fuera** (vídeos del curso): YouTube oculto, Vimeo u OneDrive. GitHub no admite más de 100 MB por archivo.
 8. **Datos en formato abierto** (JSON). Pasar de GitHub a una base de datos es copiar.
 
+## Permisos: bloqueo de verdad, no esconder botones (Juan, 20/11)
+Cada persona solo puede usar los módulos **y las funciones** que tenga permitidos, y **de ninguna manera** puede saltárselo (ni cambiando la dirección, ni tocando la página).
+- Lo que no se ve no basta: un botón oculto se puede volver a mostrar. Por eso el bloqueo está en **las llaves**, no en la pantalla.
+- **Módulos:** los datos de cada módulo van cifrados con su propia llave. La contraseña de cada persona solo abre las llaves de sus módulos. Si alguien escribe la dirección de otro módulo, la página carga, pero sin la llave no hay datos que leer.
+- **Funciones** (subir Excel, borrar versiones, ver Comisiones, dar altas…): cada función que lee o cambia datos usa su propia llave o clave de escritura, limitada a lo justo. Solo la reciben las personas con ese permiso. Sin ella, la función no funciona aunque se fuerce el botón.
+- Cada permiso se escribe una sola vez: **persona → módulos → funciones**. El panel de Accesos lo cambia.
+- Con nuestro servidor (tras la mudanza), el mismo esquema lo comprueba el servidor en cada petición. Los módulos no cambian.
+- Lo que sí es público en GitHub: el código de la página (cómo está hecha), nunca los datos ni las claves.
+
 ## Plan
 1. ✅ Boceto de la portada (20/11/2026).
 2. Organización `biofy-hub` en GitHub y primera publicación.

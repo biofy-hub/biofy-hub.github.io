@@ -19,7 +19,7 @@ window.HUB_MODULOS = [
   { id:'quinielas',   nombre:'Quinielas',          etiqueta:'Quinielas',   icono:'quiniela', grupo:'ventas',     estado:'obra', etapa:'concepto', desc:'La quiniela diaria y las hojas de producción, en digital.' },
   { id:'comisiones',  nombre:'Comisiones',         etiqueta:'Comisiones',  icono:'euro',     grupo:'ventas',     estado:'obra', etapa:'concepto', desc:'Cálculo de las comisiones de la red comercial.' },
   { id:'academia',    nombre:'Academia',           etiqueta:'Academia',    icono:'birrete',  grupo:'formacion',  estado:'obra', etapa:'alfa',     desc:'El curso e-learning para comerciales, con el método de Cepas.' },
-  { id:'fichas',      nombre:'Fichas de producto', etiqueta:'Fichas',      icono:'ficha',    grupo:'formacion',  estado:'obra', etapa:'alfa',     desc:'Todas nuestras máquinas con su foto y sus datos.' },
+  { id:'fichas',      nombre:'Fichas de producto', etiqueta:'Productos',      icono:'ficha',    grupo:'formacion',  estado:'obra', etapa:'alfa',     desc:'Todas nuestras máquinas con su foto y sus datos.' },
   { id:'formularios', nombre:'Formularios',        etiqueta:'Formularios', icono:'portapapeles', grupo:'herramientas', estado:'uso', etapa:'beta', desc:'Cuestionarios del equipo y sus respuestas.' },
   { id:'bot',         nombre:'Bot de WhatsApp',    etiqueta:'Bot',         icono:'chat',     grupo:'herramientas', estado:'obra', etapa:'concepto', desc:'Atención automática para las campañas.' },
   { id:'accesos',     nombre:'Accesos',            etiqueta:'Accesos',     icono:'llave',    grupo:'admin',      estado:'obra', etapa:'concepto', desc:'Altas, bajas y qué módulos ve cada persona.' }

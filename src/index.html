@@ -66,11 +66,9 @@
       const ms = mods.filter(m => m.grupo === g.id); if (!ms.length) return '';
       return `<section class="grupo"><h2>${esc(g.nombre)}</h2><div class="rejilla">${ms.map(m => tarjeta(m, n++)).join('')}</div></section>`;
     }).join('');
-    const enUso = mods.filter(m => m.estado === 'uso').length;
     const main = document.createElement('main');
     main.className = 'wrap';
-    main.innerHTML = `<div class="hola"><div><h1>${saludo()}, ${esc(s.nombre)}</h1><p>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))} · Todo lo de Culligan Biofy en un solo sitio</p></div>
-      <div class="resumen"><span><b>${mods.length}</b> módulos para ti</span><span><b>${enUso}</b> en uso</span><span><b>${mods.length - enUso}</b> en construcción</span></div></div>
+    main.innerHTML = `<div class="hola"><div><h1>${saludo()}, ${esc(s.nombre)}</h1><p>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))} · Todo lo de Culligan Biofy en un solo sitio</p></div></div>
       ${grupos}
       <footer>Biofy Hub · <span class="boceto">Boceto del 20/11/2026</span></footer>`;
     app.appendChild(main);
