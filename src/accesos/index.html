@@ -14,6 +14,9 @@
 <script src="../comun/volver.js"></script>
 <style>
 .ac-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 22px}
+.ac-bot{display:flex;gap:10px;flex-wrap:wrap}
+.volver-bajas{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:8px}
+.volver-bajas svg{width:16px;height:16px}
 .ac-cab h1{font-size:26px;font-weight:800;letter-spacing:-.4px}
 .ac-cab p{color:var(--ink-2);max-width:620px}
 .btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line-2);box-shadow:none}
@@ -109,7 +112,7 @@ Hub.listo.then(async function () {
     const activos = reg.usuarios.filter(u => !u.baja), bajas = reg.usuarios.filter(u => u.baja);
     const orig = new Map(original.usuarios.map(u => [u.uid, JSON.stringify(u)]));
     app.innerHTML = `<div class="ac-cab"><div><h1>Accesos</h1><p>Quién entra en el Hub y qué puede hacer en cada módulo. Lo que alguien no tiene, no le aparece y no puede abrirlo.</p></div>
-      <button class="btn chico" id="alta" type="button">+ Dar de alta</button></div>
+      <div class="ac-bot">${bajas.length ? `<a class="btn sec chico" href="#bajas">Bajas (${bajas.length})</a>` : ''}<button class="btn chico" id="alta" type="button">+ Dar de alta</button></div></div>
       ${puedePublicar ? '' : `<div class="aviso">${icono('llave')}<div>Falta la llave de publicar del Hub. Puedes preparar cambios, pero no publicarlos hasta que Claude la añada.</div></div>`}
       <div class="gente">${activos.map(u => {
         const i = reg.usuarios.indexOf(u), nuevo = !orig.has(u.uid), cambiado = nuevo || orig.get(u.uid) !== JSON.stringify(u);
@@ -118,17 +121,30 @@ Hub.listo.then(async function () {
           <div class="fila"><div class="av">${esc(ini(u.nombre))}</div><div><h3>${esc(u.nombre)}${u.id === yo ? ' <small>(tú)</small>' : ''}</h3><small>${esc(u.rol || '')}</small></div></div>
           <div class="chips">${u.webs.hub === 'admin' ? '<span class="chip fuerte">Administra el Hub</span>' : ''}${nuevo ? '<span class="chip nuevo">Nuevo</span>' : ''}${chips || '<span class="chip">Sin módulos</span>'}</div></button>`;
       }).join('')}</div>
-      ${bajas.length ? `<section class="seccion"><h2>Bajas</h2><div class="lista">${bajas.map(u => `<div class="it"><div><b>${esc(u.nombre)}</b> <span>· ${esc(u.rol || '')} · baja el ${esc(u.baja.split('-').reverse().join('/'))}</span></div><button class="btn sec chico" type="button" data-re="${reg.usuarios.indexOf(u)}">Volver a dar de alta</button></div>`).join('')}</div></section>` : ''}
       ${(reg.historial || []).length ? `<section class="seccion"><h2>Últimos cambios</h2><div class="lista">${reg.historial.slice(-8).reverse().map(h => `<div class="it"><div>${esc(h.que)}</div><span>${esc(h.quien)} · ${esc(h.fecha.split('-').reverse().join('/'))}</span></div>`).join('')}</div></section>` : ''}
       <footer>Biofy Hub · Accesos</footer>`;
     app.querySelector('#alta').onclick = () => editor(null);
     app.querySelectorAll('.pers').forEach(b => b.onclick = () => editor(+b.dataset.i));
+    barra();
+  }
+
+  /* ---------- Bajas: página aparte, para que no se mezclen con las altas (Juan, 20/11) ---------- */
+  function pintaBajas() {
+    const bajas = reg.usuarios.filter(u => u.baja);
+    app.innerHTML = `<div class="ac-cab"><div><a class="volver-bajas" href="#">${icono('atras')}Volver a Accesos</a><h1>Bajas</h1><p>Personas que ya no entran en el Hub. Se guardan para saber quién tuvo acceso y poder volver a darlas de alta.</p></div></div>
+      ${bajas.length ? `<div class="lista">${bajas.map(u => `<div class="it"><div><b>${esc(u.nombre)}</b> <span>· ${esc(u.rol || '')} · baja el ${esc(u.baja.split('-').reverse().join('/'))}</span></div><button class="btn sec chico" type="button" data-re="${reg.usuarios.indexOf(u)}">Volver a dar de alta</button></div>`).join('')}</div>` : '<p class="muted">No hay bajas.</p>'}
+      <footer>Biofy Hub · Accesos</footer>`;
     app.querySelectorAll('[data-re]').forEach(b => b.onclick = () => realta(+b.dataset.re));
+    barra();
+  }
+  function barra() {
     const n = cambios();
     document.getElementById('nCambios').textContent = n === 1 ? '1 cambio sin publicar' : n + ' cambios sin publicar';
     document.getElementById('barra').classList.toggle('ver', n > 0);
     document.getElementById('publicar').disabled = !puedePublicar;
   }
+  const vista = () => location.hash === '#bajas' ? pintaBajas() : pinta();
+  window.addEventListener('hashchange', vista);
 
   /* ---------- Editor de una persona (o alta) ---------- */
   function editor(i) {
@@ -167,19 +183,19 @@ Hub.listo.then(async function () {
         reg.usuarios.push({ uid: uid(), nombre, rol: f.eRol.value.trim(), webs, alta: hoy(), id: p.id, k: p.k });
         claves[p.id] = { nombre, pw };
       } else Object.assign(u, { nombre, rol: f.eRol.value.trim(), webs: ord(webs) === ord(u.webs) ? u.webs : webs });
-      dlg.close(); pinta();
+      dlg.close(); vista();
     };
     const baja = dlg.querySelector('#eBaja');
     if (baja) baja.onclick = () => {
       if (!confirm(`¿Dar de baja a ${u.nombre}? Al publicar ya no podrá entrar y se le cierra la sesión.`)) return;
-      u.baja = hoy(); delete claves[u.id]; dlg.close(); pinta();
+      u.baja = hoy(); delete claves[u.id]; dlg.close(); vista();
     };
     const cl = dlg.querySelector('#eClave');
     if (cl) cl.onclick = async () => {
       if (!confirm(`¿Crear una contraseña nueva para ${u.nombre}? La de ahora dejará de funcionar al publicar.`)) return;
       const pw = clavito(), p = await Hub.accesos.nuevaPersona(pw);
       delete claves[u.id]; u.id = p.id; u.k = p.k; claves[p.id] = { nombre: u.nombre, pw };
-      dlg.close(); pinta();
+      dlg.close(); vista();
     };
     dlg.showModal();
     setTimeout(() => (nuevo ? f.eNom : f.eSi).focus(), 30);
@@ -190,7 +206,7 @@ Hub.listo.then(async function () {
     if (!confirm(`¿Volver a dar de alta a ${u.nombre}? Tendrá una contraseña nueva y los mismos permisos que tenía.`)) return;
     const pw = clavito(), p = await Hub.accesos.nuevaPersona(pw);
     delete u.baja; u.id = p.id; u.k = p.k; u.alta = hoy(); claves[p.id] = { nombre: u.nombre, pw };
-    pinta();
+    vista();
   }
 
   /* ---------- Publicar ---------- */
@@ -209,7 +225,7 @@ Hub.listo.then(async function () {
   }
   document.getElementById('deshacer').onclick = () => {
     if (!confirm('¿Deshacer todos los cambios sin publicar?')) return;
-    reg = JSON.parse(JSON.stringify(original)); claves = {}; pinta();
+    reg = JSON.parse(JSON.stringify(original)); claves = {}; vista();
   };
   document.getElementById('publicar').onclick = async () => {
     const lineas = resumen(), bt = document.getElementById('publicar');
@@ -219,7 +235,7 @@ Hub.listo.then(async function () {
       await Hub.accesos.publica(reg);
       original = JSON.parse(JSON.stringify(reg));
       const nuevas = Object.values(claves); claves = {};
-      pinta();
+      vista();
       dlg.innerHTML = `<form class="dc" method="dialog"><h2>Publicado</h2>
         <p>En un minuto los cambios están para todos. Quien esté dentro los verá la próxima vez que abra el Hub o recargue.</p>
         ${nuevas.length ? `<div class="aviso">${icono('llave')}<div>Apunta ahora ${nuevas.length === 1 ? 'esta contraseña' : 'estas contraseñas'} en el Excel ADMIN GRUPO ENGLOBA. Por seguridad <u>no ${nuevas.length === 1 ? 'se vuelve' : 'se vuelven'} a ver</u>: el Hub no ${nuevas.length === 1 ? 'la' : 'las'} guarda.</div></div>
@@ -234,7 +250,7 @@ Hub.listo.then(async function () {
     }
     bt.disabled = !puedePublicar; bt.textContent = 'Publicar';
   };
-  pinta();
+  vista();
 });
 </script>
 </body>

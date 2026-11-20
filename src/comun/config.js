@@ -6,7 +6,7 @@ window.HUB_CONFIG = {
   // Dónde se guardan los datos. Hoy: «github» (repositorios privados). Mañana: «servidor».
   datos: { tipo: 'github' },
   // Cómo se entra. Hoy: «cifrado» (llavero por persona en comun/llaveros.js). Mañana: «servidor».
-  acceso: { tipo: 'cifrado', recordarDias: 14,
+  acceso: { tipo: 'cifrado', recordarDias: 14, recordarDispositivoDias: 90,   // la TV y otros dispositivos: 90 días (Juan, 20/11)
     // Dónde publica el panel de Accesos los llaveros nuevos (la propia web en GitHub Pages).
     publicar: { owner: 'biofy-hub', repo: 'biofy-hub.github.io', rama: 'gh-pages', ruta: 'comun/llaveros.json' } },
   // Prefijo de lo que se guarda en el navegador (tema, sesión).

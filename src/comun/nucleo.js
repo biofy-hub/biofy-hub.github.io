@@ -90,7 +90,8 @@
     s.id = id;
     s.k = b64(await crypto.subtle.exportKey('raw', k));
     s.build = window.HUB_BUILD;
-    s.exp = Date.now() + (recordar ? C.acceso.recordarDias * 864e5 : 12 * 36e5);
+    const dias = /dispositivo/i.test(s.perfil || '') ? (C.acceso.recordarDispositivoDias || C.acceso.recordarDias) : C.acceso.recordarDias;
+    s.exp = Date.now() + (recordar ? dias * 864e5 : 12 * 36e5);
     guardaSesion(s, recordar);
     return true;
   }
