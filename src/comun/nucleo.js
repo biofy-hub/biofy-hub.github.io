@@ -38,6 +38,14 @@
     obra:'<path d="M3 20h18M5 20l3-12h8l3 12M7.5 14h9M9 8l1-4h4l1 4"/>'
   };
   const icono = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || P.hub}</svg>`;
+  // Icono de la pestaña: el del módulo abierto (Juan, 20/11). Cuadrado azul con el dibujo en blanco.
+  function iconoPestana(nombre) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#2968fe"/><g transform="translate(14 14) scale(1.5)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[nombre] || P.hub}</g></svg>`;
+    document.querySelectorAll('link[rel~="icon"]').forEach(l => l.remove());
+    const l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/svg+xml';
+    l.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    document.head.appendChild(l);
+  }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   /* ---------- Acceso (tipo «cifrado») ----------
@@ -190,6 +198,14 @@
     }
     document.title = `${etiqueta === 'Hub' ? '' : etiqueta + ' · '}${C.nombre}`;
   }
+
+  // ¿Qué módulo es esta página? Por su carpeta (pizarra/, dashboard/…) o por modulo.html?m=…
+  (function () {
+    const resto = location.href.split('#')[0].split('?')[0].replace(RAIZ, '');
+    let m = (window.HUB_MODULOS || []).find(x => x.ruta && resto.startsWith(x.ruta));
+    if (!m && /modulo\.html$/.test(resto)) m = modulo(new URLSearchParams(location.search).get('m'));
+    try { iconoPestana(m ? m.icono : 'hub'); } catch (e) {}
+  })();
 
   window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona }, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();
