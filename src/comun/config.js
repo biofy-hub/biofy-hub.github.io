@@ -18,12 +18,12 @@ window.HUB_CONFIG = {
    estado:  «uso» (funciona) u «obra» (en construcción). etapa: la del cerebro. */
 window.HUB_MODULOS = [
   { id:'pizarra',     permiso:'pizarra',     ruta:'pizarra/', nombre:'Pizarra', etiqueta:'Pizarra', icono:'trofeo', grupo:'ventas', estado:'uso', etapa:'estable', desc:'Las ventas del día en la TV de la reunión matinal.' },
-  { id:'dashboard',   permiso:'dashboard',   fuera:'https://juan-biofy.github.io/panel-comercial/', nombre:'Dashboard', etiqueta:'Dashboard', icono:'barras', grupo:'ventas', estado:'uso', etapa:'beta', desc:'Métricas de la red comercial y el Informe Comercial.' },
+  { id:'dashboard',   permiso:'dashboard',   ruta:'dashboard/', nombre:'Dashboard', etiqueta:'Dashboard', icono:'barras', grupo:'ventas', estado:'uso', etapa:'beta', desc:'Métricas de la red comercial y el Informe Comercial.' },
   { id:'quinielas',   permiso:'quinielas',   nombre:'Quinielas', etiqueta:'Quinielas', icono:'quiniela', grupo:'ventas', estado:'obra', etapa:'concepto', desc:'La quiniela diaria y las hojas de producción, en digital.' },
   { id:'comisiones',  permiso:'comisiones',  nombre:'Comisiones', etiqueta:'Comisiones', icono:'euro', grupo:'ventas', estado:'obra', etapa:'concepto', desc:'Cálculo de las comisiones de la red comercial.' },
-  { id:'academia',    permiso:'curso',       fuera:'https://juan-biofy.github.io/curso-elearning/', nombre:'Academia', etiqueta:'Academia', icono:'birrete', grupo:'formacion', estado:'obra', etapa:'alfa', desc:'El curso e-learning para comerciales, con el método de Cepas.' },
+  { id:'academia',    permiso:'curso',       ruta:'academia/', nombre:'Academia', etiqueta:'Academia', icono:'birrete', grupo:'formacion', estado:'obra', etapa:'alfa', desc:'El curso e-learning para comerciales, con el método de Cepas.' },
   { id:'fichas',      permiso:'fichas',      nombre:'Fichas de producto', etiqueta:'Productos', icono:'ficha', grupo:'formacion', estado:'obra', etapa:'alfa', desc:'Todas nuestras máquinas con su foto y sus datos.' },
-  { id:'formularios', permiso:'formularios', fuera:'https://juan-biofy.github.io/formularios/', nombre:'Formularios', etiqueta:'Formularios', icono:'portapapeles', grupo:'herramientas', estado:'uso', etapa:'beta', desc:'Cuestionarios del equipo y sus respuestas.' },
+  { id:'formularios', permiso:'formularios', ruta:'formularios/', nombre:'Formularios', etiqueta:'Formularios', icono:'portapapeles', grupo:'herramientas', estado:'uso', etapa:'beta', desc:'Cuestionarios del equipo y sus respuestas.' },
   { id:'bot',         permiso:'bot',         nombre:'Bot de WhatsApp', etiqueta:'Bot', icono:'chat', grupo:'herramientas', estado:'obra', etapa:'concepto', desc:'Atención automática para las campañas.' },
   { id:'accesos',     permiso:'hub',         nombre:'Accesos', etiqueta:'Accesos', icono:'llave', grupo:'admin', estado:'obra', etapa:'concepto', desc:'Altas, bajas y qué módulos ve cada persona.' }
 ];
