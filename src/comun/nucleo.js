@@ -50,22 +50,42 @@
   async function idDe(pw) {   // nombre del llavero: se saca de la contraseña, así no hay que probarlos todos
     return hex(await crypto.subtle.deriveBits({ name:'PBKDF2', salt:new TextEncoder().encode('biofy-hub/llavero'), iterations:100000, hash:'SHA-256' }, await clave(pw), 128));
   }
-  async function abre(b, pw) {
-    try {
-      const k = await crypto.subtle.deriveKey({ name:'PBKDF2', salt:u8(b.s), iterations:b.n, hash:'SHA-256' }, await clave(pw), { name:'AES-GCM', length:256 }, false, ['decrypt']);
-      return new TextDecoder().decode(await crypto.subtle.decrypt({ name:'AES-GCM', iv:u8(b.i) }, k, u8(b.c)));
-    } catch (e) { return null; }
+  // La llave de cada llavero sale de la contraseña y del nombre del llavero (siempre el mismo para cada persona).
+  // Se guarda la LLAVE (no la contraseña) para poder abrir el llavero nuevo tras cada publicación sin volver a pedirla.
+  async function llaveDe(pw, sal) {
+    return crypto.subtle.deriveKey({ name:'PBKDF2', salt:sal, iterations:600000, hash:'SHA-256' }, await clave(pw), { name:'AES-GCM', length:256 }, true, ['decrypt']);
   }
-  async function entrar(pw, recordar) {
-    const b = (window.HUB_LLAVEROS || {})[await idDe(pw)];
-    const txt = b && await abre(b, pw);
-    if (!txt) return false;
-    const s = JSON.parse(txt);
-    s.exp = Date.now() + (recordar ? C.acceso.recordarDias * 864e5 : 12 * 36e5);
+  async function abreCon(k, b) {
+    try { return new TextDecoder().decode(await crypto.subtle.decrypt({ name:'AES-GCM', iv:u8(b.i) }, k, u8(b.c))); } catch (e) { return null; }
+  }
+  function guardaSesion(s, recordar) {
     salirSinIr();
     try { (recordar ? ls() : ss()).setItem(K('sesion'), JSON.stringify(s)); } catch (e) {}
+  }
+  async function entrar(pw, recordar) {
+    const id = await idDe(pw), b = (window.HUB_LLAVEROS || {})[id];
+    if (!b) return false;
+    const k = await llaveDe(pw, u8(b.s)), txt = await abreCon(k, b);
+    if (!txt) return false;
+    const s = JSON.parse(txt);
+    s.id = id;
+    s.k = btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.exportKey('raw', k))));
+    s.build = window.HUB_BUILD;
+    s.exp = Date.now() + (recordar ? C.acceso.recordarDias * 864e5 : 12 * 36e5);
+    guardaSesion(s, recordar);
     return true;
   }
+  // Tras cada publicación: abre el llavero nuevo con la llave guardada. Si ya no hay llavero (baja) o cambió la contraseña, cierra la sesión.
+  const listo = (async () => {
+    const s = sesion();
+    if (!s || s.build === window.HUB_BUILD) return;
+    const recordar = !!(ls() && ls().getItem(K('sesion')));
+    const b = (window.HUB_LLAVEROS || {})[s.id];
+    let txt = null;
+    if (b && s.k) { try { txt = await abreCon(await crypto.subtle.importKey('raw', u8(s.k), 'AES-GCM', false, ['decrypt']), b); } catch (e) {} }
+    if (!txt) { salirSinIr(); return; }
+    guardaSesion({ ...JSON.parse(txt), id: s.id, k: s.k, build: window.HUB_BUILD, exp: s.exp }, recordar);
+  })();
   function sesion() {
     for (const st of [ss(), ls()]) {
       if (!st) continue;
@@ -115,5 +135,5 @@
     document.title = `${etiqueta === 'Hub' ? '' : etiqueta + ' · '}${C.nombre}`;
   }
 
-  window.Hub = { raiz: document.currentScript.src.replace(/comun\/nucleo\.js.*$/, ''), config: C, icono, esc, cambiaTema, sesion, entrar, salir, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
+  window.Hub = { raiz: document.currentScript.src.replace(/comun\/nucleo\.js.*$/, ''), config: C, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();

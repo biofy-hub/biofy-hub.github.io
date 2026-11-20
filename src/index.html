@@ -82,7 +82,7 @@
     app.appendChild(main);
   }
 
-  Hub.sesion() ? inicio() : pantallaEntrada();
+  Hub.listo.then(() => Hub.sesion() ? inicio() : pantallaEntrada());
 })();
 </script>
 </body>

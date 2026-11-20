@@ -17,7 +17,7 @@
      Cada módulo terminado vive en su carpeta (pizarra/, …) con la misma cabecera. -->
 <main class="wrap" id="app"></main>
 <script>
-(function () {
+Hub.listo.then(function () {
   const id = new URLSearchParams(location.search).get('m');
   const m = HUB_MODULOS.find(x => x.id === id);
   if (!Hub.sesion()) { location.href = 'index.html'; return; }
@@ -33,7 +33,7 @@
       : 'Módulo en construcción. Su sitio en el Hub ya está reservado.'}</p>
     ${solo ? '' : `<a class="volver" href="index.html">${Hub.icono('atras')}Volver al Hub</a>`}
   </div>`;
-})();
+});
 </script>
 </body>
 </html>

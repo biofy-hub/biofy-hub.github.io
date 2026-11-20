@@ -37,12 +37,17 @@ const PZ = lee('pizarra', ['owner', 'repo', 'read_token', 'write_token']);
 const DB = lee('dashboard', ['owner', 'repo', 'read_token', 'write_token']);
 const FM = lee('formularios', ['owner', 'repo', 'token', 'claves']);
 const CURSO = randomBytes(33).toString('base64');   // llave nueva del curso en cada montaje
+const BUILD = Date.now().toString(36);              // cada publicación, una versión: el navegador no usa copias viejas
 const b64 = f => readFileSync(f).toString('base64');
 const LOGO = '/Users/diseno/formularios/src/logo-horizontal-blue.svg', LOGO_W = '/Users/diseno/formularios/src/logo-horizontal-white.svg';
 
 /* 1. Copia de src/ */
 rmSync(out, { recursive: true, force: true });
 cpSync(join(raiz, 'src'), out, { recursive: true });
+for (const f of ['index.html', 'modulo.html']) {
+  const p = join(out, f);
+  writeFileSync(p, readFileSync(p, 'utf8').replace(/(src|href)="(comun\/[^"?]+\.(js|css))"/g, `$1="$2?v=${BUILD}"`));
+}
 
 /* 2. Módulos. Cada cambio tiene que encontrar su sitio exacto; si no, se para (el código original cambió). */
 function modulo(nombre, html, cambios) {
@@ -53,7 +58,7 @@ function modulo(nombre, html, cambios) {
   mkdirSync(join(out, nombre), { recursive: true });
   writeFileSync(join(out, nombre, 'index.html'), html);
 }
-const HUB_HEAD = '<script src="../comun/config.js"></script>\n<script src="../comun/llaveros.js"></script>\n<script src="../comun/nucleo.js"></script>\n';
+const HUB_HEAD = ['config', 'llaveros', 'nucleo', 'volver'].map(f => `<script src="../comun/${f}.js?v=${BUILD}"></script>`).join('\n') + '\n';
 
 // Pizarra
 {
@@ -64,7 +69,7 @@ const HUB_HEAD = '<script src="../comun/config.js"></script>\n<script src="../co
     ['const LOCAL_CONFIG=/*__CONFIG__*/null;', `const LOCAL_CONFIG=null;
 // Biofy Hub: la llave sale del llavero de la persona (ver: solo lectura; admin: escritura)
 function HUB_ACCESO(){const k=Hub.llave('pizarra');return k?{read:k.read,write:k.write||null,role:k.write?'admin':'ver'}:null;}`],
-    ['  const a=leerAcceso();\n  if(!a){mostrarCandado();return;}', "  const a=HUB_ACCESO();\n  if(!a){location.replace('../index.html');return;}"],
+    ['  const a=leerAcceso();\n  if(!a){mostrarCandado();return;}', "  await Hub.listo;const a=HUB_ACCESO();\n  if(!a){location.replace('../index.html');return;}"],
     ['function guardarAcceso(recordar){', 'function guardarAcceso(recordar){return;'],
     ["$('#cerrarSesion').onclick=()=>{borrarAcceso();location.reload();};", "$('#cerrarSesion').onclick=()=>{borrarAcceso();Hub.salir();};"],
     ['</head>', HUB_HEAD + '</head>'],
@@ -81,7 +86,7 @@ function HUB_ACCESO(){const k=Hub.llave('pizarra');return k?{read:k.read,write:k
 // Biofy Hub: la llave sale del llavero de la persona (jefe: ver y guardar; admin: además renombrar y borrar)
 function HUB_ACCESO(){const k=Hub.llave('dashboard');return k?{read:k.read,write:k.write||null,role:k.role}:null;}`],
     ["  gh.read=store.get('cb_read');gh.write=store.get('cb_write');gh.role=store.get('cb_role');\n  if(!gh.read||!gh.role){['cb_read','cb_write','cb_role','cb_jwrite'].forEach(store.del);gh.read=gh.write=gh.role=null;showLock();return;}",
-     "  {const a=HUB_ACCESO();if(!a){location.replace('../index.html');return;}gh.read=a.read;gh.write=a.write;gh.role=a.role;}"],
+     "  {await Hub.listo;const a=HUB_ACCESO();if(!a){location.replace('../index.html');return;}gh.read=a.read;gh.write=a.write;gh.role=a.role;}"],
     ["if(e.target.id==='btnLogout'){['cb_read','cb_write','cb_role','cb_jwrite'].forEach(store.del);location.reload();}",
      "if(e.target.id==='btnLogout'){['cb_read','cb_write','cb_role','cb_jwrite'].forEach(store.del);Hub.salir();}"],
     ['</head>', HUB_HEAD + '<style>#adminBox .admin-box:has(#admForm),#admOut{display:none!important}header.top .brand{cursor:pointer}</style>\n</head>'],
@@ -102,7 +107,7 @@ function HUB_ACCESO(){const k=Hub.llave('dashboard');return k?{read:k.read,write
     ["$('#btnOut').onclick=()=>{S.del('fm_sess');location.hash='';location.reload();};", "$('#btnOut').onclick=()=>{S.del('fm_sess');Hub.salir();};"],
     ["$('#goHome').onclick=()=>{location.hash='';};", "$('#goHome').onclick=()=>{if(location.hash.replace(/^#\\/?/,''))location.hash='';else location.href='../index.html';};"],
     ["  const raw=S.get('fm_sess',true)||S.get('fm_sess');\n  if(raw)try{const s=JSON.parse(raw);if(s&&s.token)return startSession(s,false);}catch(e){}\n  setTimeout(()=>$('#lockPw').focus(),50);",
-     "  const k=Hub.llave('formularios');if(!k){location.replace('../index.html');return;}\n  return startSession(k.k?{role:'admin',user:Hub.sesion().nombre,token:k.t,priv:k.k}:{role:'resp',user:null,token:k.t,priv:null},false);"],
+     "  await Hub.listo;const k=Hub.llave('formularios');if(!k){location.replace('../index.html');return;}\n  return startSession(k.k?{role:'admin',user:Hub.sesion().nombre,token:k.t,priv:k.k}:{role:'resp',user:null,token:k.t,priv:null},false);"],
     ['</head>', HUB_HEAD + '</head>'],
   ]);
 }
@@ -117,14 +122,16 @@ function HUB_ACCESO(){const k=Hub.llave('dashboard');return k?{read:k.read,write
 ${HUB_HEAD}</head><body><p class="muted" style="padding:40px;text-align:center">Abriendo la Academia…</p>
 <script>
 const CUERPO=${JSON.stringify(cuerpo)};
+const HUB_SCRIPTS=${JSON.stringify(HUB_HEAD).replace(/<\//g, '<\\/')};
 (async()=>{
-  const k=Hub.llave('academia');if(!k){location.replace('../index.html');return;}
+  await Hub.listo;const k=Hub.llave('academia');if(!k){location.replace('../index.html');return;}
   const u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
   try{
     const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(k.clave),'PBKDF2',false,['deriveKey']);
     const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:u8(CUERPO.s),iterations:CUERPO.n,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
     const html=new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:u8(CUERPO.i)},key,u8(CUERPO.c)));
-    document.open();document.write(html);document.close();
+    const i=html.lastIndexOf('</body>'),extra=HUB_SCRIPTS;
+    document.open();document.write(i>0?html.slice(0,i)+extra+html.slice(i):html+extra);document.close();
   }catch(e){document.body.innerHTML='<p style="padding:40px;text-align:center">No se pudo abrir la Academia. Vuelve a entrar en el Hub.</p>';}
 })();
 </script></body></html>`);
@@ -147,6 +154,14 @@ function llaves(w) {
   if (w.curso) L.curso = { clave: CURSO };
   return L;
 }
+// La sal de cada llavero es su nombre (fijo para cada contraseña): así la sesión guarda la llave y abre el llavero nuevo tras cada publicación.
+async function cifraLlavero(pw, id, texto) {
+  const s = Buffer.from(id, 'hex'), iv = randomBytes(12);
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const k = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: s, iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+  const c = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, new TextEncoder().encode(texto)));
+  return { n: 600000, s: s.toString('base64'), i: iv.toString('base64'), c: Buffer.from(c).toString('base64') };
+}
 const llaveros = {}, resumen = [];
 for (const u of accesos) {
   if (!u.pw || !u.webs) continue;
@@ -154,12 +169,12 @@ for (const u of accesos) {
   const contenido = { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: u.webs.hub === 'admin', permisos: u.webs, llaves: llaves(u.webs) };
   const id = await idDe(u.pw);
   if (llaveros[id]) falla('dos personas con la misma contraseña');
-  llaveros[id] = await encrypt(u.pw, JSON.stringify(contenido));
+  llaveros[id] = await cifraLlavero(u.pw, id, JSON.stringify(contenido));
   resumen.push({ u, contenido });
 }
 writeFileSync(join(out, 'comun/llaveros.js'),
   '/* Llaveros del Biofy Hub: uno por persona, cifrado con su contraseña (AES-GCM, PBKDF2 600.000). Generado por scripts/montar.mjs. */\n' +
-  'window.HUB_LLAVEROS = ' + JSON.stringify(llaveros) + ';\n');
+  `window.HUB_BUILD = "${BUILD}";\n` + 'window.HUB_LLAVEROS = ' + JSON.stringify(llaveros) + ';\n');
 
 /* Comprobaciones */
 let ok = true;
