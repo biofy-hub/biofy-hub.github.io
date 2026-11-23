@@ -21,7 +21,7 @@ window.HUB_CONFIG = {
 window.HUB_MODULOS = [
   { id:'pizarra',     permiso:'pizarra',     ruta:'pizarra/', nombre:'Pizarra', etiqueta:'Pizarra', icono:'trofeo', grupo:'ventas', estado:'uso', etapa:'estable', desc:'Las ventas del día en la TV de la reunión matinal.' },
   { id:'dashboard',   permiso:'dashboard',   ruta:'dashboard/', nombre:'Dashboard', etiqueta:'Dashboard', icono:'barras', grupo:'ventas', estado:'uso', etapa:'beta', desc:'Métricas de la red comercial y el Informe Comercial.' },
-  { id:'quinielas',   permiso:'quinielas',   ruta:'quinielas/', nombre:'Quinielas', etiqueta:'Quinielas', icono:'quiniela', grupo:'ventas', estado:'obra', etapa:'concepto', desc:'La quiniela diaria, firmada con el dedo, y la hoja de producción que sale sola.' },
+  { id:'quinielas',   permiso:'quinielas',   ruta:'quinielas/', nombre:'Quinielas', etiqueta:'Quinielas', icono:'quiniela', grupo:'ventas', estado:'uso', etapa:'alfa', desc:'La quiniela diaria, firmada con el dedo, y la hoja de producción que sale sola.' },
   { id:'comisiones',  permiso:'comisiones',  nombre:'Comisiones', etiqueta:'Comisiones', icono:'euro', grupo:'ventas', estado:'obra', etapa:'concepto', desc:'Cálculo de las comisiones de la red comercial.' },
   { id:'academia',    permiso:'curso',       ruta:'academia/', nombre:'Academia', etiqueta:'Academia', icono:'birrete', grupo:'formacion', estado:'obra', etapa:'alfa', desc:'El curso e-learning para comerciales, con el método de Cepas.' },
   { id:'fichas',      permiso:'fichas',      ruta:'productos/', nombre:'Fichas de producto', etiqueta:'Productos', icono:'ficha', grupo:'formacion', estado:'uso', etapa:'beta', desc:'Todas nuestras máquinas con su foto, sus datos y su ficha.' },
