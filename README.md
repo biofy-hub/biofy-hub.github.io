@@ -68,3 +68,10 @@ Cada persona solo puede usar los módulos **y las funciones** que tenga permitid
 - Perfiles: «Ver las fichas» y «Administrar». Los administradores del Hub reciben «Administrar» al montar.
 - Qué fichas se ven: `productos/estado.json` (cifrado con la llave «ver»). Lo cambian los administradores desde la página (botón del ojo o interruptor «Visible para todos») y el montaje lo conserva. Ocultar es esconder: una ficha oculta no sale en la página, pero quien tiene la llave «ver» podría abrirla. Las eliminadas sí están bloqueadas de verdad.
 - Para cambiar fichas: nueva ronda en `fichas-producto`, `python3 para-hub.py` y volver a montar y publicar.
+
+## Quinielas (Juan, 23/11/2026; alfa)
+- Página `quinielas/`: «Mi quiniela» (cada comercial, desde el móvil, firma con el dedo), «Quinielas del día» y «Hoja de producción» (sale sola sumando las quinielas, por semana y delegación; descarga en Excel).
+- Datos en el repositorio privado `Juan-biofy/quinielas-datos`, en `q/<código del comercial>/<fecha>.json`. Cada quiniela va cifrada con una llave al azar, que a su vez va cerrada con la clave pública de los jefes (ECDH; la privada solo la lleva el perfil «Ver todas») y con la llave propia del comercial (`qk` en el registro, se crea sola al publicar).
+- Perfiles: «Rellenar su quiniela» y «Ver todas y la hoja de producción». Los administradores del Hub reciben «Ver todas» al montar.
+- Claves en `/Users/diseno/claves-biofy/quinielas-secretos.json` (repositorio, token y claves ECDH). El token lo crea Juan y se guarda con `scripts/guardar-llave-quinielas.py`. Sin token, el módulo dice que está en construcción.
+- Igual que en Formularios: quien puede rellenar tiene una llave que escribe en el repositorio; no puede leer las de los demás, pero con conocimientos técnicos podría tocar archivos (quedan en el historial de GitHub).

@@ -142,6 +142,7 @@
     if (!k) throw new Error('Sin permiso');
     if (!k.gh) throw new Error('Falta la llave de publicar del Hub');
     const llaveros = {};
+    if (window.HUB_PREPARA) HUB_PREPARA(reg.usuarios, () => b64(crypto.getRandomValues(new Uint8Array(32))));
     for (const u of reg.usuarios) {
       if (u.baja) continue;
       if (llaveros[u.id]) throw new Error('Dos personas con la misma contraseña');

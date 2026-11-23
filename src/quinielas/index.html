@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Quinielas · Biofy Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/estilo.css">
+<script src="../comun/config.js"></script>
+<script src="../comun/perfiles.js"></script>
+<script src="../comun/nucleo.js"></script>
+<script src="../comun/volver.js"></script>
+<style>
+#app{padding-bottom:110px}
+.q-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:6px 0 14px;animation:entra .5s var(--ease) both}
+.q-cab h1{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.4px}
+.q-cab p{color:var(--ink-3);margin-top:2px}
+.pestanas{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;box-shadow:var(--shadow);flex-wrap:wrap}
+.pestanas button{display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:8px 14px;border-radius:10px;font-weight:700;font-size:13.5px;color:var(--ink-2);cursor:pointer;transition:background .2s,color .2s}
+.pestanas button svg{width:17px;height:17px}
+.pestanas button.on{background:var(--brand);color:#fff}
+.pestanas button:not(.on):hover{background:var(--surface-3)}
+.bloque{padding:16px 18px;margin-bottom:14px;animation:entra .45s var(--ease) both}
+.bloque h2 svg{width:16px;height:16px;color:var(--brand)}
+.bloque h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-3);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.fila{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px}
+.fila>*,.art>*,.c{min-width:0}
+@media (max-width:600px){.fila.dr{grid-template-columns:1fr}}
+.c .campo{width:100%;min-width:0}
+.c{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.campo{height:44px;font-size:15px}
+select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+.dia{display:flex;align-items:center;gap:8px}
+.dia .campo{flex:1;min-width:0}
+.btn.chico{width:auto;height:44px;margin:0;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px}
+.btn.chico svg{width:17px;height:17px}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line-2)}
+.btn.sec:hover{background:var(--surface-3);filter:none}
+.btn.ic{width:44px;padding:0}
+.btn.peligro{background:var(--bad-soft);color:var(--bad)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line-2);font-size:14px;font-weight:600;color:var(--ink-2);background:var(--surface);transition:all .15s}
+.seg input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.seg.res input[value="nulo"]:checked+span{background:var(--ink-3);border-color:var(--ink-3)}
+.seg.res input[value="demo"]:checked+span{background:var(--warn);border-color:var(--warn)}
+.seg.res input[value="venta"]:checked+span{background:var(--good);border-color:var(--good)}
+/* Resumen */
+.resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.resumen div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;animation:pop .45s var(--ease) both}
+.resumen small{display:block;font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px}
+.resumen b{font-size:22px;font-weight:800}
+.resumen .ven b{color:var(--good)}
+.resumen .dem b{color:var(--warn)}
+/* Visitas */
+.visitas{display:flex;flex-direction:column;gap:10px}
+.visita{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);cursor:pointer;text-align:left;width:100%;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;animation:entra .45s var(--ease) both}
+.visita:hover{transform:translateY(-2px);box-shadow:var(--shadow-up);border-color:var(--line-2)}
+.visita .n{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--surface-3);color:var(--ink-2)}
+.visita.venta .n{background:var(--good-soft);color:var(--good)}
+.visita.demo .n{background:var(--warn-soft);color:var(--warn)}
+.visita .t{flex:1;min-width:0}
+.visita b{display:block;font-size:15px}
+.visita small{color:var(--ink-3);font-size:12.5px;display:block;margin-top:2px}
+.visita .imp{font-weight:800;font-size:15px;white-space:nowrap}
+.estado{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-block;margin-top:6px}
+.estado.nulo{background:var(--surface-3);color:var(--ink-2)}
+.estado.demo{background:var(--warn-soft);color:var(--warn)}
+.estado.venta{background:var(--good-soft);color:var(--good)}
+.estado.pte{background:var(--brand-soft);color:var(--brand-ink)}
+.vacio-q{padding:26px 10px;text-align:center;color:var(--ink-3);font-size:14px}
+.anadir{border:2px dashed var(--line-2);background:none;border-radius:16px;padding:14px;font-weight:700;color:var(--brand);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;width:100%;transition:border-color .2s,background .2s}
+.anadir:hover{border-color:var(--brand);background:var(--brand-soft)}
+.anadir svg{width:18px;height:18px}
+/* Firma */
+.firma-caja{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.firma-img{background:#fff;border:1px solid var(--line);border-radius:12px;height:90px;padding:6px;max-width:260px}
+.lienzo{width:100%;height:220px;background:#fff;border:2px dashed var(--line-2);border-radius:14px;touch-action:none;display:block;cursor:crosshair}
+.aviso-q{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 16px;font-weight:600;font-size:14px;margin-bottom:14px;background:var(--warn-soft);color:var(--warn);animation:entra .4s var(--ease) both}
+.aviso-q.bien{background:var(--good-soft);color:var(--good)}
+.aviso-q.info{background:var(--brand-soft);color:var(--brand-ink)}
+.aviso-q svg{width:18px;height:18px;flex:none;margin-top:1px}
+/* Barra inferior (guardar / firmar) */
+.barra-q{position:fixed;left:0;right:0;bottom:0;z-index:25;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;align-items:center}
+.barra-q .estado-g{font-size:12.5px;color:var(--ink-3);margin-right:auto;max-width:1200px}
+.barra-q .der{display:flex;gap:10px}
+/* Jefes: lista del día */
+.tarjetas-q{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tq{padding:16px;cursor:pointer;text-align:left;border:1px solid var(--line);display:flex;flex-direction:column;gap:10px;transition:transform .2s var(--ease),box-shadow .2s;animation:entra .5s var(--ease) both}
+.tq:hover{transform:translateY(-3px);box-shadow:var(--shadow-up)}
+.tq .cab{display:flex;align-items:center;gap:10px}
+.tq .av{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none}
+.tq h3{font-size:15px;font-weight:700;line-height:1.25}
+.tq small{color:var(--ink-3);font-size:12.5px}
+.mini-res{display:flex;gap:6px;flex-wrap:wrap}
+.mini-res span{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--surface-3);color:var(--ink-2)}
+.mini-res span.v{background:var(--good-soft);color:var(--good)}
+.mini-res span.d{background:var(--warn-soft);color:var(--warn)}
+/* Tabla de detalle y hoja de producción */
+.tabla-c{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table.t{border-collapse:collapse;width:100%;font-size:13px;min-width:720px}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+table.t th{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3)}
+table.t td.n,table.t th.n{text-align:center}
+table.t tr.tot td{font-weight:800;background:var(--surface-2)}
+table.t tr.dia td{background:var(--brand-soft);color:var(--brand-ink);font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.6px}
+table.t th.g{text-align:center;border-left:1px solid var(--line)}
+table.t td.bl{border-left:1px solid var(--line)}
+.cero{color:var(--ink-3)}
+.volver-q{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:12px;background:none;border:0;color:var(--brand);cursor:pointer;padding:6px 0}
+.volver-q svg{width:17px;height:17px}
+dialog{margin:auto;border:none;border-radius:var(--r);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up);width:min(640px,calc(100% - 20px));max-height:calc(100dvh - 20px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+dialog[open]{animation:pop .3s var(--ease) both}
+dialog::backdrop{background:rgba(10,14,25,.5);backdrop-filter:blur(3px)}
+dialog .dc{padding:20px;display:flex;flex-direction:column;gap:14px}
+dialog h2{font-size:19px;font-weight:800}
+.art{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.art .ent{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.art .ent input{width:20px;height:20px;accent-color:var(--brand)}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px}
+.acciones .der{display:flex;gap:10px;margin-left:auto}
+.solo-venta{display:none;flex-direction:column;gap:12px}
+.es-venta .solo-venta{display:flex}
+.error-q{color:var(--bad);font-size:13px;font-weight:600;min-height:16px}
+.toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:var(--good);color:#fff;font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-up);z-index:40;animation:pop .35s var(--ease) both;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+.toast.mal{background:var(--bad)}
+.cargando{padding:60px 0;text-align:center;color:var(--ink-3)}
+@media (max-width:600px){.pestanas button span{display:none}.pestanas button{padding:8px 12px}.barra-q .estado-g{display:none}.barra-q .der{width:100%;min-width:0}.barra-q .der .btn{flex:1 1 0;min-width:0;padding:0 8px;font-size:13.5px;white-space:nowrap}}
+/* Imprimir: la quiniela como en papel */
+@media print{
+  header.top,#hub-volver,.pestanas,.barra-q,.volver-q,.no-imprimir,.toast{display:none!important}
+  body{background:#fff;color:#000}
+  .bloque,.tabla-c{box-shadow:none;border-color:#999;animation:none}
+  table.t{min-width:0;font-size:10px}
+  @page{size:A4 landscape;margin:10mm}
+}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="cargando">Abriendo las quinielas…</p></main>
+<dialog id="dlg"></dialog>
+<script>
+/* Módulo QUINIELAS (Juan, 23/11/2026): la quiniela diaria de cada comercial, firmada con el dedo,
+   y la hoja de producción, que sale sola sumando las quinielas.
+   Cada quiniela va CIFRADA en el repositorio privado: con la clave pública de los jefes (solo «Ver todas»
+   tiene la privada) y con la llave propia del comercial (para que pueda releer la suya). Quien solo rellena
+   no puede leer las de los demás. En GitHub solo se ve un nombre de archivo sin datos. */
+Hub.listo.then(async function () {
+  if (!Hub.sesion() || !Hub.puede('quinielas')) { location.replace('../index.html'); return; }
+  Hub.cabecera('Quinielas', 'quiniela');
+  const app = document.getElementById('app'), dlg = document.getElementById('dlg'), { esc } = Hub;
+  const K = Hub.llave('quinielas');
+  const sinLlave = t => { app.innerHTML = `<div class="card vacio"><div class="ic">${Hub.icono('quiniela')}</div><h1>Quinielas</h1><p>${t}</p></div>`; };
+  if (!K || !K.t) return sinLlave('El módulo está en construcción: todavía no está conectado a su almacén de datos. Avisa a Claude.');
+  const TODAS = !!K.priv;
+
+  /* ---------- Listas (Juan, 23/11) ---------- */
+  const ORIGENES = ['Registros móviles', 'MKT', 'Autocaptado', 'Guía'];
+  const OFERTAS = ['Ultra', 'Plus', 'Bio', 'Minibio', 'Oferta recu'];
+  const COBROS = ['Efectivo', 'TPV', 'Transferencia'];
+  const ARTICULOS = ['Columbia de sobremesa', 'Voqua', 'Unik', 'Pure Black 12 L', 'Pure Black 25 L', 'Pure Water Top', 'Pure Water Pie', 'Technocal', 'Descalpro', 'HidroCal Pro', 'Icebox', 'Hydronic Pure', 'Elektra'];
+  const DELEGACIONES = ['Córdoba', 'Alicante'];
+  const RES = { nulo: 'Nulo', demo: 'Demo', venta: 'Venta' };
+
+  /* ---------- Iconos ---------- */
+  const I = {
+    mia: '<path d="M9 4h6v3H9zM8 5.5H6v15h12v-15h-2M9 12h6M9 15.5h4"/>', dia: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+    hoja: '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9h17M3.5 14h17M9 4v16M15 4v16"/>', mas: '<path d="M12 5v14M5 12h14"/>',
+    izq: '<path d="M15 18l-6-6 6-6"/>', der: '<path d="M9 18l6-6-6-6"/>', firma: '<path d="M3 17c3-1 4-8 6-8s0 8 3 8 3-4 5-4 2 3 4 3"/><path d="M3 21h18"/>',
+    guardar: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>', ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    imprimir: '<path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="6"/>',
+    excel: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', borrar: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'
+  };
+  const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+  /* ---------- Fechas ---------- */
+  const hoyISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+  const sumaDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); const w = (d.getDay() + 6) % 7; return sumaDias(iso, -w); };
+  const fechaLarga = iso => { const t = new Date(iso + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+  const euros = n => (Number(n) || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  const num = s => { const n = parseFloat(String(s || '').replace(/\./g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+
+  /* ---------- Cifrado ---------- */
+  const u8 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const b64 = b => { let t = ''; const a = new Uint8Array(b); for (let i = 0; i < a.length; i += 8192) t += String.fromCharCode(...a.subarray(i, i + 8192)); return btoa(t); };
+  const aes = (raw, uso) => crypto.subtle.importKey('raw', raw, 'AES-GCM', false, [uso]);
+  async function cierra(obj) {
+    const k = crypto.getRandomValues(new Uint8Array(32)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aes(k, 'encrypt'), new TextEncoder().encode(JSON.stringify(obj)));
+    // para los jefes: clave efímera ECDH + su clave pública
+    const pub = await crypto.subtle.importKey('jwk', K.pub, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+    const eph = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+    const kj = await crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, eph.privateKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    const ij = crypto.getRandomValues(new Uint8Array(12));
+    const out = { v: 1, i: b64(iv), c: b64(c), j: { epk: await crypto.subtle.exportKey('jwk', eph.publicKey), i: b64(ij), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ij }, kj, k)) } };
+    if (K.propia) { const ip = crypto.getRandomValues(new Uint8Array(12)); out.p = { i: b64(ip), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ip }, await aes(u8(K.propia), 'encrypt'), k)) }; }
+    return out;
+  }
+  async function abre(env) {
+    let k = null;
+    try {
+      if (K.priv) {
+        const priv = await crypto.subtle.importKey('jwk', K.priv, { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveKey']);
+        const epk = await crypto.subtle.importKey('jwk', env.j.epk, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+        const kj = await crypto.subtle.deriveKey({ name: 'ECDH', public: epk }, priv, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+        k = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.j.i) }, kj, u8(env.j.c));
+      } else if (K.propia && env.p) k = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.p.i) }, await aes(u8(K.propia), 'decrypt'), u8(env.p.c));
+      if (!k) return null;
+      return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.i) }, await aes(k, 'decrypt'), u8(env.c))));
+    } catch (e) { return null; }
+  }
+  // Carpeta de cada comercial: un código sacado de su identificador (no dice quién es).
+  const carpeta = async uid => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-quinielas/' + uid)))].slice(0, 8).map(x => x.toString(16).padStart(2, '0')).join('');
+  const MIA = await carpeta(K.uid);
+
+  /* ---------- Almacén (repositorio privado) ---------- */
+  const API = `https://api.github.com/repos/${K.o}/${K.r}`, H = { Authorization: 'Bearer ' + K.t, Accept: 'application/vnd.github+json' };
+  async function lee(ruta) {
+    const r = await fetch(`${API}/contents/${ruta}?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (r.status === 404) return { sha: null, dato: null };
+    if (!r.ok) throw new Error('No se puede leer (' + r.status + ')');
+    const j = await r.json();
+    return { sha: j.sha, dato: await abre(JSON.parse(new TextDecoder().decode(u8(j.content.replace(/\n/g, ''))))) };
+  }
+  async function escribe(ruta, obj, sha, msg) {
+    const r = await fetch(`${API}/contents/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: msg, content: b64(new TextEncoder().encode(JSON.stringify(await cierra(obj)))), ...(sha ? { sha } : {}) }) });
+    if (r.status === 409 || r.status === 422) throw new Error('Se ha guardado desde otro aparato mientras tanto. Recarga la página.');
+    if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + '). Revisa la conexión.');
+    return (await r.json()).content.sha;
+  }
+  async function lista() {   // todas las rutas de quinielas (solo nombres)
+    const r = await fetch(`${API}/git/trees/HEAD?recursive=1&t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (!r.ok) return [];
+    return (await r.json()).tree.filter(x => x.type === 'blob' && /^q\/[0-9a-f]+\/\d{4}-\d{2}-\d{2}\.json$/.test(x.path)).map(x => x.path);
+  }
+
+  /* ---------- Estado de la página ---------- */
+  let pestana = location.hash.replace(/^#\/?/, '') || 'mia';
+  if (!TODAS && pestana !== 'mia') pestana = 'mia';
+  let fecha = hoyISO(), Q = null, shaQ = null, cambios = false, semana = lunesDe(hoyISO()), delegFiltro = 'Todas', diaJefes = hoyISO();
+  const nueva = () => ({ v: 1, uid: K.uid, comercial: K.nombreCompleto || Hub.sesion().nombre, delegacion: Hub.lee('qn_deleg') || '', fecha, ruta: '', visitas: [], firma: null, firmada: null, guardada: null });
+  const resumen = q => {
+    const v = q.visitas, ven = v.filter(x => x.resultado === 'venta');
+    return { nulos: v.filter(x => x.resultado === 'nulo').length, demos: v.filter(x => x.resultado === 'demo').length, ventas: ven.length,
+      conf: ven.filter(x => x.estado !== 'pte').length, pte: ven.filter(x => x.estado === 'pte').length,
+      importe: ven.reduce((s, x) => s + num(x.importe), 0), cuota: ven.reduce((s, x) => s + num(x.cuota1), 0) };
+  };
+  const aviso = (t, mal) => { const d = document.createElement('div'); d.className = 'toast' + (mal ? ' mal' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3200); };
+
+  function marco(contenido) {
+    app.innerHTML = `<div class="q-cab"><div><h1>Quinielas</h1><p>${TODAS ? 'La tuya, las de todo el equipo y la hoja de producción' : 'Tu seguimiento diario: rellénala durante el día y fírmala'}</p></div>
+      ${TODAS ? `<div class="pestanas" role="tablist">
+        <button type="button" data-p="mia" class="${pestana === 'mia' ? 'on' : ''}">${ic('mia')}<span>Mi quiniela</span></button>
+        <button type="button" data-p="dia" class="${pestana === 'dia' ? 'on' : ''}">${ic('dia')}<span>Quinielas del día</span></button>
+        <button type="button" data-p="hoja" class="${pestana === 'hoja' ? 'on' : ''}">${ic('hoja')}<span>Hoja de producción</span></button></div>` : ''}</div>${contenido}`;
+    app.querySelectorAll('.pestanas button').forEach(b => b.onclick = () => { if (cambios && !confirm('Tienes cambios sin guardar en tu quiniela. ¿Salir igualmente?')) return; location.hash = '#/' + b.dataset.p; });
+  }
+  window.addEventListener('hashchange', () => { pestana = location.hash.replace(/^#\/?/, '') || 'mia'; if (!TODAS) pestana = 'mia'; pinta(); });
+  window.addEventListener('beforeunload', e => { if (cambios) { e.preventDefault(); e.returnValue = ''; } });
+  function pinta() { document.querySelector('.barra-q')?.remove(); if (pestana === 'dia') return vistaDia(); if (pestana === 'hoja') return vistaHoja(); return vistaMia(); }
+
+  /* =================== MI QUINIELA =================== */
+  const borradorClave = () => 'qn_borrador_' + MIA + '_' + fecha;
+  async function cargaMia() {
+    Q = null; shaQ = null; cambios = false;
+    app.querySelector('#cuerpo').innerHTML = '<p class="cargando">Cargando tu quiniela…</p>';
+    try {
+      const r = await lee(`q/${MIA}/${fecha}.json`);
+      shaQ = r.sha; Q = r.dato;
+      if (r.sha && !r.dato) { app.querySelector('#cuerpo').innerHTML = '<div class="aviso-q">' + ic('info') + '<span>Esta quiniela existe, pero no se puede abrir con tu llave. Avisa a Claude.</span></div>'; return; }
+    } catch (e) { aviso(e.message, true); }
+    const b = Hub.lee(borradorClave());   // lo que quedó sin guardar en este aparato
+    if (b) { try { const x = JSON.parse(b); if (!Q || (x.guardada || '') >= (Q.guardada || '')) { Q = x; cambios = true; } } catch (e) {} }
+    if (!Q) Q = nueva();
+    pintaMia();
+  }
+  function vistaMia() {
+    marco(`<div class="card bloque" style="animation-delay:40ms"><h2>${ic('dia')}Día y ruta</h2>
+        <div class="fila dr">
+          <label class="c">Fecha<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${fecha}" max="${hoyISO()}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
+          <label class="c">Delegación<select class="campo" id="deleg"><option value="">Elige…</option>${DELEGACIONES.map(d => `<option>${d}</option>`).join('')}</select></label>
+          <label class="c">Ruta<input class="campo" id="ruta" placeholder="Zona o pueblos de hoy" autocomplete="off"></label>
+        </div></div>
+      <div id="cuerpo"></div>`);
+    const f = app.querySelector('#fecha');
+    f.onchange = () => cambiaDia(f.value);
+    app.querySelector('#ant').onclick = () => cambiaDia(sumaDias(fecha, -1));
+    app.querySelector('#sig').onclick = () => { if (fecha < hoyISO()) cambiaDia(sumaDias(fecha, 1)); };
+    app.querySelector('#deleg').onchange = e => { Q.delegacion = e.target.value; Hub.guarda('qn_deleg', e.target.value); toca(); };
+    app.querySelector('#ruta').oninput = e => { Q.ruta = e.target.value; toca(); };
+    cargaMia();
+  }
+  function cambiaDia(nuevaFecha) {
+    if (!nuevaFecha || nuevaFecha === fecha) return;
+    if (cambios && !confirm('Tienes cambios sin guardar. ¿Cambiar de día igualmente? (se quedan guardados en este aparato)')) { app.querySelector('#fecha').value = fecha; return; }
+    fecha = nuevaFecha; app.querySelector('#fecha').value = fecha; cargaMia();
+  }
+  function toca(quitaFirma = true) {
+    cambios = true;
+    if (quitaFirma && Q.firma) { Q.firma = null; Q.firmada = null; }
+    Q.guardada = new Date().toISOString();
+    Hub.guarda(borradorClave(), JSON.stringify(Q));
+    pintaBarra();
+  }
+  function pintaMia() {
+    app.querySelector('#deleg').value = Q.delegacion || '';
+    app.querySelector('#ruta').value = Q.ruta || '';
+    const r = resumen(Q), c = app.querySelector('#cuerpo');
+    c.innerHTML = `${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. Si cambias algo, tendrás que volver a firmarla.</span></div>` : ''}
+      <div class="card bloque" style="animation-delay:80ms"><h2>${ic('hoja')}Resumen</h2><div class="resumen">
+        <div><small>Visitas</small><b>${Q.visitas.length}</b></div><div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
+        <div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Confirmadas</small><b>${r.conf}</b></div>
+        <div><small>Importe total</small><b style="font-size:17px">${euros(r.importe)}</b></div><div><small>1.ª cuota</small><b style="font-size:17px">${euros(r.cuota)}</b></div></div></div>
+      <div class="card bloque" style="animation-delay:120ms"><h2>${ic('mia')}Visitas del día</h2>
+        <div class="visitas">${Q.visitas.length ? Q.visitas.map((v, i) => tarjetaVisita(v, i)).join('') : '<p class="vacio-q">Todavía no hay visitas. Añádelas según las vayas haciendo.</p>'}
+        <button class="anadir" type="button" id="anadir">${ic('mas')}Añadir visita</button></div></div>
+      <div class="card bloque" style="animation-delay:160ms"><h2>${ic('firma')}Firma</h2>
+        <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Cuando termines el día, firma con el dedo y envíala.</p>'}</div></div>`;
+    c.querySelectorAll('.visita').forEach(b => b.onclick = () => editaVisita(+b.dataset.i));
+    c.querySelector('#anadir').onclick = () => editaVisita(null);
+    pintaBarra();
+  }
+  function tarjetaVisita(v, i) {
+    const arts = (v.articulos || []).filter(a => a.nombre).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · ');
+    return `<button type="button" class="visita ${v.resultado}" data-i="${i}" style="animation-delay:${i * 40}ms"><span class="n">${i + 1}</span>
+      <span class="t"><b>${esc(v.cliente || 'Sin nombre')}</b><small>${esc([v.poblacion, v.origen, v.oferta].filter(Boolean).join(' · '))}</small>${arts ? `<small>${esc(arts)}</small>` : ''}
+      <span class="estado ${v.resultado}">${RES[v.resultado] || '—'}</span>${v.resultado === 'venta' ? ` <span class="estado ${v.estado === 'pte' ? 'pte' : 'venta'}">${v.estado === 'pte' ? 'Pendiente' : 'Confirmada'}</span>` : ''}</span>
+      ${v.resultado === 'venta' ? `<span class="imp">${euros(num(v.importe))}</span>` : ''}</button>`;
+  }
+  function pintaBarra() {
+    let b = document.querySelector('.barra-q');
+    if (pestana !== 'mia') { b?.remove(); return; }
+    if (!b) { b = document.createElement('div'); b.className = 'barra-q'; document.body.appendChild(b); }
+    b.innerHTML = `<span class="estado-g">${cambios ? 'Cambios sin guardar (guardados en este aparato)' : Q.firmada ? 'Firmada y enviada' : shaQ ? 'Guardada, sin firmar' : 'Sin guardar todavía'}</span>
+      <div class="der"><button class="btn chico sec" type="button" id="guardar" ${cambios ? '' : 'disabled'}>${ic('guardar')}Guardar</button>
+      <button class="btn chico" type="button" id="firmar">${ic('firma')}${Q.firmada ? 'Volver a firmar' : 'Firmar y enviar'}</button></div>`;
+    b.querySelector('#guardar').onclick = () => guarda(false);
+    b.querySelector('#firmar').onclick = pideFirma;
+  }
+  async function guarda(conFirma) {
+    if (!Q.delegacion) { aviso('Elige tu delegación antes de guardar.', true); return false; }
+    const bs = document.querySelectorAll('.barra-q .btn'); bs.forEach(x => x.disabled = true);
+    try {
+      Q.guardada = new Date().toISOString();
+      shaQ = await escribe(`q/${MIA}/${fecha}.json`, Q, shaQ, `Quiniela ${fecha}${conFirma ? ' (firmada)' : ''}`);
+      cambios = false; Hub.guarda(borradorClave(), null);
+      aviso(conFirma ? 'Quiniela firmada y enviada.' : 'Guardada.');
+      pintaMia(); return true;
+    } catch (e) { aviso(e.message, true); pintaBarra(); return false; }
+  }
+
+  /* ---------- Una visita ---------- */
+  function editaVisita(i) {
+    const v = i === null ? { cliente: '', poblacion: '', origen: '', oferta: '', resultado: '', estado: 'conf', articulos: [{}, {}, {}, {}], importe: '', cuota1: '', cobro: '', cuotas: '' } : JSON.parse(JSON.stringify(Q.visitas[i]));
+    while ((v.articulos || (v.articulos = [])).length < 4) v.articulos.push({});
+    const radios = (n, ops, val, cls = '') => `<div class="seg ${cls}">${ops.map(([k, t]) => `<label><input type="radio" name="${n}" value="${esc(k)}" ${val === k ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div>`;
+    dlg.innerHTML = `<form class="dc ${v.resultado === 'venta' ? 'es-venta' : ''}" id="fv" novalidate>
+      <h2>${i === null ? 'Nueva visita' : 'Visita ' + (i + 1)}</h2>
+      <div class="fila"><label class="c">Cliente<input class="campo" name="cliente" value="${esc(v.cliente)}" autocomplete="off" required></label>
+        <label class="c">Población<input class="campo" name="poblacion" value="${esc(v.poblacion)}" autocomplete="off"></label></div>
+      <div class="c">Origen del cliente${radios('origen', ORIGENES.map(o => [o, o]), v.origen)}</div>
+      <div class="c">Tipo de oferta${radios('oferta', OFERTAS.map(o => [o, o]), v.oferta)}</div>
+      <div class="c">Resultado${radios('resultado', Object.entries(RES), v.resultado, 'res')}</div>
+      <div class="solo-venta">
+        <div class="c">Estado de la venta${radios('estado', [['conf', 'Confirmada'], ['pte', 'Pendiente']], v.estado || 'conf')}</div>
+        <datalist id="arts">${ARTICULOS.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
+        ${v.articulos.map((a, k) => `<div class="art"><label class="c">Artículo ${k + 1}<input class="campo" name="art${k}" list="arts" value="${esc(a.nombre || '')}" autocomplete="off"></label><label class="ent"><input type="checkbox" name="ent${k}" ${a.entrega ? 'checked' : ''}>Entrega</label></div>`).join('')}
+        <div class="fila"><label class="c">Importe total (€)<input class="campo" name="importe" inputmode="decimal" value="${esc(v.importe)}"></label>
+          <label class="c">1.ª cuota (€)<input class="campo" name="cuota1" inputmode="decimal" value="${esc(v.cuota1)}"></label>
+          <label class="c">N.º de cuotas<input class="campo" name="cuotas" inputmode="numeric" value="${esc(v.cuotas)}"></label></div>
+        <div class="c">Forma de cobro (1.ª cuota)${radios('cobro', COBROS.map(o => [o, o]), v.cobro)}</div>
+      </div>
+      <p class="error-q" id="errv"></p>
+      <div class="acciones">${i !== null ? `<button class="btn chico peligro" type="button" id="quitar">${ic('borrar')}Quitar</button>` : ''}
+        <div class="der"><button class="btn chico sec" type="button" id="cancelar">Cancelar</button><button class="btn chico" type="submit">${i === null ? 'Añadir' : 'Guardar visita'}</button></div></div></form>`;
+    dlg.showModal();
+    const f = dlg.querySelector('#fv');
+    f.querySelectorAll('input[name="resultado"]').forEach(x => x.onchange = () => f.classList.toggle('es-venta', x.value === 'venta' && x.checked));
+    dlg.querySelector('#cancelar').onclick = () => dlg.close();
+    const q = dlg.querySelector('#quitar'); if (q) q.onclick = () => { if (!confirm('¿Quitar esta visita?')) return; Q.visitas.splice(i, 1); dlg.close(); toca(); pintaMia(); };
+    f.onsubmit = e => {
+      e.preventDefault();
+      const d = new FormData(f), g = k => (d.get(k) || '').toString().trim();
+      const nv = { cliente: g('cliente'), poblacion: g('poblacion'), origen: g('origen'), oferta: g('oferta'), resultado: g('resultado') };
+      const falta = [!nv.cliente && 'el cliente', !nv.origen && 'el origen', !nv.resultado && 'el resultado'].filter(Boolean);
+      if (nv.resultado === 'venta') {
+        Object.assign(nv, { estado: g('estado') || 'conf', articulos: [0, 1, 2, 3].map(k => ({ nombre: g('art' + k), entrega: d.get('ent' + k) === 'on' })).filter(a => a.nombre), importe: g('importe'), cuota1: g('cuota1'), cuotas: g('cuotas'), cobro: g('cobro') });
+        if (!nv.articulos.length) falta.push('al menos un artículo');
+        if (!nv.importe) falta.push('el importe');
+      }
+      if (falta.length) { dlg.querySelector('#errv').textContent = 'Falta ' + falta.join(', ') + '.'; return; }
+      if (i === null) Q.visitas.push(nv); else Q.visitas[i] = nv;
+      dlg.close(); toca(); pintaMia();
+    };
+  }
+
+  /* ---------- Firma con el dedo ---------- */
+  function pideFirma() {
+    if (!Q.delegacion) { aviso('Elige tu delegación antes de firmar.', true); return; }
+    if (!Q.visitas.length && !confirm('No hay visitas. ¿Firmar la quiniela vacía?')) return;
+    dlg.innerHTML = `<div class="dc"><h2>Firma tu quiniela</h2><p class="muted" style="font-size:14px">${esc(fechaLarga(fecha))} · ${Q.visitas.length} visita${Q.visitas.length === 1 ? '' : 's'}. Firma con el dedo (o el ratón) dentro del recuadro.</p>
+      <canvas class="lienzo" id="lienzo"></canvas>
+      <div class="acciones"><button class="btn chico sec" type="button" id="limpiar">${ic('borrar')}Borrar</button>
+        <div class="der"><button class="btn chico sec" type="button" id="cancelar">Cancelar</button><button class="btn chico" type="button" id="ok" disabled>${ic('ok')}Firmar y enviar</button></div></div></div>`;
+    dlg.showModal();
+    const cv = dlg.querySelector('#lienzo'), ctx = cv.getContext('2d'), ok = dlg.querySelector('#ok');
+    const dpr = window.devicePixelRatio || 1, r = cv.getBoundingClientRect();
+    cv.width = r.width * dpr; cv.height = r.height * dpr; ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1b1d23';
+    let dibuja = false, trazos = 0, ult = null;
+    const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+    cv.onpointerdown = e => { dibuja = true; ult = pos(e); cv.setPointerCapture(e.pointerId); ctx.beginPath(); ctx.arc(ult[0], ult[1], 1.2, 0, 7); ctx.fillStyle = '#1b1d23'; ctx.fill(); };
+    cv.onpointermove = e => { if (!dibuja) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(ult[0], ult[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); ult = p; trazos++; if (trazos > 8) ok.disabled = false; };
+    cv.onpointerup = cv.onpointercancel = () => { dibuja = false; };
+    dlg.querySelector('#limpiar').onclick = () => { ctx.clearRect(0, 0, cv.width, cv.height); trazos = 0; ok.disabled = true; };
+    dlg.querySelector('#cancelar').onclick = () => dlg.close();
+    ok.onclick = async () => {
+      ok.disabled = true; ok.textContent = 'Enviando…';
+      // la firma, recortada a lo dibujado y en PNG
+      Q.firma = cv.toDataURL('image/png'); Q.firmada = new Date().toISOString(); cambios = true;
+      if (await guarda(true)) dlg.close(); else { ok.disabled = false; ok.innerHTML = ic('ok') + 'Firmar y enviar'; Q.firma = null; Q.firmada = null; }
+    };
+  }
+
+  /* =================== QUINIELAS DEL DÍA (ver todas) =================== */
+  let RUTAS = null, CACHE = {};
+  async function rutas(forzar) { if (!RUTAS || forzar) RUTAS = await lista(); return RUTAS; }
+  async function quinielaDe(ruta) { if (!CACHE[ruta]) CACHE[ruta] = lee(ruta).then(r => r.dato).catch(() => null); return CACHE[ruta]; }
+  async function vistaDia() {
+    marco(`<div class="card bloque no-imprimir"><div class="fila">
+        <label class="c">Día<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${diaJefes}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
+        <label class="c">Delegación<select class="campo" id="deleg">${['Todas'].concat(DELEGACIONES).map(d => `<option ${d === delegFiltro ? 'selected' : ''}>${d}</option>`).join('')}</select></label></div></div>
+      <div id="cuerpo"><p class="cargando">Abriendo las quinielas…</p></div>`);
+    const f = app.querySelector('#fecha');
+    f.onchange = () => { diaJefes = f.value; vistaDia(); };
+    app.querySelector('#ant').onclick = () => { diaJefes = sumaDias(diaJefes, -1); vistaDia(); };
+    app.querySelector('#sig').onclick = () => { diaJefes = sumaDias(diaJefes, 1); vistaDia(); };
+    app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaDia(); };
+    const rs = (await rutas(true)).filter(p => p.endsWith(`/${diaJefes}.json`));
+    CACHE = {};
+    const qs = (await Promise.all(rs.map(quinielaDe))).filter(q => q && (delegFiltro === 'Todas' || q.delegacion === delegFiltro));
+    qs.sort((a, b) => a.comercial.localeCompare(b.comercial));
+    const c = app.querySelector('#cuerpo'), tot = qs.reduce((t, q) => { const r = resumen(q); for (const k in r) t[k] = (t[k] || 0) + r[k]; return t; }, {});
+    c.innerHTML = `<div class="card bloque"><h2>${ic('hoja')}${esc(fechaLarga(diaJefes))} · ${qs.length} quiniela${qs.length === 1 ? '' : 's'}</h2><div class="resumen">
+        <div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div class="dem"><small>Demos</small><b>${tot.demos || 0}</b></div><div class="ven"><small>Ventas</small><b>${tot.ventas || 0}</b></div>
+        <div><small>Confirmadas</small><b>${tot.conf || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>
+      ${qs.length ? `<div class="tarjetas-q">${qs.map((q, i) => { const r = resumen(q); return `<button type="button" class="card tq" data-i="${i}" style="animation-delay:${i * 45}ms">
+        <div class="cab"><span class="av">${esc(q.comercial.trim()[0] || '?')}</span><div><h3>${esc(q.comercial)}</h3><small>${esc(q.delegacion)}${q.ruta ? ' · ' + esc(q.ruta) : ''}</small></div></div>
+        <div class="mini-res"><span>${r.nulos} nulos</span><span class="d">${r.demos} demos</span><span class="v">${r.ventas} ventas</span><span>${q.firmada ? '✓ Firmada' : 'Sin firmar'}</span></div></button>`; }).join('')}</div>`
+        : '<p class="vacio-q">Nadie ha guardado su quiniela este día todavía.</p>'}`;
+    c.querySelectorAll('.tq').forEach(b => b.onclick = () => detalle(qs[+b.dataset.i]));
+  }
+  function detalle(q) {
+    const r = resumen(q);
+    app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a las quinielas del día</button>
+      <div class="q-cab"><div><h1>${esc(q.comercial)}</h1><p>Quiniela diaria · ${esc(fechaLarga(q.fecha))} · ${esc(q.delegacion)}${q.ruta ? ' · Ruta: ' + esc(q.ruta) : ''}</p></div>
+        <button class="btn chico sec no-imprimir" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div>
+      <div class="tabla-c"><table class="t"><thead><tr><th>#</th><th>Cliente</th><th>Población</th><th>Oferta</th><th>Origen</th><th>Artículos (entrega)</th><th>Importe</th><th>1.ª cuota</th><th>Cobro</th><th class="n">Cuotas</th><th>Resultado</th></tr></thead><tbody>
+      ${q.visitas.map((v, i) => `<tr><td>${i + 1}</td><td>${esc(v.cliente)}</td><td>${esc(v.poblacion)}</td><td>${esc(v.oferta)}</td><td>${esc(v.origen)}</td>
+        <td>${esc((v.articulos || []).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · '))}</td><td>${v.resultado === 'venta' ? euros(num(v.importe)) : ''}</td><td>${v.resultado === 'venta' ? euros(num(v.cuota1)) : ''}</td>
+        <td>${esc(v.cobro || '')}</td><td class="n">${esc(v.cuotas || '')}</td><td>${RES[v.resultado] || ''}${v.resultado === 'venta' ? (v.estado === 'pte' ? ' · Pendiente' : ' · Confirmada') : ''}</td></tr>`).join('') || '<tr><td colspan="11" class="cero">Sin visitas</td></tr>'}
+      <tr class="tot"><td colspan="6">Total</td><td>${euros(r.importe)}</td><td>${euros(r.cuota)}</td><td colspan="3"></td></tr></tbody></table></div>
+      <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen"><div><small>Nulos</small><b>${r.nulos}</b></div><div><small>Confirmadas</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas</small><b>${r.ventas}</b></div></div></div>
+      <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
+    app.querySelector('#volver').onclick = () => vistaDia();
+    scrollTo(0, 0);
+  }
+
+  /* =================== HOJA DE PRODUCCIÓN (sale de las quinielas) =================== */
+  async function vistaHoja() {
+    const dias = [0, 1, 2, 3, 4].map(n => sumaDias(semana, n));
+    marco(`<div class="card bloque no-imprimir"><div class="fila">
+        <label class="c">Semana del<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Semana anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${semana}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Semana siguiente">${ic('der')}</button></div></label>
+        <label class="c">Delegación<select class="campo" id="deleg">${['Todas'].concat(DELEGACIONES).map(d => `<option ${d === delegFiltro ? 'selected' : ''}>${d}</option>`).join('')}</select></label></div>
+        <div class="aviso-q info" style="margin:12px 0 0">${ic('info')}<span>Sale sola de las quinielas guardadas: nulos, demos y ventas de cada comercial por origen del cliente.</span></div></div>
+      <div id="cuerpo"><p class="cargando">Sumando las quinielas de la semana…</p></div>`);
+    const f = app.querySelector('#fecha');
+    f.onchange = () => { semana = lunesDe(f.value); vistaHoja(); };
+    app.querySelector('#ant').onclick = () => { semana = sumaDias(semana, -7); vistaHoja(); };
+    app.querySelector('#sig').onclick = () => { semana = sumaDias(semana, 7); vistaHoja(); };
+    app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaHoja(); };
+    const rs = (await rutas(true)).filter(p => dias.some(d => p.endsWith(`/${d}.json`)));
+    CACHE = {};
+    const qs = (await Promise.all(rs.map(quinielaDe))).filter(q => q && (delegFiltro === 'Todas' || q.delegacion === delegFiltro));
+    const comerciales = [...new Set(qs.map(q => q.comercial))].sort((a, b) => a.localeCompare(b));
+    const cuenta = (q, o, res) => q ? q.visitas.filter(v => v.origen === o && v.resultado === res).length : 0;
+    const filaDe = q => ORIGENES.flatMap(o => ['nulo', 'demo', 'venta'].map(res => cuenta(q, o, res))).concat(q ? q.visitas.filter(v => v.resultado === 'venta').length : 0);
+    const suma = filas => filas.reduce((t, f) => t.map((x, k) => x + f[k]), new Array(ORIGENES.length * 3 + 1).fill(0));
+    const celdas = f => f.map((x, k) => `<td class="n ${k % 3 === 0 && k < f.length - 1 ? 'bl' : ''} ${k === f.length - 1 ? 'bl' : ''} ${x ? '' : 'cero'}">${x}</td>`).join('');
+    const filasSemana = [];
+    let cuerpo = '';
+    for (const d of dias) {
+      const delDia = comerciales.map(n => [n, filaDe(qs.find(q => q.comercial === n && q.fecha === d))]);
+      const tot = suma(delDia.map(x => x[1])); filasSemana.push(tot);
+      cuerpo += `<tr class="dia"><td colspan="${3 + ORIGENES.length * 3}">${esc(fechaLarga(d))}</td></tr>` + delDia.map(([n, f], i) => `<tr><td class="n">${i + 1}º</td><td>${esc(n)}</td>${celdas(f)}</tr>`).join('') + `<tr class="tot"><td></td><td>Totales</td>${celdas(tot)}</tr>`;
+    }
+    const totSem = suma(filasSemana);
+    const c = app.querySelector('#cuerpo');
+    if (!comerciales.length) { c.innerHTML = '<p class="vacio-q">No hay quinielas guardadas esta semana.</p>'; return; }
+    c.innerHTML = `<div class="q-cab" style="margin-top:4px"><div><h1 style="font-size:20px">Hoja de producción · ${esc(delegFiltro === 'Todas' ? 'todas las delegaciones' : delegFiltro)}</h1><p>Semana del ${esc(fechaLarga(semana))} · ${comerciales.length} comerciales</p></div>
+        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico sec" type="button" id="csv">${ic('excel')}Excel</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
+      <div class="tabla-c"><table class="t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${ORIGENES.map(o => `<th class="g" colspan="3">${esc(o)}</th>`).join('')}<th class="g" rowspan="2">Total ventas</th></tr>
+        <tr>${ORIGENES.map(() => '<th class="n bl">Nul</th><th class="n">Demo</th><th class="n">Vent</th>').join('')}</tr></thead>
+        <tbody>${cuerpo}<tr class="dia"><td colspan="${3 + ORIGENES.length * 3}">Total semanal</td></tr><tr class="tot"><td></td><td>Total</td>${celdas(totSem)}</tr></tbody></table></div>`;
+    c.querySelector('#csv').onclick = () => {
+      const cab = ['Día', 'Comercial'].concat(ORIGENES.flatMap(o => ['Nulos', 'Demos', 'Ventas'].map(x => `${o} · ${x}`)), ['Total ventas']);
+      const filas = [cab];
+      for (const d of dias) for (const n of comerciales) filas.push([d, n].concat(filaDe(qs.find(q => q.comercial === n && q.fecha === d))));
+      filas.push(['Semana', 'Total'].concat(totSem));
+      const txt = '﻿' + filas.map(f => f.map(x => `"${String(x).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = `Hoja de produccion ${semana} ${delegFiltro}.csv`; a.click();
+    };
+  }
+
+  pinta();
+});
+</script>
+</body>
+</html>

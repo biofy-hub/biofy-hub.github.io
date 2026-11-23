@@ -11,7 +11,10 @@
     curso:       [{ id: 'alumno',    nombre: 'Alumno' }],
     // Productos (Juan, 23/11): ver las fichas; administrar = además ver las eliminadas y elegir qué fichas se ven
     // (guardarlo pide además ser administrador del Hub, que es quien tiene la llave de publicar).
-    fichas:      [{ id: 'ver',       nombre: 'Ver las fichas' },      { id: 'admin', nombre: 'Administrar (eliminadas y qué fichas se ven)' }]
+    fichas:      [{ id: 'ver',       nombre: 'Ver las fichas' },      { id: 'admin', nombre: 'Administrar (eliminadas y qué fichas se ven)' }],
+    // Quinielas (Juan, 23/11): cada comercial rellena y ve solo la suya; jefes, dirección y administración ven todas
+    // y la hoja de producción. Las quinielas van cifradas: «rellenar» no tiene la llave para leer las de los demás.
+    quinielas:   [{ id: 'rellenar',  nombre: 'Rellenar su quiniela' }, { id: 'todas', nombre: 'Ver todas y la hoja de producción' }]
   };
 
   // Llaves de cada persona según sus permisos. S = secretos de los módulos (solo los tienen el Mac y los administradores del Hub).
@@ -26,6 +29,8 @@
     if (w.curso) L.curso = { clave: S.curso };
     if (S.fichas && w.fichas === 'admin') L.fichas = { ver: S.fichas.ver, admin: S.fichas.admin };
     else if (S.fichas && w.fichas === 'ver') L.fichas = { ver: S.fichas.ver };
+    if (S.quinielas && S.quinielas.token && (w.quinielas === 'rellenar' || w.quinielas === 'todas'))
+      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub, ...(w.quinielas === 'todas' ? { priv: S.quinielas.priv } : {}) };
     if (w.hub === 'admin') L.hub = { clave: S.hub.clave, gh: S.hub.gh || null };
     return L;
   };
@@ -35,6 +40,13 @@
     const webs = {};
     for (const [k, v] of Object.entries(u.webs || {})) if (v) webs[k] = v;
     const dispositivo = /dispositivo/i.test(u.rol || '');
-    return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves: g.HUB_LLAVES(webs, S) };
+    const llaves = g.HUB_LLAVES(webs, S);
+    // Quinielas: cada persona lleva además SU llave (u.qk), con la que relee sus propias quinielas, y su identificador.
+    if (llaves.quinielas) Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre });
+    return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
+  };
+  // Antes de publicar: quien tiene Quinielas y aún no tiene su llave propia, la recibe (al azar, 32 bytes en base64).
+  g.HUB_PREPARA = function (usuarios, azar) {
+    for (const u of usuarios) if (!u.baja && u.webs && u.webs.quinielas && !u.qk) u.qk = azar();
   };
 })(typeof window !== 'undefined' ? window : globalThis);

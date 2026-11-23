@@ -18,6 +18,7 @@
       --dashboard /Users/diseno/claves-biofy/dashboard-secretos.json \
       --formularios /Users/diseno/claves-formularios/formularios-secretos.json \
       --fichas /Users/diseno/fichas-producto/hub      (módulo Productos: sale de fichas-producto/plantilla/para-hub.py)
+      --quinielas /Users/diseno/claves-biofy/quinielas-secretos.json   (módulo Quinielas: repositorio, token y claves)
     [--importar]            crea el registro desde accesos.json (solo la primera vez)
     [--registro-de f.json]  lee el registro de un archivo en vez de la web publicada (pruebas)
     [--compat]              deja también comun/llaveros.js para páginas viejas en caché (solo al pasar a llaveros.json)
@@ -47,7 +48,9 @@ const accesos = JSON.parse(readFileSync(arg('accesos') || falla('falta --accesos
 const PZ = lee('pizarra', ['owner', 'repo', 'read_token', 'write_token']);
 const DB = lee('dashboard', ['owner', 'repo', 'read_token', 'write_token']);
 const FM = lee('formularios', ['owner', 'repo', 'token', 'claves']);
-const HB = lee('hub', ['clave']);   // llave del registro de Accesos y llave de publicar (gh), si ya existe
+const HB = lee('hub', ['clave']);
+// Quinielas (23/11): repositorio privado y claves ECDH. Sin «token» todavía, nadie recibe la llave (el módulo no guarda).
+const QN = arg('quinielas') ? lee('quinielas', ['owner', 'repo', 'pub', 'priv']) : null;   // llave del registro de Accesos y llave de publicar (gh), si ya existe
 const CURSO = randomBytes(33).toString('base64');   // llave nueva del curso en cada montaje
 const BUILD = Date.now().toString(36);              // cada publicación, una versión: el navegador no usa copias viejas
 const b64 = f => readFileSync(f).toString('base64');
@@ -56,7 +59,7 @@ const LOGO = '/Users/diseno/formularios/src/logo-horizontal-blue.svg', LOGO_W = 
 /* 1. Copia de src/ */
 rmSync(out, { recursive: true, force: true });
 cpSync(join(raiz, 'src'), out, { recursive: true });
-for (const f of ['index.html', 'modulo.html', 'accesos/index.html', 'productos/index.html']) {
+for (const f of ['index.html', 'modulo.html', 'accesos/index.html', 'productos/index.html', 'quinielas/index.html']) {
   const p = join(out, f);
   writeFileSync(p, readFileSync(p, 'utf8').replace(/(src|href)="((\.\.\/)?comun\/[^"?]+\.(js|css))"/g, `$1="$2?v=${BUILD}"`));
 }
@@ -151,7 +154,7 @@ const HUB_SCRIPTS=${JSON.stringify(HUB_HEAD).replace(/<\//g, '<\\/')};
 
 /* 3. Registro y llaveros */
 vm.runInThisContext(readFileSync(join(raiz, 'src/comun/perfiles.js'), 'utf8'));
-const { HUB_CONTENIDO } = globalThis;
+const { HUB_CONTENIDO, HUB_PREPARA } = globalThis;
 const hex = b => Buffer.from(b).toString('hex'), B = s => Buffer.from(s, 'base64');
 async function idDe(pw) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
@@ -193,7 +196,14 @@ for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin' && !u.
   u.webs.fichas = 'admin';
   historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Productos (administrar), por ser administrador del Hub` });
 }
+// Quinielas (Juan, 23/11): los administradores del Hub las ven todas (dirección).
+if (QN) for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin' && !u.webs.quinielas) {
+  u.webs.quinielas = 'todas';
+  historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Quinielas (ver todas), por ser administrador del Hub` });
+}
+HUB_PREPARA(usuarios, () => randomBytes(32).toString('base64'));   // llave propia de quien tiene Quinielas
 const secretos = {
+  ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv } } : {}),
   fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
   pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
   dashboard: { read_token: DB.read_token, write_token: DB.write_token },
@@ -263,7 +273,7 @@ for (const { u, contenido } of resumen) {
   if (!bueno) ok = false;
   console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, ...usuarios.map(u => u.k), ...accesos.map(u => u.pw)].filter(Boolean);
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, QN && QN.token, QN && QN.priv.d, ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');
