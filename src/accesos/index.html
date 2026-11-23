@@ -33,7 +33,12 @@
 .pers .fila{display:flex;align-items:center;gap:12px}
 .pers .av{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none}
 .pers h3{font-size:15.5px;font-weight:700;line-height:1.25}
-.pers small{color:var(--ink-3);font-size:12.5px}
+.pers small{color:var(--ink-3);font-size:12.5px;display:block}
+.pers small.usr{color:var(--brand-ink);font-weight:600}
+.pers small.usr.sin{color:var(--warn)}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.dos{grid-template-columns:1fr}}
+.pwm{display:flex;flex-direction:column;gap:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--surface-3);color:var(--ink-2)}
 .chip.fuerte{background:var(--brand-soft);color:var(--brand-ink)}
@@ -118,7 +123,7 @@ Hub.listo.then(async function () {
         const i = reg.usuarios.indexOf(u), nuevo = !orig.has(u.uid), cambiado = nuevo || orig.get(u.uid) !== JSON.stringify(u);
         const chips = MODS.filter(m => u.webs[m.permiso]).map(m => `<span class="chip">${esc(m.nombre)} · ${esc(corto(m.permiso, u.webs[m.permiso]))}</span>`).join('');
         return `<button type="button" class="card pers ${cambiado ? 'cambiado' : ''}" data-i="${i}">
-          <div class="fila"><div class="av">${esc(ini(u.nombre))}</div><div><h3>${esc(u.nombre)}${u.id === yo ? ' <small>(tú)</small>' : ''}</h3><small>${esc(u.rol || '')}</small></div></div>
+          <div class="fila"><div class="av">${esc(ini(u.nombre))}</div><div><h3>${esc(u.nombre)}${u.id === yo ? ' <small>(tú)</small>' : ''}</h3><small>${esc([u.tipo, u.rol].filter(Boolean).join(' · '))}</small>${u.usuario ? `<small class="usr">Usuario: ${esc(u.usuario)}</small>` : '<small class="usr sin">Sin usuario todavía</small>'}</div></div>
           <div class="chips">${u.webs.hub === 'admin' ? '<span class="chip fuerte">Administra el Hub</span>' : ''}${nuevo ? '<span class="chip nuevo">Nuevo</span>' : ''}${chips || '<span class="chip">Sin módulos</span>'}</div></button>`;
       }).join('')}</div>
       ${(reg.historial || []).length ? `<section class="seccion"><h2>Últimos cambios</h2><div class="lista">${reg.historial.slice(-8).reverse().map(h => `<div class="it"><div>${esc(h.que)}</div><span>${esc(h.quien)} · ${esc(h.fecha.split('-').reverse().join('/'))}</span></div>`).join('')}</div></section>` : ''}
@@ -154,7 +159,13 @@ Hub.listo.then(async function () {
     dlg.innerHTML = `<form class="dc" method="dialog">
       <h2>${nuevo ? 'Dar de alta' : esc(u.nombre)}</h2>
       <div><label class="t" for="eNom">Nombre y apellido</label><input class="campo" id="eNom" value="${esc(u.nombre)}" required autocomplete="off"></div>
+      <div class="dos"><div><label class="t" for="eTipo">Tipo</label><select class="campo" id="eTipo"><option value="">Elige…</option>${HUB_TIPOS.map(t => `<option ${u.tipo === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+        <div><label class="t" for="eUsr">Usuario</label><input class="campo" id="eUsr" value="${esc(u.usuario || '')}" placeholder="Ej.: el mismo del CRM" autocomplete="off" autocapitalize="none" spellcheck="false"></div></div>
       <div><label class="t" for="eRol">Cargo</label><input class="campo" id="eRol" value="${esc(u.rol || '')}" placeholder="Ej.: Jefe de equipo (Sevilla) · para una TV: Dispositivo" autocomplete="off"></div>
+      ${nuevo ? `<div class="pwm"><label class="t">Contraseña</label><div class="seg">
+        <label><input type="radio" name="pwModo" value="azar" checked><span>Generar una al azar</span></label>
+        <label><input type="radio" name="pwModo" value="mia"><span>Escribirla yo (p. ej., la del CRM)</span></label></div>
+        <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 8 caracteres)" autocomplete="new-password" style="display:none"></div>` : ''}
       <div><label class="t">Qué puede hacer en cada módulo</label><div class="mods">${MODS.map(m => `<div class="m"><div class="nm">${icono(m.icono)}${esc(m.nombre)}</div><div class="seg">
         ${[{ id: '', nombre: 'Sin acceso' }].concat(HUB_PERFILES[m.permiso]).map(p => `<label><input type="radio" name="p_${m.permiso}" value="${p.id}" ${(u.webs[m.permiso] || '') === p.id ? 'checked' : ''}><span>${esc(p.nombre)}</span></label>`).join('')}
       </div></div>`).join('')}
@@ -163,7 +174,8 @@ Hub.listo.then(async function () {
           <label><input type="radio" name="p_hub" value="admin" ${u.webs.hub === 'admin' ? 'checked' : ''}><span>Sí: ve Accesos y los módulos en construcción</span></label></div>
           ${soyYo ? '<p class="nota" style="margin-top:8px">No puedes quitarte a ti mismo de administrador.</p>' : ultimoAdmin ? '<p class="nota" style="margin-top:8px">Tiene que quedar al menos un administrador.</p>' : ''}</div>
       </div></div>
-      ${nuevo ? '<p class="nota">Al publicar te enseño su contraseña una sola vez, para que la apuntes en el Excel ADMIN GRUPO ENGLOBA.</p>' : ''}
+      ${nuevo ? '<p class="nota">Si la contraseña es al azar, al publicar te la enseño una sola vez para el Excel ADMIN GRUPO ENGLOBA. Si la escribes tú, no se enseña ni se guarda en ningún sitio.</p>' : '<p class="nota">Con usuario, esta persona entra con usuario y contraseña (su contraseña no cambia). Las sesiones abiertas siguen funcionando.</p>'}
+      <p class="error" id="eErr"></p>
       <div class="acciones">
         ${nuevo || soyYo ? '' : `<button class="btn peligro chico" type="button" id="eBaja" ${ultimoAdmin ? 'disabled' : ''}>Dar de baja</button>`}
         ${nuevo ? '' : `<button class="btn sec chico" type="button" id="eClave">Nueva contraseña</button>`}
@@ -171,18 +183,30 @@ Hub.listo.then(async function () {
       </div></form>`;
     const f = dlg.querySelector('form');
     dlg.querySelector('#eNo').onclick = () => dlg.close();
+    const err = dlg.querySelector('#eErr');
+    f.querySelectorAll('input[name="pwModo"]').forEach(x => x.onchange = () => { f.ePw.style.display = f.pwModo.value === 'mia' ? '' : 'none'; if (f.pwModo.value === 'mia') f.ePw.focus(); });
     f.onsubmit = async e => {
       e.preventDefault();
       const nombre = f.eNom.value.trim().replace(/\s+/g, ' ');
       if (!nombre) return f.eNom.focus();
+      const usuario = f.eUsr.value.trim();
+      if (usuario && reg.usuarios.some(x => x !== u && !x.baja && (x.usuario || '').toLowerCase() === usuario.toLowerCase())) { err.textContent = 'Ese usuario ya lo tiene otra persona.'; return f.eUsr.focus(); }
+      if (usuario && !/^[\w.@-]{3,40}$/.test(usuario)) { err.textContent = 'El usuario: de 3 a 40 letras, números, puntos o guiones, sin espacios.'; return f.eUsr.focus(); }
+      const escrita = nuevo && f.pwModo.value === 'mia' ? f.ePw.value : null;
+      if (escrita !== null && escrita.length < 8) { err.textContent = 'La contraseña tiene que tener al menos 8 caracteres.'; return f.ePw.focus(); }
+      if (escrita !== null && !usuario) { err.textContent = 'Si escribes tú la contraseña, ponle también usuario (así no choca con la de otra persona).'; return f.eUsr.focus(); }
       const webs = {};
       for (const m of MODS) { const v = f['p_' + m.permiso].value; if (v) webs[m.permiso] = v; }
       if (f.p_hub.value) webs.hub = 'admin';
+      const datos = { tipo: f.eTipo.value || undefined, usuario: usuario || undefined };
       if (nuevo) {
-        const pw = clavito(), p = await Hub.accesos.nuevaPersona(pw);
-        reg.usuarios.push({ uid: uid(), nombre, rol: f.eRol.value.trim(), webs, alta: hoy(), id: p.id, k: p.k });
-        claves[p.id] = { nombre, pw };
-      } else Object.assign(u, { nombre, rol: f.eRol.value.trim(), webs: ord(webs) === ord(u.webs) ? u.webs : webs });
+        const pw = escrita !== null ? escrita : clavito(), p = await Hub.accesos.nuevaPersona(pw);
+        reg.usuarios.push({ uid: uid(), nombre, rol: f.eRol.value.trim(), ...datos, webs, alta: hoy(), id: p.id, k: p.k });
+        if (escrita === null) claves[p.id] = { nombre, pw, usuario };
+      } else {
+        Object.assign(u, { nombre, rol: f.eRol.value.trim(), webs: ord(webs) === ord(u.webs) ? u.webs : webs });
+        for (const [k, v] of Object.entries(datos)) { if (v) u[k] = v; else delete u[k]; }
+      }
       dlg.close(); vista();
     };
     const baja = dlg.querySelector('#eBaja');
@@ -191,14 +215,33 @@ Hub.listo.then(async function () {
       u.baja = hoy(); delete claves[u.id]; dlg.close(); vista();
     };
     const cl = dlg.querySelector('#eClave');
-    if (cl) cl.onclick = async () => {
-      if (!confirm(`¿Crear una contraseña nueva para ${u.nombre}? La de ahora dejará de funcionar al publicar.`)) return;
-      const pw = clavito(), p = await Hub.accesos.nuevaPersona(pw);
-      delete claves[u.id]; u.id = p.id; u.k = p.k; claves[p.id] = { nombre: u.nombre, pw };
+    if (cl) cl.onclick = () => nuevaClave(u);
+    dlg.showModal();
+    setTimeout(() => (nuevo ? f.eNom : f.eSi).focus(), 30);
+  }
+
+  // Contraseña nueva: al azar (se enseña una vez al publicar) o escrita por el administrador (no se enseña ni se guarda)
+  function nuevaClave(u) {
+    dlg.innerHTML = `<form class="dc" method="dialog"><h2>Contraseña nueva · ${esc(u.nombre)}</h2>
+      <p class="nota">La de ahora dejará de funcionar al publicar.</p>
+      <div class="seg"><label><input type="radio" name="pwModo" value="azar" checked><span>Generar una al azar</span></label><label><input type="radio" name="pwModo" value="mia"><span>Escribirla yo (p. ej., la del CRM)</span></label></div>
+      <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 8 caracteres)" autocomplete="new-password" style="display:none">
+      ${u.usuario ? '' : '<p class="nota">Si la escribes tú, ponle antes un usuario en su ficha.</p>'}
+      <p class="error" id="eErr"></p>
+      <div class="acciones"><div class="der"><button class="btn sec chico" type="button" id="eNo">Cancelar</button><button class="btn chico" type="submit">Cambiar</button></div></div></form>`;
+    const f = dlg.querySelector('form'), err = dlg.querySelector('#eErr');
+    f.querySelectorAll('input[name="pwModo"]').forEach(x => x.onchange = () => { f.ePw.style.display = f.pwModo.value === 'mia' ? '' : 'none'; });
+    dlg.querySelector('#eNo').onclick = () => dlg.close();
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const escrita = f.pwModo.value === 'mia' ? f.ePw.value : null;
+      if (escrita !== null && escrita.length < 8) { err.textContent = 'Al menos 8 caracteres.'; return; }
+      if (escrita !== null && !u.usuario) { err.textContent = 'Primero ponle un usuario en su ficha.'; return; }
+      const pw = escrita !== null ? escrita : clavito(), p = await Hub.accesos.nuevaPersona(pw);
+      delete claves[u.id]; u.id = p.id; u.k = p.k; if (escrita === null) claves[p.id] = { nombre: u.nombre, pw, usuario: u.usuario };
       dlg.close(); vista();
     };
     dlg.showModal();
-    setTimeout(() => (nuevo ? f.eNom : f.eSi).focus(), 30);
   }
 
   async function realta(i) {
@@ -219,7 +262,8 @@ Hub.listo.then(async function () {
       else if (!u.baja && o.baja) lineas.push('Vuelve a tener acceso: ' + u.nombre);
       else if (u.id !== o.id) lineas.push('Contraseña nueva: ' + u.nombre);
       else if (ord(u.webs) !== ord(o.webs)) lineas.push('Permisos cambiados: ' + u.nombre);
-      else if (u.nombre !== o.nombre || u.rol !== o.rol) lineas.push('Datos cambiados: ' + u.nombre);
+      else if ((u.usuario || '') !== (o.usuario || '')) lineas.push((o.usuario ? 'Usuario cambiado: ' : 'Usuario nuevo: ') + u.nombre);
+      else if (u.nombre !== o.nombre || u.rol !== o.rol || (u.tipo || '') !== (o.tipo || '')) lineas.push('Datos cambiados: ' + u.nombre);
     }
     return lineas;
   }
@@ -239,7 +283,7 @@ Hub.listo.then(async function () {
       dlg.innerHTML = `<form class="dc" method="dialog"><h2>Publicado</h2>
         <p>En un minuto los cambios están para todos. Quien esté dentro los verá la próxima vez que abra el Hub o recargue.</p>
         ${nuevas.length ? `<div class="aviso">${icono('llave')}<div>Apunta ahora ${nuevas.length === 1 ? 'esta contraseña' : 'estas contraseñas'} en el Excel ADMIN GRUPO ENGLOBA. Por seguridad <u>no ${nuevas.length === 1 ? 'se vuelve' : 'se vuelven'} a ver</u>: el Hub no ${nuevas.length === 1 ? 'la' : 'las'} guarda.</div></div>
-          ${nuevas.map(c => `<div class="clave"><span class="quien">${esc(c.nombre)}</span><code>${esc(c.pw)}</code><button class="btn sec chico" type="button" data-c="${esc(c.pw)}">Copiar</button></div>`).join('')}` : ''}
+          ${nuevas.map(c => `<div class="clave"><span class="quien">${esc(c.nombre)}${c.usuario ? `<br><small>Usuario: ${esc(c.usuario)}</small>` : ''}</span><code>${esc(c.pw)}</code><button class="btn sec chico" type="button" data-c="${esc(c.pw)}">Copiar</button></div>`).join('')}` : ''}
         <div class="acciones"><div class="der"><button class="btn chico" type="submit">${nuevas.length ? 'Ya las he apuntado' : 'Vale'}</button></div></div></form>`;
       dlg.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { navigator.clipboard.writeText(b.dataset.c).then(() => b.textContent = 'Copiada'); });
       dlg.oncancel = e => { if (nuevas.length) e.preventDefault(); };

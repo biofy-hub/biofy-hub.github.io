@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="comun/marca/icono-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Biofy Hub">
+<meta name="theme-color" content="#2968fe">
 <title>Biofy Hub</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%232968fe%27/%3E%3Cg fill=%27none%27 stroke=%27white%27 stroke-width=%274%27%3E%3Crect x=%2715%27 y=%2715%27 width=%2713%27 height=%2713%27 rx=%273%27/%3E%3Crect x=%2736%27 y=%2715%27 width=%2713%27 height=%2713%27 rx=%273%27/%3E%3Crect x=%2715%27 y=%2736%27 width=%2713%27 height=%2713%27 rx=%273%27/%3E%3Crect x=%2736%27 y=%2736%27 width=%2713%27 height=%2713%27 rx=%273%27/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,22 +30,24 @@
       <div class="card entrada-card">
         <div class="lb"><img class="logo logo-l" src="comun/marca/logo-horizontal-blue.svg" alt="Culligan Biofy"><img class="logo logo-d" src="comun/marca/logo-horizontal-white.svg" alt="Culligan Biofy"><span class="etiqueta">${icono('hub')}Hub</span></div>
         <h1>Bienvenido al Hub</h1>
-        <p>Todas nuestras herramientas en un solo sitio. Entra con tu contraseña.</p>
-        <form id="f"><input class="campo" id="pw" type="password" placeholder="Tu contraseña" autocomplete="current-password" aria-label="Contraseña" required>
+        <p>Todas nuestras herramientas en un solo sitio. Entra con tu usuario y tu contraseña.</p>
+        <form id="f"><input class="campo" id="us" type="text" placeholder="Tu usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Usuario" style="margin-bottom:10px">
+        <input class="campo" id="pw" type="password" placeholder="Tu contraseña" autocomplete="current-password" aria-label="Contraseña" required>
         <button class="btn" id="bt" type="submit">Entrar</button>
         <p class="error" id="err" role="alert"></p>
         <label class="recordar"><input type="checkbox" id="rec"> Recordar en este dispositivo</label></form>
       </div></div>`;
     app.querySelector('.theme').onclick = Hub.cambiaTema;
-    const f = app.querySelector('#f'), bt = app.querySelector('#bt'), err = app.querySelector('#err'), pw = app.querySelector('#pw');
-    setTimeout(() => pw.focus(), 50);
+    const f = app.querySelector('#f'), bt = app.querySelector('#bt'), err = app.querySelector('#err'), pw = app.querySelector('#pw'), us = app.querySelector('#us');
+    try { us.value = Hub.lee('usuario') || ''; } catch (e) {}
+    (us.value ? pw : us).focus();   // al momento: con un retraso, lo que ya se estuviera escribiendo podía acabar en la otra casilla
     f.onsubmit = async e => {
       e.preventDefault();
       bt.disabled = true; bt.textContent = 'Comprobando…'; err.textContent = '';
-      const ok = await Hub.entrar(pw.value, app.querySelector('#rec').checked);
+      const ok = await Hub.entrar(us.value, pw.value, app.querySelector('#rec').checked);
       bt.disabled = false; bt.textContent = 'Entrar';
-      if (!ok) { err.textContent = 'Contraseña incorrecta'; f.classList.remove('sacude'); void f.offsetWidth; f.classList.add('sacude'); pw.select(); return; }
-      pw.value = '';
+      if (!ok) { err.textContent = us.value.trim() ? 'Usuario o contraseña incorrectos' : 'Contraseña incorrecta (si ya tienes usuario, escríbelo)'; f.classList.remove('sacude'); void f.offsetWidth; f.classList.add('sacude'); pw.select(); return; }
+      pw.value = ''; Hub.guarda('usuario', us.value.trim() || null);
       inicio();
     };
   }

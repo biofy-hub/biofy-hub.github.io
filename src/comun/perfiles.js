@@ -3,6 +3,8 @@
    para que los llaveros salgan siempre iguales. Aquí no va ninguna clave: solo las reglas.
    Un perfil nuevo (una «zona» que capar) se añade aquí y en el módulo que lo use. */
 (function (g) {
+  // Tipo de cada persona (Juan, 23/11): sirve para filtrar (p. ej., quién hace quiniela) y para administración.
+  g.HUB_TIPOS = ['Comercial', 'Comercial VIP', 'Consultor Técnico', 'Instalador', 'Teleoperadora', 'Teleoperadora Mailing', 'Jefe de equipo', 'Administración', 'Dirección', 'Marketing', 'Dispositivo'];
   // permiso → perfiles posibles, de menos a más. El primero de cada lista es el más limitado.
   g.HUB_PERFILES = {
     pizarra:     [{ id: 'ver',       nombre: 'Solo ver' },            { id: 'admin', nombre: 'Administrar (subir PDF, fotos, versiones)' }],
@@ -30,11 +32,11 @@
     if (S.fichas && w.fichas === 'admin') L.fichas = { ver: S.fichas.ver, admin: S.fichas.admin };
     else if (S.fichas && w.fichas === 'ver') L.fichas = { ver: S.fichas.ver };
     if (S.quinielas && S.quinielas.token && ['rellenar', 'jefe', 'todas'].includes(w.quinielas)) {
-      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub };
+      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub, vapid: S.quinielas.vapid || null };
       const eq = S.quinielas.equipo || [];
       // Admin: lee todas y lleva la llave de cada usuario (para rellenarle la quiniela y que él pueda releerla). Jefe: lee todas.
       if (w.quinielas === 'todas') Object.assign(L.quinielas, { priv: S.quinielas.priv, equipo: eq });
-      if (w.quinielas === 'jefe') Object.assign(L.quinielas, { priv: S.quinielas.priv, equipo: eq.map(m => ({ uid: m.uid, nombre: m.nombre, rol: m.rol })) });
+      if (w.quinielas === 'jefe') Object.assign(L.quinielas, { priv: S.quinielas.priv, equipo: eq.map(m => ({ uid: m.uid, nombre: m.nombre, rol: m.rol, tipo: m.tipo })) });
     }
     if (w.hub === 'admin') L.hub = { clave: S.hub.clave, gh: S.hub.gh || null };
     return L;
@@ -55,6 +57,6 @@
   g.HUB_PREPARA = function (usuarios, azar, S) {
     for (const u of usuarios) if (!u.baja && u.webs && ['rellenar', 'todas'].includes(u.webs.quinielas) && !u.qk) u.qk = azar();
     if (S && S.quinielas) S.quinielas.equipo = usuarios.filter(u => !u.baja && u.webs && u.webs.quinielas === 'rellenar')
-      .map(u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '', qk: u.qk }));
+      .map(u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '', tipo: u.tipo || '', qk: u.qk }));
   };
 })(typeof window !== 'undefined' ? window : globalThis);

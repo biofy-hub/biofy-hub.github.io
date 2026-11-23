@@ -89,13 +89,21 @@
     salirSinIr();
     try { (recordar ? ls() : ss()).setItem(K('sesion'), JSON.stringify(s)); } catch (e) {}
   }
-  async function entrar(pw, recordar) {
-    const id = await idDe(pw), b = (window.HUB_LLAVEROS || {})[id];
+  // Usuario (Juan, 23/11): quien tiene usuario se busca por él (así dos personas pueden tener la misma contraseña);
+  // quien todavía no tiene, entra solo con la contraseña, como siempre.
+  const normUsuario = t => String(t || '').trim().toLowerCase();
+  async function claveUsuario(usuario) {
+    return 'u' + hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-hub/usuario/' + normUsuario(usuario)))).slice(0, 32);
+  }
+  const claveLlavero = async u => u.usuario ? claveUsuario(u.usuario) : u.id;
+  async function entrar(usuario, pw, recordar) {
+    if (pw === undefined || typeof pw === 'boolean') { recordar = pw; pw = usuario; usuario = ''; }
+    const llave = normUsuario(usuario) ? await claveUsuario(usuario) : await idDe(pw), b = (window.HUB_LLAVEROS || {})[llave];
     if (!b) return false;
     const k = await llaveDe(pw, u8(b.s)), txt = await abreCon(k, b);
     if (!txt) return false;
     const s = JSON.parse(txt);
-    s.id = id;
+    s.id = hex(u8(b.s)); s.llave = llave;
     s.k = b64(await crypto.subtle.exportKey('raw', k));
     s.build = window.HUB_BUILD;
     const dias = /dispositivo/i.test(s.perfil || '') ? (C.acceso.recordarDispositivoDias || C.acceso.recordarDias) : C.acceso.recordarDias;
@@ -112,11 +120,12 @@
     const s = sesion();
     if (!s || s.build === window.HUB_BUILD) return;
     const recordar = !!(ls() && ls().getItem(K('sesion')));
-    const b = (window.HUB_LLAVEROS || {})[s.id];
-    let txt = null;
+    let llave = s.llave || s.id, b = (window.HUB_LLAVEROS || {})[llave], txt = null;
     if (b && s.k) txt = await abreConB64(s.k, b);
+    // Si le han puesto usuario (o se lo han cambiado), su llavero cambia de sitio: se busca el que abre su llave.
+    if (!txt && s.k) for (const [kk, bb] of Object.entries(window.HUB_LLAVEROS || {})) { txt = await abreConB64(s.k, bb); if (txt) { llave = kk; break; } }
     if (!txt) { salirSinIr(); return; }
-    guardaSesion({ ...JSON.parse(txt), id: s.id, k: s.k, build: window.HUB_BUILD, exp: s.exp }, recordar);
+    guardaSesion({ ...JSON.parse(txt), id: s.id, llave, k: s.k, build: window.HUB_BUILD, exp: s.exp }, recordar);
   })();
   function sesion() {
     for (const st of [ss(), ls()]) {
@@ -145,8 +154,9 @@
     if (window.HUB_PREPARA) HUB_PREPARA(reg.usuarios, () => b64(crypto.getRandomValues(new Uint8Array(32))), reg.secretos);
     for (const u of reg.usuarios) {
       if (u.baja) continue;
-      if (llaveros[u.id]) throw new Error('Dos personas con la misma contraseña');
-      llaveros[u.id] = await cierraLlavero(u, JSON.stringify(HUB_CONTENIDO(u, reg.secretos)));
+      const kk = await claveLlavero(u);
+      if (llaveros[kk]) throw new Error(u.usuario ? 'Dos personas con el mismo usuario (' + u.usuario + ')' : 'Dos personas sin usuario con la misma contraseña. Ponles usuario.');
+      llaveros[kk] = await cierraLlavero(u, JSON.stringify(HUB_CONTENIDO(u, reg.secretos)));
     }
     const nuevo = { build: Date.now().toString(36), llaveros, registro: await cierraCon(k.clave, JSON.stringify(reg)) };
     const api = `https://api.github.com/repos/${P.owner}/${P.repo}/contents/${P.ruta}`, h = { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github+json' };
@@ -236,5 +246,5 @@
     try { iconoPestana(m ? m.icono : 'hub'); } catch (e) {}
   })();
 
-  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona }, publicaArchivo, shaDe, cifra, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
+  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona, claveUsuario }, publicaArchivo, shaDe, cifra, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();

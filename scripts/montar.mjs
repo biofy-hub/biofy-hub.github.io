@@ -29,7 +29,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { webcrypto as crypto, randomBytes } from 'node:crypto';
+import { webcrypto as crypto, randomBytes, createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import vm from 'node:vm';
 import { encrypt, decrypt } from './cifrar.mjs';
@@ -202,7 +202,7 @@ if (QN) for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin
   historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Quinielas (ver todas), por ser administrador del Hub` });
 }
 const secretos = {
-  ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv } } : {}),
+  ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv, vapid: QN.vapid ? QN.vapid.pub : null } } : {}),
   fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
   pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
   dashboard: { read_token: DB.read_token, write_token: DB.write_token },
@@ -214,10 +214,12 @@ HUB_PREPARA(usuarios, () => randomBytes(32).toString('base64'), secretos);   // 
 const llaveros = {}, resumen = [];
 for (const u of usuarios) {
   if (u.baja) continue;
-  if (llaveros[u.id]) falla('dos personas con la misma contraseña');
+  // Con usuario, el llavero se guarda con su usuario (Juan, 23/11); sin usuario, con el nombre sacado de la contraseña
+  const kk = u.usuario ? 'u' + createHash('sha256').update('biofy-hub/usuario/' + String(u.usuario).trim().toLowerCase()).digest('hex').slice(0, 32) : u.id;
+  if (llaveros[kk]) falla(u.usuario ? 'dos personas con el mismo usuario' : 'dos personas sin usuario con la misma contraseña');
   const contenido = HUB_CONTENIDO(u, secretos);
-  llaveros[u.id] = await cierra(u.k, JSON.stringify(contenido), Buffer.from(u.id, 'hex'));
-  resumen.push({ u, contenido });
+  llaveros[kk] = await cierra(u.k, JSON.stringify(contenido), Buffer.from(u.id, 'hex'));
+  resumen.push({ u, contenido, kk });
 }
 const registro = await cierra(HB.clave, JSON.stringify({ usuarios, secretos, historial }));
 writeFileSync(join(out, 'comun/llaveros.json'), JSON.stringify({ build: BUILD, llaveros, registro }));
@@ -260,10 +262,10 @@ if (process.argv.includes('--compat')) writeFileSync(join(out, 'comun/llaveros.j
 let ok = true;
 const pwDe = {};
 for (const a of accesos) if (a.pw) pwDe[await idDe(a.pw)] = a.pw;
-for (const { u, contenido } of resumen) {
-  const abreK = JSON.parse(await abre(u.k, llaveros[u.id]) || 'null');
+for (const { u, contenido, kk } of resumen) {
+  const abreK = JSON.parse(await abre(u.k, llaveros[kk]) || 'null');
   // si la contraseña está en el Mac, se comprueba también que abre con ella (como en el navegador)
-  const pw = pwDe[u.id], abrePw = pw ? JSON.parse(await decrypt(llaveros[u.id], pw) || 'null') : abreK;
+  const pw = pwDe[u.id], abrePw = pw ? JSON.parse(await decrypt(llaveros[kk], pw) || 'null') : abreK;
   const bien = abreK && JSON.stringify(abreK) === JSON.stringify(contenido) && JSON.stringify(abrePw) === JSON.stringify(contenido);
   const sobran = Object.keys(abreK?.llaves || {}).filter(m => !contenido.permisos[m]);
   const verSinEscritura = contenido.permisos.pizarra !== 'ver' || !abreK?.llaves?.pizarra?.write;
@@ -273,7 +275,7 @@ for (const { u, contenido } of resumen) {
   if (!bueno) ok = false;
   console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, QN && QN.token, QN && QN.priv.d, ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');
