@@ -4,7 +4,7 @@
    Un perfil nuevo (una «zona» que capar) se añade aquí y en el módulo que lo use. */
 (function (g) {
   // Tipo de cada persona (Juan, 23/11): sirve para filtrar (p. ej., quién hace quiniela) y para administración.
-  g.HUB_TIPOS = ['Comercial', 'Comercial VIP', 'Consultor Técnico', 'Instalador', 'Teleoperadora', 'Teleoperadora Mailing', 'Jefe de equipo', 'Administración', 'Dirección', 'Marketing', 'Dispositivo'];
+  g.HUB_TIPOS = ['Comercial', 'Comercial VIP', 'Consultor Técnico', 'Instalador', 'Teleoperadora', 'Teleoperadora Mailing', 'Jefe de equipo', 'Administración', 'Dirección', 'Marketing', 'Practicante', 'Dispositivo'];
   // permiso → perfiles posibles, de menos a más. El primero de cada lista es el más limitado.
   g.HUB_PERFILES = {
     pizarra:     [{ id: 'ver',       nombre: 'Solo ver' },            { id: 'admin', nombre: 'Administrar (subir PDF, fotos, versiones)' }],

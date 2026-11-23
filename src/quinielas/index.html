@@ -123,6 +123,8 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .luz{width:12px;height:12px;border-radius:50%;flex:none}
 .luz.si{background:#22a559;box-shadow:0 0 0 4px rgba(34,165,89,.18),0 0 10px rgba(34,165,89,.55)}
 .luz.medio{background:#e8a21d;box-shadow:0 0 0 4px rgba(232,162,29,.18)}
+.luz.antes{background:var(--line-2)}
+.est.antes{background:var(--surface-3);color:var(--ink-3)}
 .luz.no{background:#d93f3f;box-shadow:0 0 0 4px rgba(217,63,63,.15);animation:late 2s ease-in-out infinite}
 @keyframes late{50%{box-shadow:0 0 0 7px rgba(217,63,63,.05)}}
 .est{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px}
@@ -320,6 +322,9 @@ Hub.listo.then(async function () {
     let d = sumaDias(fecha, -1); while ([0, 6].includes(new Date(d + 'T12:00:00').getDay())) d = sumaDias(d, -1);
     let q = null; try { q = (await lee(`q/${CARP}/${d}.json`)).dato; } catch (e) { return; }
     if (q && q.firmada) return;
+    // Solo desde que empezó a usar la quiniela digital: antes la rellenaba en papel y no se pasa (Juan, 23/11)
+    const mias = (await rutas(true)).filter(x => x.startsWith(`q/${CARP}/`)).map(x => x.slice(-15, -5)).sort();
+    if (!mias.length || d < mias[0]) return;
     const c = app.querySelector('#cuerpo'); if (!c || fecha !== hoyISO() || PARA) return;
     const div = document.createElement('div'); div.className = 'aviso-q';
     div.innerHTML = `${ic('info')}<span>${q ? 'Tu quiniela del ' : 'No has enviado la quiniela del '}<b>${esc(fechaLarga(d).toLowerCase())}</b>${q ? ' está sin firmar.' : '.'} <a href="#" id="irAnt">Ir a ese día</a></span>`;
@@ -552,19 +557,20 @@ Hub.listo.then(async function () {
     app.querySelector('#ant').onclick = () => { diaJefes = sumaDias(diaJefes, -1); vistaDia(); };
     app.querySelector('#sig').onclick = () => { diaJefes = sumaDias(diaJefes, 1); vistaDia(); };
     app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaDia(); };
-    const rs = (await rutas(true)).filter(p => p.endsWith(`/${diaJefes}.json`));
+    const todas = await rutas(true), rs = todas.filter(p => p.endsWith(`/${diaJefes}.json`));
+    const primera = {}; for (const p of todas) { const [, cp, f] = p.split('/'), d = f.slice(0, 10); if (!primera[cp] || d < primera[cp]) primera[cp] = d; }
     CACHE = {};
     // Quién tiene que rellenarla (lista que llega en el llavero) y qué ha llegado este día
     const equipo = await Promise.all((K.equipo || []).map(async m => ({ ...m, carpeta: await carpeta(m.uid) })));
     const porCarpeta = {}; for (const p of rs) porCarpeta[p.split('/')[1]] = p;
     const filas = [];
-    for (const m of equipo) filas.push({ nombre: m.nombre, rol: m.rol, ruta: porCarpeta[m.carpeta] || null });
+    for (const m of equipo) filas.push({ nombre: m.nombre, rol: [m.tipo, m.rol].filter(Boolean).join(' · '), ruta: porCarpeta[m.carpeta] || null, antes: !primera[m.carpeta] || diaJefes < primera[m.carpeta] });
     for (const [carp, p] of Object.entries(porCarpeta)) if (!equipo.some(m => m.carpeta === carp)) filas.push({ nombre: null, rol: '', ruta: p });
     await Promise.all(filas.map(async f => { f.q = f.ruta ? await quinielaDe(f.ruta) : null; if (!f.nombre) f.nombre = f.q ? f.q.comercial : '¿?'; }));
     const delegDe = f => (f.q && f.q.delegacion) || DELEGACIONES.find(d => (f.rol || '').toLowerCase().includes(d.toLowerCase())) || '';
     const vis = filas.filter(f => delegFiltro === 'Todas' || !delegDe(f) || delegDe(f) === delegFiltro).sort((x, y) => x.nombre.localeCompare(y.nombre));
-    const estado = f => !f.q ? 'no' : f.q.firmada ? 'si' : 'medio';
-    const TXT = { si: 'Enviada y firmada', medio: 'Guardada, sin firmar', no: 'Sin enviar' };
+    const estado = f => f.q ? (f.q.firmada ? 'si' : 'medio') : f.antes ? 'antes' : 'no';
+    const TXT = { si: 'Enviada y firmada', medio: 'Guardada, sin firmar', no: 'Sin enviar', antes: 'Aún no usaba la digital' };
     const qs = vis.map(f => f.q).filter(Boolean);
     const c = app.querySelector('#cuerpo'), tot = qs.reduce((t, q) => { const r = resumen(q); for (const k in r) t[k] = (t[k] || 0) + r[k]; return t; }, {});
     const nSi = vis.filter(f => estado(f) === 'si').length, nMedio = vis.filter(f => estado(f) === 'medio').length, nNo = vis.filter(f => estado(f) === 'no').length;
