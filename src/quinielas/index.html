@@ -78,6 +78,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .anadir svg{width:18px;height:18px}
 /* Firma */
 .firma-caja{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.botones-q{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .firma-img{background:#fff;border:1px solid var(--line);border-radius:12px;height:90px;padding:6px;max-width:260px}
 .lienzo{width:100%;height:220px;background:#fff;border:2px dashed var(--line-2);border-radius:14px;touch-action:none;display:block;cursor:crosshair}
 .aviso-q{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 16px;font-weight:600;font-size:14px;margin-bottom:14px;background:var(--warn-soft);color:var(--warn);animation:entra .4s var(--ease) both}
@@ -129,7 +130,8 @@ dialog h2{font-size:19px;font-weight:800}
 .toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:var(--good);color:#fff;font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-up);z-index:40;animation:pop .35s var(--ease) both;font-size:14px;max-width:calc(100% - 32px);text-align:center}
 .toast.mal{background:var(--bad)}
 .cargando{padding:60px 0;text-align:center;color:var(--ink-3)}
-@media (max-width:600px){.pestanas button span{display:none}.pestanas button{padding:8px 12px}.barra-q .estado-g{display:none}.barra-q .der{width:100%;min-width:0}.barra-q .der .btn{flex:1 1 0;min-width:0;padding:0 8px;font-size:13.5px;white-space:nowrap}}
+.pestanas .s{display:none}
+@media (max-width:600px){.pestanas{display:flex;width:100%}.pestanas button{flex:1;justify-content:center;padding:8px 6px;font-size:13px}.pestanas .l{display:none}.pestanas .s{display:inline}.barra-q .estado-g{display:none}.barra-q .der{width:100%;min-width:0}.barra-q .der .btn{flex:1 1 0;min-width:0;padding:0 8px;font-size:13.5px;white-space:nowrap}}
 /* Imprimir: la quiniela como en papel */
 @media print{
   header.top,#hub-volver,.pestanas,.barra-q,.volver-q,.no-imprimir,.toast{display:none!important}
@@ -255,9 +257,9 @@ Hub.listo.then(async function () {
   function marco(contenido) {
     app.innerHTML = `<div class="q-cab"><div><h1>Quinielas</h1><p>${TODAS ? 'La tuya, las de todo el equipo y la hoja de producción' : 'Tu seguimiento diario: rellénala durante el día y fírmala'}</p></div>
       ${TODAS ? `<div class="pestanas" role="tablist">
-        <button type="button" data-p="mia" class="${pestana === 'mia' ? 'on' : ''}">${ic('mia')}<span>Mi quiniela</span></button>
-        <button type="button" data-p="dia" class="${pestana === 'dia' ? 'on' : ''}">${ic('dia')}<span>Quinielas del día</span></button>
-        <button type="button" data-p="hoja" class="${pestana === 'hoja' ? 'on' : ''}">${ic('hoja')}<span>Hoja de producción</span></button></div>` : ''}</div>${contenido}`;
+        <button type="button" data-p="mia" class="${pestana === 'mia' ? 'on' : ''}">${ic('mia')}<span class="l">Mi quiniela</span><span class="s">Mía</span></button>
+        <button type="button" data-p="dia" class="${pestana === 'dia' ? 'on' : ''}">${ic('dia')}<span class="l">Quinielas del día</span><span class="s">Del día</span></button>
+        <button type="button" data-p="hoja" class="${pestana === 'hoja' ? 'on' : ''}">${ic('hoja')}<span class="l">Hoja de producción</span><span class="s">Hoja</span></button></div>` : ''}</div>${contenido}`;
     app.querySelectorAll('.pestanas button').forEach(b => b.onclick = () => { if (cambios && !confirm('Tienes cambios sin guardar en tu quiniela. ¿Salir igualmente?')) return; location.hash = '#/' + b.dataset.p; });
   }
   window.addEventListener('hashchange', () => { pestana = location.hash.replace(/^#\/?/, '') || 'mia'; if (!TODAS) pestana = 'mia'; pinta(); });
@@ -320,9 +322,13 @@ Hub.listo.then(async function () {
         <div class="visitas">${Q.visitas.length ? Q.visitas.map((v, i) => tarjetaVisita(v, i)).join('') : '<p class="vacio-q">Todavía no hay visitas. Añádelas según las vayas haciendo.</p>'}
         <button class="anadir" type="button" id="anadir">${ic('mas')}Añadir visita</button></div></div>
       <div class="card bloque" style="animation-delay:160ms"><h2>${ic('firma')}Firma</h2>
-        <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Cuando termines el día, firma con el dedo y envíala.</p>'}</div></div>`;
+        <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Cuando termines el día, firma con el dedo y envíala.</p>'}</div>
+        <div class="botones-q"><button class="btn chico" type="button" id="firmar2">${ic('firma')}${Q.firmada ? 'Volver a firmar' : 'Firmar y enviar'}</button>
+          ${shaQ || Q.visitas.length ? `<button class="btn chico sec" type="button" id="pdf2">${ic('excel')}Descargar PDF</button>` : ''}</div></div>`;
     c.querySelectorAll('.visita').forEach(b => b.onclick = () => editaVisita(+b.dataset.i));
     c.querySelector('#anadir').onclick = () => editaVisita(null);
+    c.querySelector('#firmar2').onclick = pideFirma;
+    const bp = c.querySelector('#pdf2'); if (bp) bp.onclick = () => pdfQuiniela(Q, bp);
     pintaBarra();
   }
   function tarjetaVisita(v, i) {
@@ -459,7 +465,7 @@ Hub.listo.then(async function () {
     const r = resumen(q);
     app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a las quinielas del día</button>
       <div class="q-cab"><div><h1>${esc(q.comercial)}</h1><p>Quiniela diaria · ${esc(fechaLarga(q.fecha))} · ${esc(q.delegacion)}${q.ruta ? ' · Ruta: ' + esc(q.ruta) : ''}</p></div>
-        <button class="btn chico sec no-imprimir" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div>
+        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico" type="button" id="pdfq">${ic('excel')}Descargar PDF</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
       <div class="tabla-c"><table class="t"><thead><tr><th>#</th><th>Cliente</th><th>Población</th><th>Oferta</th><th>Origen</th><th>Artículos (entrega)</th><th>Importe</th><th>1.ª cuota</th><th>Cobro</th><th class="n">Cuotas</th><th>Resultado</th></tr></thead><tbody>
       ${q.visitas.map((v, i) => `<tr><td>${i + 1}</td><td>${esc(v.cliente)}</td><td>${esc(v.poblacion)}</td><td>${esc(v.oferta)}</td><td>${esc(v.origen)}</td>
         <td>${esc((v.articulos || []).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · '))}</td><td>${v.resultado === 'venta' ? euros(num(v.importe)) : ''}</td><td>${v.resultado === 'venta' ? euros(num(v.cuota1)) : ''}</td>
@@ -468,6 +474,7 @@ Hub.listo.then(async function () {
       <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen"><div><small>Nulos</small><b>${r.nulos}</b></div><div><small>Confirmadas</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas</small><b>${r.ventas}</b></div></div></div>
       <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
     app.querySelector('#volver').onclick = () => vistaDia();
+    app.querySelector('#pdfq').onclick = e => pdfQuiniela(q, e.currentTarget);
     scrollTo(0, 0);
   }
 
@@ -501,20 +508,152 @@ Hub.listo.then(async function () {
     }
     const totSem = suma(filasSemana);
     const c = app.querySelector('#cuerpo');
-    if (!comerciales.length) { c.innerHTML = '<p class="vacio-q">No hay quinielas guardadas esta semana.</p>'; return; }
-    c.innerHTML = `<div class="q-cab" style="margin-top:4px"><div><h1 style="font-size:20px">Hoja de producción · ${esc(delegFiltro === 'Todas' ? 'todas las delegaciones' : delegFiltro)}</h1><p>Semana del ${esc(fechaLarga(semana))} · ${comerciales.length} comerciales</p></div>
-        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico sec" type="button" id="csv">${ic('excel')}Excel</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
+    c.innerHTML = `<div class="q-cab" style="margin-top:4px"><div><h1 style="font-size:20px">Hoja de producción · ${esc(delegFiltro === 'Todas' ? 'todas las delegaciones' : delegFiltro)}</h1><p>Semana del ${esc(fechaLarga(semana))} · ${comerciales.length ? comerciales.length + ' comerciales' : 'todavía no hay quinielas guardadas esta semana'}</p></div>
+        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico sec" type="button" id="csv">${ic('excel')}Descargar Excel</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
       <div class="tabla-c"><table class="t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${ORIGENES.map(o => `<th class="g" colspan="3">${esc(o)}</th>`).join('')}<th class="g" rowspan="2">Total ventas</th></tr>
         <tr>${ORIGENES.map(() => '<th class="n bl">Nul</th><th class="n">Demo</th><th class="n">Vent</th>').join('')}</tr></thead>
         <tbody>${cuerpo}<tr class="dia"><td colspan="${3 + ORIGENES.length * 3}">Total semanal</td></tr><tr class="tot"><td></td><td>Total</td>${celdas(totSem)}</tr></tbody></table></div>`;
-    c.querySelector('#csv').onclick = () => {
-      const cab = ['Día', 'Comercial'].concat(ORIGENES.flatMap(o => ['Nulos', 'Demos', 'Ventas'].map(x => `${o} · ${x}`)), ['Total ventas']);
-      const filas = [cab];
-      for (const d of dias) for (const n of comerciales) filas.push([d, n].concat(filaDe(qs.find(q => q.comercial === n && q.fecha === d))));
-      filas.push(['Semana', 'Total'].concat(totSem));
-      const txt = '﻿' + filas.map(f => f.map(x => `"${String(x).replace(/"/g, '""')}"`).join(';')).join('\r\n');
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = `Hoja de produccion ${semana} ${delegFiltro}.csv`; a.click();
-    };
+    c.querySelector('#csv').onclick = e => excelHoja(qs, dias, filaDe, e.currentTarget);
+  }
+
+  /* =================== DESCARGAS (Juan, 23/11): PDF de cada quiniela y Excel de la hoja, como los originales =================== */
+  // Librerías conocidas, cargadas solo al descargar y con su huella (integrity): el navegador rechaza cualquier copia cambiada.
+  const LIBS = {
+    jspdf: ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk'],
+    tabla: ['https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', 'sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3'],
+    excel: ['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js', 'sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz']
+  };
+  const cargadas = {};
+  const carga = n => cargadas[n] || (cargadas[n] = new Promise((ok, mal) => {
+    const sc = document.createElement('script'); sc.src = LIBS[n][0]; sc.integrity = LIBS[n][1]; sc.crossOrigin = 'anonymous';
+    sc.onload = ok; sc.onerror = () => { delete cargadas[n]; mal(new Error('No se ha podido preparar la descarga. Revisa la conexión.')); };
+    document.head.appendChild(sc);
+  }));
+  const bajaBlob = (blob, nombre) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); };
+  const fechaCorta = iso => iso.split('-').reverse().join('/');
+  async function conEspera(boton, fn) {
+    const t = boton.innerHTML; boton.disabled = true; boton.innerHTML = 'Preparando…';
+    try { await fn(); } catch (e) { aviso(e.message || 'No se ha podido descargar.', true); }
+    boton.disabled = false; boton.innerHTML = t;
+  }
+  // Logo en PNG (el PDF no admite SVG)
+  let LOGO = null;
+  async function logoPng() {
+    if (LOGO) return LOGO;
+    const img = new Image(); img.src = Hub.raiz + 'comun/marca/logo-horizontal-blue.svg';
+    await img.decode();
+    const cv = document.createElement('canvas'); cv.width = 1200; cv.height = Math.round(1200 * img.naturalHeight / img.naturalWidth);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    return (LOGO = { url: cv.toDataURL('image/png'), r: cv.height / cv.width });
+  }
+
+  // PDF de una quiniela, con la forma de la «Quiniela diaria» en papel (A4 apaisado)
+  function pdfQuiniela(q, boton) {
+    return conEspera(boton, async () => {
+      await carga('jspdf'); await carga('tabla');
+      const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const N = '#000000', G = [217, 217, 217];
+      // Cabecera: recuadros como en el papel y el logo a la derecha
+      doc.setDrawColor(N); doc.setLineWidth(0.3);
+      doc.rect(10, 10, 140, 8); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('QUINIELA DIARIA', 80, 15.6, { align: 'center' });
+      doc.setFontSize(9);
+      const fila = (y, et, val, w) => { doc.rect(10, y, w, 6.5); doc.setFont('helvetica', 'bold'); doc.text(et, 11.5, y + 4.5); doc.setFont('helvetica', 'normal'); doc.text(String(val || ''), 11.5 + doc.getTextWidth(et) + 2, y + 4.5); };
+      fila(19, 'COMERCIAL:', q.comercial + (q.delegacion ? ' (' + q.delegacion + ')' : ''), 140);
+      fila(26.5, 'FECHA:', fechaCorta(q.fecha), 80);
+      fila(34, 'RUTA:', q.ruta, 140);
+      try { const L = await logoPng(); doc.addImage(L.url, 'PNG', 210, 11, 75, 75 * L.r); } catch (e) {}
+      // Tabla de visitas (como mínimo 10 filas, igual que el papel)
+      const X = b => b ? 'X' : '';
+      const filas = q.visitas.map(v => {
+        const a = v.articulos || [], art = k => (a[k] && a[k].nombre) || '', ent = k => X(a[k] && a[k].entrega), venta = v.resultado === 'venta';
+        return [v.cliente, v.poblacion, v.oferta, v.origen, art(0), ent(0), art(1), ent(1), art(2), ent(2), art(3), ent(3),
+          venta ? euros(num(v.importe)) : '', venta ? euros(num(v.cuota1)) : '', venta ? v.cobro || '' : '', venta ? v.cuotas || '' : '',
+          X(venta && v.estado !== 'pte'), X(v.resultado === 'nulo'), X(v.resultado === 'demo'), X(venta && v.estado === 'pte')];
+      });
+      while (filas.length < 10) filas.push(new Array(20).fill(''));
+      const r = resumen(q);
+      filas.push([{ content: 'TOTAL', colSpan: 12, styles: { halign: 'right', fontStyle: 'bold' } }, { content: euros(r.importe), styles: { fontStyle: 'bold' } }, { content: euros(r.cuota), styles: { fontStyle: 'bold' } }, { content: '', colSpan: 6 }]);
+      doc.autoTable({
+        startY: 44, margin: { left: 10, right: 10 }, theme: 'grid',
+        head: [['NOMBRE', 'POBLACIÓN', 'TIPO\nOFERTA', 'ORIGEN\nCLIENTE', 'ARTÍCULO 1', 'ENTREGA', 'ARTÍCULO 2', 'ENTREGA', 'ARTÍCULO 3', 'ENTREGA', 'ARTÍCULO 4', 'ENTREGA', 'IMPORTE\nTOTAL', '1ª CUOTA', 'FORMA\nCOBRO', 'Nº\nCUOTAS', 'CONF', 'NULO', 'DEMO', 'PTE']],
+        body: filas,
+        styles: { font: 'helvetica', fontSize: 6.6, cellPadding: 1.1, lineColor: N, lineWidth: 0.2, textColor: N, valign: 'middle', minCellHeight: 6.2 },
+        headStyles: { fillColor: G, textColor: N, fontStyle: 'bold', halign: 'center', fontSize: 5.8, cellPadding: 0.7 },
+        columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 18 }, 2: { cellWidth: 11, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' }, 5: { cellWidth: 12.5, halign: 'center' }, 7: { cellWidth: 12.5, halign: 'center' }, 9: { cellWidth: 12.5, halign: 'center' }, 11: { cellWidth: 12.5, halign: 'center' }, 12: { cellWidth: 15, halign: 'right' }, 13: { cellWidth: 13, halign: 'right' }, 14: { cellWidth: 12, halign: 'center' }, 15: { cellWidth: 11, halign: 'center' }, 16: { cellWidth: 9, halign: 'center' }, 17: { cellWidth: 9, halign: 'center' }, 18: { cellWidth: 9, halign: 'center' }, 19: { cellWidth: 9, halign: 'center' } }
+      });
+      // Resumen y firma
+      let y = doc.lastAutoTable.finalY + 8;
+      if (y > 170) { doc.addPage(); y = 20; }
+      doc.autoTable({ startY: y, margin: { left: 95 }, tableWidth: 107, theme: 'grid',
+        head: [[{ content: 'RESUMEN', colSpan: 8, styles: { halign: 'center' } }]],
+        body: [['NULOS', r.nulos, 'CONF', r.conf, 'DEMOS', r.demos, 'VENTAS', r.ventas]],
+        styles: { fontSize: 8, lineColor: N, lineWidth: 0.2, textColor: N, halign: 'center' }, headStyles: { fillColor: [255, 255, 255], textColor: N, fontStyle: 'normal', fontSize: 9 } });
+      y = doc.lastAutoTable.finalY + 10;
+      if (q.firma) { try { doc.addImage(q.firma, 'PNG', 222, y - 6, 55, 18); } catch (e) {} }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('Fdo.:', 210, y + 13); doc.line(219, y + 13.5, 287, y + 13.5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(110);
+      doc.text(q.firmada ? 'Firmada con el dedo en el Biofy Hub el ' + new Date(q.firmada).toLocaleString('es-ES') : 'Sin firmar', 219, y + 17);
+      doc.text('Biofy Hub · Quiniela diaria · descargada el ' + new Date().toLocaleString('es-ES'), 10, 203);
+      bajaBlob(doc.output('blob'), `Quiniela ${q.comercial} ${q.fecha}.pdf`);
+    });
+  }
+
+  // Excel de la hoja de producción, con la estructura del original (una hoja por delegación)
+  function excelHoja(qs, dias, filaDe, boton) {
+    return conEspera(boton, async () => {
+      await carga('excel');
+      const wb = new window.ExcelJS.Workbook(); wb.creator = 'Biofy Hub';
+      const delegs = delegFiltro === 'Todas' ? DELEGACIONES.filter(d => qs.some(q => q.delegacion === d)) : [delegFiltro];
+      if (!delegs.length) delegs.push(delegFiltro === 'Todas' ? DELEGACIONES[0] : delegFiltro);
+      const DIAS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+      const nC = 3 + ORIGENES.length * 3 + 1, ult = nC;   // A día, B nº, C nombre, grupos, total
+      const col = n => { let t = ''; while (n > 0) { const m = (n - 1) % 26; t = String.fromCharCode(65 + m) + t; n = Math.floor((n - 1) / 26); } return t; };
+      const fino = { style: 'thin', color: { argb: 'FF000000' } }, borde = { top: fino, left: fino, bottom: fino, right: fino };
+      const gris = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } }, gris2 = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+      for (const dg of delegs) {
+        const ws = wb.addWorksheet(dg.toUpperCase(), { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } } });
+        ws.columns = [{ width: 12 }, { width: 5 }, { width: 26 }].concat(ORIGENES.flatMap(() => [{ width: 6 }, { width: 6 }, { width: 6 }]), [{ width: 9 }]);
+        const deDg = qs.filter(q => q.delegacion === dg);
+        const nombres = [...new Set(deDg.map(q => q.comercial))].sort((a, b) => a.localeCompare(b));
+        // Título, delegación y semana
+        ws.mergeCells(1, 1, 1, ult); Object.assign(ws.getCell(1, 1), { value: 'HOJA DE PRODUCCIÓN COMERCIALES' });
+        ws.getCell(1, 1).font = { bold: true, size: 14 }; ws.getCell(1, 1).alignment = { horizontal: 'center' };
+        ws.mergeCells(2, 1, 2, 3); ws.getCell(2, 1).value = 'DELEGACIÓN:  ' + dg.toUpperCase(); ws.getCell(2, 1).font = { bold: true };
+        ws.mergeCells(2, 4, 2, ult); ws.getCell(2, 4).value = 'SEMANA DEL ' + fechaCorta(dias[0]) + ' AL ' + fechaCorta(dias[4]); ws.getCell(2, 4).font = { bold: true };
+        // Cabecera de dos filas: NOMBRE, un grupo por origen (NUL, DEMO, VENT) y TOTAL
+        ws.mergeCells(3, 1, 4, 2); ws.mergeCells(3, 3, 4, 3); ws.getCell(3, 3).value = 'NOMBRE';
+        ORIGENES.forEach((o, k) => { const c0 = 4 + k * 3; ws.mergeCells(3, c0, 3, c0 + 2); ws.getCell(3, c0).value = o.toUpperCase(); ['NUL', 'DEMO', 'VENT'].forEach((t, j) => ws.getCell(4, c0 + j).value = t); });
+        ws.mergeCells(3, ult, 4, ult); ws.getCell(3, ult).value = 'TOTAL';
+        for (let rr = 3; rr <= 4; rr++) for (let cc = 1; cc <= ult; cc++) { const ce = ws.getCell(rr, cc); ce.fill = gris; ce.font = { bold: true, size: 9 }; ce.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; ce.border = borde; }
+        // Un bloque por día: una fila por comercial y la fila de totales (con fórmulas, como el original)
+        let fila = 5; const totales = [];
+        dias.forEach((d, k) => {
+          const ini = fila, filasDia = Math.max(nombres.length, 1);
+          for (let i = 0; i < filasDia; i++, fila++) {
+            const n = nombres[i] || '', q = n ? deDg.find(x => x.comercial === n && x.fecha === d) : null, v = q ? filaDe(q) : null;
+            ws.getCell(fila, 2).value = n ? (i + 1) + 'º' : ''; ws.getCell(fila, 3).value = n;
+            for (let j = 0; j < ORIGENES.length * 3; j++) ws.getCell(fila, 4 + j).value = v && v[j] ? v[j] : null;
+            const vent = ORIGENES.map((_, o) => col(6 + o * 3) + fila);
+            ws.getCell(fila, ult).value = { formula: `IF(COUNT(${vent.join(',')})=0,"",SUM(${vent.join(',')}))` };
+          }
+          ws.mergeCells(ini, 1, fila - 1, 1); ws.getCell(ini, 1).value = DIAS[k] + '\n' + fechaCorta(d);
+          ws.getCell(ini, 1).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; ws.getCell(ini, 1).font = { bold: true };
+          ws.getCell(fila, 1).value = 'TOTALES';
+          for (let cc = 4; cc <= ult; cc++) { const L = col(cc); ws.getCell(fila, cc).value = { formula: `IF(COUNT(${L}${ini}:${L}${fila - 1})=0,"",SUM(${L}${ini}:${L}${fila - 1}))` }; }
+          for (let cc = 1; cc <= ult; cc++) { ws.getCell(fila, cc).fill = gris2; ws.getCell(fila, cc).font = { bold: true }; }
+          ws.mergeCells(fila, 1, fila, 3);
+          totales.push(fila); fila++;
+        });
+        // Total semanal
+        ws.getCell(fila, 1).value = 'TOTAL SEMANAL'; ws.mergeCells(fila, 1, fila, 3);
+        for (let cc = 4; cc <= ult; cc++) { const L = col(cc), refs = totales.map(t => L + t).join(','); ws.getCell(fila, cc).value = { formula: `IF(COUNT(${refs})=0,"",SUM(${refs}))` }; }
+        for (let cc = 1; cc <= ult; cc++) { ws.getCell(fila, cc).fill = gris; ws.getCell(fila, cc).font = { bold: true }; }
+        for (let rr = 5; rr <= fila; rr++) for (let cc = 1; cc <= ult; cc++) { const ce = ws.getCell(rr, cc); ce.border = borde; if (cc > 3) ce.alignment = { horizontal: 'center', vertical: 'middle' }; }
+        ws.views = [{ state: 'frozen', ySplit: 4 }];
+      }
+      const buf = await wb.xlsx.writeBuffer();
+      bajaBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `Hoja de produccion ${delegFiltro === 'Todas' ? 'todas' : delegFiltro} semana ${dias[0]}.xlsx`);
+    });
   }
 
   pinta();
