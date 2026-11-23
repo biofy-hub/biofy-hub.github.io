@@ -159,6 +159,34 @@
     LL = nuevo; window.HUB_BUILD = nuevo.build; window.HUB_LLAVEROS = llaveros;
     return nuevo;
   }
+  // Publica un archivo pequeño de un módulo en la web (p. ej. qué fichas se ven). Solo administradores del Hub
+  // (son los que llevan la llave de publicar). Si alguien lo cambió mientras tanto (sha distinto), se para.
+  async function publicaArchivo(ruta, texto, mensaje, shaEsperado) {
+    const k = llave('accesos'), P = C.acceso.publicar;
+    if (!k || !k.gh) throw new Error('Solo los administradores del Hub pueden guardar esto');
+    const api = `https://api.github.com/repos/${P.owner}/${P.repo}/contents/${ruta}`, h = { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github+json' };
+    const ahora = await fetch(`${api}?ref=${P.rama}&t=${Date.now()}`, { headers: h, cache:'no-store' });
+    const sha = ahora.ok ? (await ahora.json()).sha : null;
+    if (!ahora.ok && ahora.status !== 404) throw new Error('GitHub no deja leer (' + ahora.status + ')');
+    if (shaEsperado !== undefined && sha !== shaEsperado) throw new Error('Otra persona lo ha cambiado mientras tanto. Recarga la página y vuelve a hacerlo.');
+    const r = await fetch(api, { method:'PUT', headers: h, body: JSON.stringify({ message: mensaje, content: b64(new TextEncoder().encode(texto)), branch: P.rama, ...(sha ? { sha } : {}) }) });
+    if (!r.ok) throw new Error('GitHub no deja guardar (' + r.status + ')');
+    return (await r.json()).content.sha;
+  }
+  // sha del archivo publicado (para saber si otro lo cambió antes de guardar)
+  async function shaDe(ruta) {
+    const k = llave('accesos'), P = C.acceso.publicar;
+    if (!k || !k.gh) return null;
+    const r = await fetch(`https://api.github.com/repos/${P.owner}/${P.repo}/contents/${ruta}?ref=${P.rama}&t=${Date.now()}`, { headers: { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github+json' }, cache:'no-store' });
+    return r.ok ? (await r.json()).sha : null;
+  }
+  // Archivos cifrados de un módulo: 12 bytes de iv + el contenido cifrado con AES-GCM.
+  async function abreBinario(kB64, buf) {
+    const k = await crypto.subtle.importKey('raw', u8(kB64), 'AES-GCM', false, ['decrypt']);
+    return crypto.subtle.decrypt({ name:'AES-GCM', iv: new Uint8Array(buf, 0, 12) }, k, new Uint8Array(buf, 12));
+  }
+  const cifra = { abre: abreConB64, cierra: (kB64, texto) => cierraCon(kB64, texto), abreBinario };
+
   const modulo = id => window.HUB_MODULOS.find(m => m.id === id);
   // ¿Puede ver este módulo? Accesos: solo administradores del Hub. En construcción: con permiso o administrador.
   function puede(id) {
@@ -207,5 +235,5 @@
     try { iconoPestana(m ? m.icono : 'hub'); } catch (e) {}
   })();
 
-  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona }, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
+  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona }, publicaArchivo, shaDe, cifra, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();

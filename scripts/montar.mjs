@@ -16,7 +16,8 @@
       --hub /Users/diseno/claves-biofy/hub-secretos.json \
       --pizarra /Users/diseno/claves-pizarra/pizarra-secretos.json \
       --dashboard /Users/diseno/claves-biofy/dashboard-secretos.json \
-      --formularios /Users/diseno/claves-formularios/formularios-secretos.json
+      --formularios /Users/diseno/claves-formularios/formularios-secretos.json \
+      --fichas /Users/diseno/fichas-producto/hub      (módulo Productos: sale de fichas-producto/plantilla/para-hub.py)
     [--importar]            crea el registro desde accesos.json (solo la primera vez)
     [--registro-de f.json]  lee el registro de un archivo en vez de la web publicada (pruebas)
     [--compat]              deja también comun/llaveros.js para páginas viejas en caché (solo al pasar a llaveros.json)
@@ -55,7 +56,7 @@ const LOGO = '/Users/diseno/formularios/src/logo-horizontal-blue.svg', LOGO_W = 
 /* 1. Copia de src/ */
 rmSync(out, { recursive: true, force: true });
 cpSync(join(raiz, 'src'), out, { recursive: true });
-for (const f of ['index.html', 'modulo.html', 'accesos/index.html']) {
+for (const f of ['index.html', 'modulo.html', 'accesos/index.html', 'productos/index.html']) {
   const p = join(out, f);
   writeFileSync(p, readFileSync(p, 'utf8').replace(/(src|href)="((\.\.\/)?comun\/[^"?]+\.(js|css))"/g, `$1="$2?v=${BUILD}"`));
 }
@@ -186,7 +187,14 @@ if (process.argv.includes('--importar')) {
   if (!t) falla('el registro publicado no se abre con la llave del Hub');
   ({ usuarios, historial = [] } = JSON.parse(t));
 }
+// Productos (Juan, 23/11): los administradores del Hub lo administran (eliminadas y qué fichas se ven).
+if (!HB.fichas || !HB.fichas.ver || !HB.fichas.admin) falla('faltan las llaves de «fichas» en los secretos del Hub');
+for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin' && !u.webs.fichas) {
+  u.webs.fichas = 'admin';
+  historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Productos (administrar), por ser administrador del Hub` });
+}
 const secretos = {
+  fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
   pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
   dashboard: { read_token: DB.read_token, write_token: DB.write_token },
   formularios: { token: FM.token, priv: FM.claves.priv },
@@ -206,6 +214,38 @@ writeFileSync(join(out, 'comun/llaveros.json'), JSON.stringify({ build: BUILD, l
 // --compat: solo en la publicación que cambia de llaveros.js a llaveros.json, para las páginas viejas que el navegador aún tenga guardadas (10 min)
 if (process.argv.includes('--compat')) writeFileSync(join(out, 'comun/llaveros.js'), `window.HUB_BUILD = "${BUILD}";\nwindow.HUB_LLAVEROS = ${JSON.stringify(llaveros)};\n`);
 
+/* 4. Productos: catálogo y archivos cifrados. Las activas, con la llave «ver»; las eliminadas, con la de administrar.
+   Los archivos llevan un nombre al azar (no dicen de qué producto son). */
+{
+  const dir = arg('fichas') || falla('falta --fichas (carpeta de fichas-producto/hub)');
+  const cat = JSON.parse(readFileSync(join(dir, 'catalogo.json'), 'utf8'));
+  mkdirSync(join(out, 'productos/a'), { recursive: true });
+  async function cierraBin(kB64, buf) {
+    const k = await crypto.subtle.importKey('raw', B(kB64), 'AES-GCM', false, ['encrypt']), iv = randomBytes(12);
+    return Buffer.concat([iv, Buffer.from(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, buf))]);
+  }
+  const grupos = { ver: [], admin: [] };
+  let bytes = 0;
+  for (const p of cat.productos) {
+    const g = p.estado === 'activo' ? 'ver' : 'admin', a = { nombre: p.archivos.nombre };
+    for (const campo of ['foto', 'ficha', 'pdf']) {
+      if (!p.archivos[campo]) continue;
+      const n = randomBytes(12).toString('hex') + '.bin', c = await cierraBin(HB.fichas[g], readFileSync(join(dir, 'archivos', p.archivos[campo])));
+      writeFileSync(join(out, 'productos/a', n), c); bytes += c.length; a[campo] = n;
+    }
+    grupos[g].push({ ...p, archivos: a });
+  }
+  writeFileSync(join(out, 'productos/datos.json'), JSON.stringify({
+    ver: await cierra(HB.fichas.ver, JSON.stringify({ fecha: cat.fecha, etiquetas: cat.etiquetas, iconos: cat.iconos, productos: grupos.ver })),
+    admin: await cierra(HB.fichas.admin, JSON.stringify({ productos: grupos.admin }))
+  }));
+  // Qué fichas se ven: lo cambian los administradores desde la página; volver a montar no lo pisa.
+  let estado = null;
+  try { estado = execFileSync('gh', ['api', 'repos/biofy-hub/biofy-hub.github.io/contents/productos/estado.json?ref=gh-pages', '-H', 'Accept: application/vnd.github.raw'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) {}
+  if (estado) writeFileSync(join(out, 'productos/estado.json'), estado);
+  console.log(`Productos: ${grupos.ver.length} activas y ${grupos.admin.length} eliminadas, ${(bytes / 1e6).toFixed(1)} MB cifrados · ${estado ? 'se conserva qué fichas se ven' : 'todas visibles (sin estado publicado)'}`);
+}
+
 /* Comprobaciones */
 let ok = true;
 const pwDe = {};
@@ -218,11 +258,12 @@ for (const { u, contenido } of resumen) {
   const sobran = Object.keys(abreK?.llaves || {}).filter(m => !contenido.permisos[m]);
   const verSinEscritura = contenido.permisos.pizarra !== 'ver' || !abreK?.llaves?.pizarra?.write;
   const hubSoloAdmin = !abreK?.llaves?.hub || contenido.admin;
-  const bueno = bien && !sobran.length && verSinEscritura && hubSoloAdmin;
+  const eliminadasSoloAdmin = !abreK?.llaves?.fichas?.admin || contenido.permisos.fichas === 'admin';
+  const bueno = bien && !sobran.length && verSinEscritura && hubSoloAdmin && eliminadasSoloAdmin;
   if (!bueno) ok = false;
   console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, ...usuarios.map(u => u.k), ...accesos.map(u => u.pw)].filter(Boolean);
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, ...usuarios.map(u => u.k), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');

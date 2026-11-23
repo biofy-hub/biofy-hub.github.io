@@ -16,6 +16,7 @@ biofy-hub/
       perfiles.js       perfiles de cada módulo y qué llaves lleva cada uno (lo usan el panel y el montaje)
       llaveros.json     SE GENERA: llaveros por persona + registro cifrado de Accesos
     accesos/            panel de Accesos (solo administradores del Hub)
+    productos/          módulo PRODUCTOS: fichas en carrusel o cuadrícula, filtro por etiqueta, página por producto
       marca/            logos
     <módulo>/           (siguiente fase) pizarra/, dashboard/, formularios/…
   scripts/              herramientas (capturas, montaje, cifrado)
@@ -50,7 +51,7 @@ Cada persona solo puede usar los módulos **y las funciones** que tenga permitid
 3. ✅ Entrada real: llavero por persona con su contraseña de siempre, módulos capados, TV (20/11).
 4. ✅ Módulos que ya funcionan dentro del Hub: Pizarra, Dashboard, Formularios y Academia (20/11).
 5. ✅ Panel de Accesos (20/11): altas, bajas, contraseña nueva y perfil por módulo. Opción A de Juan: el registro guarda la llave de cada persona (nunca la contraseña), cifrado con la llave del Hub, que solo tienen los administradores.
-6. Módulos nuevos: Fichas, Quinielas (con hojas de producción), Comisiones, Academia, Bot de WhatsApp.
+6. Módulos nuevos: ✅ Productos (23/11), Quinielas (con hojas de producción), Comisiones, Academia, Bot de WhatsApp.
 7. Mudanza a nuestro hosting.
 
 ## Accesos: cómo funciona (opción A, Juan, 20/11)
@@ -60,3 +61,10 @@ Cada persona solo puede usar los módulos **y las funciones** que tenga permitid
 - `scripts/montar.mjs` lee el registro **publicado** (no `accesos.json`), así volver a montar no pisa lo hecho en el panel. `--importar` solo se usó la primera vez.
 - Las contraseñas nuevas se enseñan una vez, para el Excel ADMIN GRUPO ENGLOBA. Ni el Hub ni el Mac las guardan.
 - Pendiente de seguridad: al dar de baja a alguien, las llaves de los módulos (tokens) siguen siendo las mismas. Si la baja es delicada, cambiar los tokens de esos módulos y volver a montar.
+
+## Productos (Juan, 23/11/2026)
+- Datos: `fichas-producto/plantilla/para-hub.py` deja en `fichas-producto/hub/` el catálogo (textos, datos técnicos, etiquetas) y las fotos, fichas (JPG) y PDF. El montaje lo cifra todo (`--fichas`).
+- Dos llaves (en `hub-secretos.json`, campo `fichas`): «ver» abre las 11 fichas activas; «admin» abre además las 8 eliminadas el 20/11. Los archivos se publican con nombres al azar.
+- Perfiles: «Ver las fichas» y «Administrar». Los administradores del Hub reciben «Administrar» al montar.
+- Qué fichas se ven: `productos/estado.json` (cifrado con la llave «ver»). Lo cambian los administradores desde la página (botón del ojo o interruptor «Visible para todos») y el montaje lo conserva. Ocultar es esconder: una ficha oculta no sale en la página, pero quien tiene la llave «ver» podría abrirla. Las eliminadas sí están bloqueadas de verdad.
+- Para cambiar fichas: nueva ronda en `fichas-producto`, `python3 para-hub.py` y volver a montar y publicar.

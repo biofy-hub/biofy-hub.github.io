@@ -8,7 +8,10 @@
     pizarra:     [{ id: 'ver',       nombre: 'Solo ver' },            { id: 'admin', nombre: 'Administrar (subir PDF, fotos, versiones)' }],
     dashboard:   [{ id: 'jefe',      nombre: 'Ver y guardar versiones' }, { id: 'admin', nombre: 'Administrar (además renombrar y borrar)' }],
     formularios: [{ id: 'responder', nombre: 'Solo responder' },      { id: 'panel', nombre: 'Ver las respuestas' }],
-    curso:       [{ id: 'alumno',    nombre: 'Alumno' }]
+    curso:       [{ id: 'alumno',    nombre: 'Alumno' }],
+    // Productos (Juan, 23/11): ver las fichas; administrar = además ver las eliminadas y elegir qué fichas se ven
+    // (guardarlo pide además ser administrador del Hub, que es quien tiene la llave de publicar).
+    fichas:      [{ id: 'ver',       nombre: 'Ver las fichas' },      { id: 'admin', nombre: 'Administrar (eliminadas y qué fichas se ven)' }]
   };
 
   // Llaves de cada persona según sus permisos. S = secretos de los módulos (solo los tienen el Mac y los administradores del Hub).
@@ -21,6 +24,8 @@
     if (w.formularios === 'panel') L.formularios = { t: S.formularios.token, k: S.formularios.priv };
     else if (w.formularios === 'responder') L.formularios = { t: S.formularios.token };
     if (w.curso) L.curso = { clave: S.curso };
+    if (S.fichas && w.fichas === 'admin') L.fichas = { ver: S.fichas.ver, admin: S.fichas.admin };
+    else if (S.fichas && w.fichas === 'ver') L.fichas = { ver: S.fichas.ver };
     if (w.hub === 'admin') L.hub = { clave: S.hub.clave, gh: S.hub.gh || null };
     return L;
   };
