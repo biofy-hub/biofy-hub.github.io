@@ -162,6 +162,16 @@ dialog .dcab{display:flex;align-items:center;gap:10px;padding:12px 14px;border-b
 dialog .dcab b{margin-right:auto;font-size:15px}
 dialog .dimg{overflow:auto;background:var(--surface-3)}
 dialog .dimg img{display:block;width:100%;height:auto}
+/* ---------- Compartir (si el aparato no tiene menú propio) ---------- */
+dialog.chico{width:min(480px,calc(100% - 24px))}
+.compartir{padding:18px;display:flex;flex-direction:column;gap:10px;max-width:460px;width:100%;margin:0 auto}
+.compartir p{font-size:13.5px;margin-bottom:4px}
+.op{display:flex;align-items:center;gap:14px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;cursor:pointer;transition:border-color .2s,transform .15s var(--ease)}
+.op:hover{border-color:var(--brand);transform:translateY(-1px)}
+.op svg{width:26px;height:26px;color:var(--brand)}
+.op[data-op="wa"] svg{color:#25a244}
+.op b{display:block;font-size:14.5px}
+.op small{color:var(--ink-3);font-size:12.5px}
 /* ---------- Barra de cambios (administradores) ---------- */
 .barra{position:fixed;left:50%;bottom:18px;transform:translate(-50%,200%);visibility:hidden;transition:transform .35s var(--ease),visibility .35s;z-index:30;display:flex;gap:10px;align-items:center;background:var(--ink);color:var(--bg);padding:10px 10px 10px 20px;border-radius:999px;box-shadow:var(--shadow-up);width:max-content;max-width:calc(100% - 32px)}
 .barra.ver{transform:translate(-50%,0);visibility:visible}
@@ -218,7 +228,10 @@ Hub.listo.then(async function () {
     pdf: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
     ampliar: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
     papelera: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
-    cerrar: '<path d="M6 6l12 12M18 6L6 18"/>'
+    cerrar: '<path d="M6 6l12 12M18 6L6 18"/>',
+    compartir: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
+    whatsapp: '<path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4l-4.5 1.1z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2L9 8.5z"/>',
+    correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/>'
   };
   const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
 
@@ -260,14 +273,15 @@ Hub.listo.then(async function () {
   const activos = () => CAT.productos.filter(p => esAdmin || !oculto(p));
 
   /* ---------- Archivos: se descifran al pedirlos y se guardan en memoria ---------- */
-  const cache = {}, TIPO = { foto: 'image/png', ficha: 'image/jpeg', pdf: 'application/pdf' };
+  const cache = {}, BLOBS = {}, TIPO = { foto: 'image/png', ficha: 'image/jpeg', pdf: 'application/pdf' };
   function archivo(p, campo) {
     const n = p.archivos[campo];
     if (!n) return Promise.resolve(null);
     if (!cache[n]) cache[n] = (async () => {
       const buf = await (await fetch('a/' + n)).arrayBuffer();
       const plano = await Hub.cifra.abreBinario(p.estado === 'activo' ? L.ver : L.admin, buf);
-      return URL.createObjectURL(new Blob([plano], { type: TIPO[campo] }));
+      BLOBS[n] = new Blob([plano], { type: TIPO[campo] });
+      return URL.createObjectURL(BLOBS[n]);
     })().catch(() => { delete cache[n]; return null; });
     return cache[n];
   }
@@ -355,7 +369,8 @@ Hub.listo.then(async function () {
             ${datos(p)}
             ${dato(p)}
             <div class="botones"><a class="btn chico" href="#/p/${encodeURIComponent(p.id)}">${ic('ficha')}Ver ficha completa</a>
-              ${p.archivos.pdf ? `<button class="btn chico sec" type="button" data-pdf="${esc(p.id)}">${ic('pdf')}Descargar PDF</button>` : ''}</div>
+              ${p.archivos.pdf ? `<button class="btn chico sec" type="button" data-pdf="${esc(p.id)}">${ic('pdf')}Descargar PDF</button>` : ''}
+              <button class="btn chico sec" type="button" data-comp="${esc(p.id)}">${ic('compartir')}Compartir</button></div>
           </div></article>`).join('')}</div>
       <div class="minis">${ps.map((p, i) => `<button class="mini" type="button" data-i="${i}" aria-label="${esc(p.nombre)}"><img data-p="${esc(p.id)}" alt=""></button>`).join('')}</div>
       <p class="contador" aria-live="polite"></p></div>`;
@@ -372,6 +387,7 @@ Hub.listo.then(async function () {
       minis.forEach((m, k) => m.classList.toggle('on', k === i));
       izq.disabled = i === 0; der.disabled = i === ps.length - 1;
       cont.textContent = `${i + 1} de ${ps.length} · ${ps[i].nombre}`;
+      archivoCompartir(ps[i]);   // se prepara antes, para que «Compartir» abra al momento
     }
     // La ficha activa es la que está en el centro.
     let t; pista.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => {
@@ -390,6 +406,7 @@ Hub.listo.then(async function () {
     window.addEventListener('pointerup', e => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (!movido) return; pista.classList.remove('arrastra'); ir(posCarrusel + (dx < -60 ? 1 : dx > 60 ? -1 : 0)); });
     pista.addEventListener('click', e => { if (movido) { e.stopPropagation(); e.preventDefault(); movido = false; } }, true);
     v.querySelectorAll('[data-pdf]').forEach(b => b.onclick = () => descargaPdf(porId(b.dataset.pdf), b));
+    v.querySelectorAll('[data-comp]').forEach(b => b.onclick = () => comparte(porId(b.dataset.comp)));
     pintaFotos(v);
     requestAnimationFrame(() => { ir(posCarrusel, false); marca(posCarrusel); });
   }
@@ -418,7 +435,8 @@ Hub.listo.then(async function () {
             <button class="ficha-prev" type="button" aria-label="Ver la ficha en grande"><img data-p="${esc(p.id)}" data-c="ficha" alt="Ficha de ${esc(p.nombre)}"><span class="carga"></span></button>
             <div class="botones" style="margin-top:12px"><button class="btn chico" type="button" id="ampliar">${ic('ampliar')}Ver en grande</button>
               ${p.archivos.pdf ? `<button class="btn chico sec" type="button" id="pdf">${ic('pdf')}Descargar PDF</button>` : ''}
-              <button class="btn chico sec" type="button" id="img">${ic('pdf')}Descargar imagen</button></div></div>
+              <button class="btn chico sec" type="button" id="img">${ic('pdf')}Descargar imagen</button>
+              <button class="btn chico sec" type="button" id="comp">${ic('compartir')}Compartir</button></div></div>
           ${esAdmin && p.estado === 'activo' ? `<div class="card bloque"><label class="interruptor"><span>Visible para todos</span><input type="checkbox" id="visible" ${oculto(p) ? '' : 'checked'}></label>
             <p class="muted" style="font-size:13px;margin-top:6px">${puedeGuardar ? 'Si la apagas, solo la verán los administradores. Se guarda con el botón de abajo.' : 'Para guardarlo hace falta ser administrador del Hub.'}</p></div>` : ''}
         </div></div>`;
@@ -427,6 +445,8 @@ Hub.listo.then(async function () {
     const bp = app.querySelector('#pdf'); if (bp) bp.onclick = () => descargaPdf(p, bp);
     app.querySelector('#img').onclick = async () => baja(await archivo(p, 'ficha'), `Ficha ${p.archivos.nombre}.jpg`);
     const vi = app.querySelector('#visible'); if (vi) vi.onchange = () => cambia(p.id, !vi.checked);
+    app.querySelector('#comp').onclick = () => comparte(p);
+    archivoCompartir(p);
     pintaFotos(app);
     document.onkeydown = e => { if (dlg.open || !location.hash.includes('/p/')) return; if (e.key === 'ArrowLeft' && ant) location.hash = '#/p/' + encodeURIComponent(ant.id); if (e.key === 'ArrowRight' && sig) location.hash = '#/p/' + encodeURIComponent(sig.id); if (e.key === 'Escape') location.hash = volverA; };
   }
@@ -443,11 +463,13 @@ Hub.listo.then(async function () {
 
   /* ---------- Ver y descargar ---------- */
   async function verFicha(p) {
-    dlg.innerHTML = `<div class="dc"><div class="dcab"><b>Ficha · ${esc(p.nombre)}</b>${p.archivos.pdf ? `<button class="btn chico sec" type="button" id="dpdf">${ic('pdf')}PDF</button>` : ''}<button class="btn-ic" type="button" id="dcer" aria-label="Cerrar">${ic('cerrar')}</button></div>
+    dlg.innerHTML = `<div class="dc"><div class="dcab"><b>Ficha · ${esc(p.nombre)}</b><button class="btn chico sec" type="button" id="dcomp">${ic('compartir')}Compartir</button>${p.archivos.pdf ? `<button class="btn chico sec" type="button" id="dpdf">${ic('pdf')}PDF</button>` : ''}<button class="btn-ic" type="button" id="dcer" aria-label="Cerrar">${ic('cerrar')}</button></div>
       <div class="dimg"><img alt="Ficha de ${esc(p.nombre)}"></div></div>`;
+    dlg.classList.remove('chico');
     dlg.showModal();
     dlg.querySelector('#dcer').onclick = () => dlg.close();
     const b = dlg.querySelector('#dpdf'); if (b) b.onclick = () => descargaPdf(p, b);
+    dlg.querySelector('#dcomp').onclick = () => { dlg.close(); comparte(p); };
     dlg.onclick = e => { if (e.target === dlg) dlg.close(); };
     const u = await archivo(p, 'ficha'); if (u) dlg.querySelector('.dimg img').src = u;
   }
@@ -460,6 +482,46 @@ Hub.listo.then(async function () {
     if (!u) return aviso('No se ha podido descargar. Prueba otra vez.', true);
     const a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
   }
+  /* ---------- Compartir (Juan, 23/11) ----------
+     En el móvil (y en los ordenadores que lo admiten) se abre el menú de compartir del propio aparato,
+     con WhatsApp, correo y demás, y la ficha va adjunta en PDF. Donde no se puede adjuntar,
+     se descarga la ficha y se abre WhatsApp o el correo con el texto listo para adjuntarla. */
+  const campoCompartir = p => p.archivos.pdf ? 'pdf' : 'ficha';
+  const archivoCompartir = p => archivo(p, campoCompartir(p));
+  const nombreCompartir = p => `Ficha ${p.nombre}${p.sup ? ' ' + p.sup : ''} - Culligan Biofy.${campoCompartir(p) === 'pdf' ? 'pdf' : 'jpg'}`;
+  const textoCompartir = p => `Te paso la ficha de ${p.nombre}${p.sup ? ' ' + p.sup : ''} de Culligan Biofy: ${p.sub.charAt(0).toLowerCase() + p.sub.slice(1)}.`;
+  async function comparte(p) {
+    const blob = BLOBS[p.archivos[campoCompartir(p)]];
+    const f = blob ? new File([blob], nombreCompartir(p), { type: blob.type }) : null;
+    if (f && navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], title: 'Ficha de ' + p.nombre, text: textoCompartir(p) }); return; }
+      catch (e) { if (e.name === 'AbortError') return; }   // cancelado por la persona: no se hace nada más
+    }
+    menuCompartir(p);
+  }
+  function menuCompartir(p) {
+    const t = textoCompartir(p);
+    dlg.innerHTML = `<div class="dc"><div class="dcab"><b>Compartir · ${esc(p.nombre)}</b><button class="btn-ic" type="button" id="dcer" aria-label="Cerrar">${ic('cerrar')}</button></div>
+      <div class="compartir">
+        <p class="muted">Desde aquí se descarga la ficha y se abre la aplicación con el texto listo: solo tienes que adjuntar el archivo descargado.</p>
+        <button class="op" type="button" data-op="wa">${ic('whatsapp')}<span><b>WhatsApp</b><small>Descarga la ficha y abre WhatsApp</small></span></button>
+        <button class="op" type="button" data-op="mail">${ic('correo')}<span><b>Correo</b><small>Descarga la ficha y abre tu correo</small></span></button>
+        <button class="op" type="button" data-op="baja">${ic('pdf')}<span><b>Solo descargar</b><small>${campoCompartir(p) === 'pdf' ? 'En PDF' : 'En imagen'}</small></span></button>
+      </div></div>`;
+    dlg.classList.add('chico');
+    if (!dlg.open) dlg.showModal();
+    dlg.querySelector('#dcer').onclick = () => dlg.close();
+    dlg.onclick = e => { if (e.target === dlg) dlg.close(); };
+    dlg.querySelectorAll('.op').forEach(b => b.onclick = async () => {
+      const op = b.dataset.op;
+      // la ventana se abre ya (si se espera al archivo, el navegador la bloquea)
+      if (op === 'wa') window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener');
+      if (op === 'mail') location.href = `mailto:?subject=${encodeURIComponent('Ficha de ' + p.nombre + ' · Culligan Biofy')}&body=${encodeURIComponent(t + '\n\n(La ficha va adjunta.)')}`;
+      baja(await archivoCompartir(p), nombreCompartir(p));
+      dlg.close();
+    });
+  }
+
   function aviso(t, mal) { const d = document.createElement('div'); d.className = 'toast' + (mal ? ' mal' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2800); }
 
   /* ---------- Ocultar y mostrar (administradores) ---------- */
