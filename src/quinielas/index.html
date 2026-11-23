@@ -13,7 +13,7 @@
 <script src="../comun/nucleo.js"></script>
 <script src="../comun/volver.js"></script>
 <style>
-#app{padding-bottom:110px}
+#app{padding-bottom:40px}
 .q-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:6px 0 14px;animation:entra .5s var(--ease) both}
 .q-cab h1{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.4px}
 .q-cab p{color:var(--ink-3);margin-top:2px}
@@ -79,6 +79,9 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 /* Firma */
 .firma-caja{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .botones-q{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.estado-g{font-size:12.5px;color:var(--ink-3);margin-top:10px;display:flex;align-items:center;gap:6px;min-height:18px}
+.estado-g svg{width:15px;height:15px;color:var(--good)}
+.estado-g.mal{color:var(--warn)}
 .firma-img{background:#fff;border:1px solid var(--line);border-radius:12px;height:90px;padding:6px;max-width:260px}
 .lienzo{width:100%;height:220px;background:#fff;border:2px dashed var(--line-2);border-radius:14px;touch-action:none;display:block;cursor:crosshair}
 .aviso-q{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 16px;font-weight:600;font-size:14px;margin-bottom:14px;background:var(--warn-soft);color:var(--warn);animation:entra .4s var(--ease) both}
@@ -179,7 +182,9 @@ Hub.listo.then(async function () {
   const K = Hub.llave('quinielas');
   const sinLlave = t => { app.innerHTML = `<div class="card vacio"><div class="ic">${Hub.icono('quiniela')}</div><h1>Quinielas</h1><p>${t}</p></div>`; };
   if (!K || !K.t) return sinLlave('El módulo está en construcción: todavía no está conectado a su almacén de datos. Avisa a Claude.');
-  const TODAS = !!K.priv;
+  const PERM = Hub.permiso('quinielas'), ADMIN = PERM === 'todas', JEFE = PERM === 'jefe', TODAS = !!K.priv;   // TODAS = admin o jefe
+  let PARA = null;   // admins: la persona a la que se le rellena la quiniela (null = la propia)
+  const propiaActual = () => PARA ? (PARA.qk || null) : K.propia;
 
   /* ---------- Listas (Juan, 23/11) ---------- */
   const ORIGENES = ['Registros móviles', 'MKT', 'Autocaptado', 'Guía'];
@@ -221,7 +226,8 @@ Hub.listo.then(async function () {
     const kj = await crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, eph.privateKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
     const ij = crypto.getRandomValues(new Uint8Array(12));
     const out = { v: 1, i: b64(iv), c: b64(c), j: { epk: await crypto.subtle.exportKey('jwk', eph.publicKey), i: b64(ij), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ij }, kj, k)) } };
-    if (K.propia) { const ip = crypto.getRandomValues(new Uint8Array(12)); out.p = { i: b64(ip), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ip }, await aes(u8(K.propia), 'encrypt'), k)) }; }
+    const pr = propiaActual();   // la llave del dueño de la quiniela, para que él pueda releerla
+    if (pr) { const ip = crypto.getRandomValues(new Uint8Array(12)); out.p = { i: b64(ip), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ip }, await aes(u8(pr), 'encrypt'), k)) }; }
     return out;
   }
   async function abre(env) {
@@ -240,6 +246,7 @@ Hub.listo.then(async function () {
   // Carpeta de cada comercial: un código sacado de su identificador (no dice quién es).
   const carpeta = async uid => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-quinielas/' + uid)))].slice(0, 8).map(x => x.toString(16).padStart(2, '0')).join('');
   const MIA = await carpeta(K.uid);
+  let CARP = MIA;   // carpeta de la quiniela que se está rellenando
 
   /* ---------- Almacén (repositorio privado) ---------- */
   const API = `https://api.github.com/repos/${K.o}/${K.r}`, H = { Authorization: 'Bearer ' + K.t, Accept: 'application/vnd.github+json' };
@@ -263,10 +270,11 @@ Hub.listo.then(async function () {
   }
 
   /* ---------- Estado de la página ---------- */
-  let pestana = location.hash.replace(/^#\/?/, '') || 'mia';
-  if (!TODAS && pestana !== 'mia') pestana = 'mia';
+  const pestanaValida = h => { if (!TODAS) return 'mia'; if (JEFE && (h === 'mia' || !h)) return 'dia'; return ['mia', 'dia', 'hoja'].includes(h) ? h : (JEFE ? 'dia' : 'mia'); };
+  let pestana = pestanaValida(location.hash.replace(/^#\/?/, ''));
   let fecha = hoyISO(), Q = null, shaQ = null, cambios = false, semana = lunesDe(hoyISO()), delegFiltro = 'Todas', diaJefes = hoyISO();
-  const nueva = () => ({ v: 1, uid: K.uid, comercial: K.nombreCompleto || Hub.sesion().nombre, delegacion: Hub.lee('qn_deleg') || '', fecha, ruta: '', visitas: [], firma: null, firmada: null, guardada: null });
+  let guardando = false, tAuto = null, ultimoGuardado = null, sinRed = false;
+  const nueva = () => ({ v: 1, uid: PARA ? PARA.uid : K.uid, comercial: PARA ? PARA.nombre : (K.nombreCompleto || Hub.sesion().nombre), delegacion: PARA ? '' : (Hub.lee('qn_deleg') || ''), fecha, ruta: '', visitas: [], firma: null, firmada: null, guardada: null });
   const resumen = q => {
     const v = q.visitas, ven = v.filter(x => x.resultado === 'venta');
     return { nulos: v.filter(x => x.resultado === 'nulo').length, demos: v.filter(x => x.resultado === 'demo').length, ventas: ven.length,
@@ -276,100 +284,91 @@ Hub.listo.then(async function () {
   const aviso = (t, mal) => { const d = document.createElement('div'); d.className = 'toast' + (mal ? ' mal' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3200); };
 
   function marco(contenido) {
+    const tab = (id, ico, largo, corto) => `<button type="button" data-p="${id}" class="${pestana === id ? 'on' : ''}">${ic(ico)}<span class="l">${largo}</span><span class="s">${corto}</span></button>`;
     app.innerHTML = `<div class="q-cab"><div><h1>Quinielas</h1><p>${TODAS ? 'Seguimiento diario de los comerciales y producción de la semana' : 'Rellena tu quiniela durante el día y fírmala al terminar'}</p></div>
-      ${TODAS ? `<div class="pestanas" role="tablist">
-        <button type="button" data-p="mia" class="${pestana === 'mia' ? 'on' : ''}">${ic('mia')}<span class="l">Mi quiniela</span><span class="s">Mía</span></button>
-        <button type="button" data-p="dia" class="${pestana === 'dia' ? 'on' : ''}">${ic('dia')}<span class="l">Quinielas del día</span><span class="s">Del día</span></button>
-        <button type="button" data-p="hoja" class="${pestana === 'hoja' ? 'on' : ''}">${ic('hoja')}<span class="l">Hoja de producción</span><span class="s">Hoja</span></button></div>` : ''}</div>${contenido}`;
-    app.querySelectorAll('.pestanas button').forEach(b => b.onclick = () => { if (cambios && !confirm('Tienes cambios sin guardar en tu quiniela. ¿Salir igualmente?')) return; location.hash = '#/' + b.dataset.p; });
+      ${TODAS ? `<div class="pestanas" role="tablist">${ADMIN ? tab('mia', 'mia', 'Mi quiniela', 'Mía') : ''}${tab('dia', 'dia', 'Quinielas del día', 'Del día')}${tab('hoja', 'hoja', 'Hoja de producción', 'Hoja')}</div>` : ''}</div>${contenido}`;
+    app.querySelectorAll('.pestanas button').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.p; });
   }
-  window.addEventListener('hashchange', () => { pestana = location.hash.replace(/^#\/?/, '') || 'mia'; if (!TODAS) pestana = 'mia'; pinta(); });
-  window.addEventListener('beforeunload', e => { if (cambios) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('hashchange', () => { pestana = pestanaValida(location.hash.replace(/^#\/?/, '')); pinta(); });
+  window.addEventListener('beforeunload', e => { if (cambios) { guarda(false, true); e.preventDefault(); e.returnValue = ''; } });
   function pinta() { document.querySelector('.barra-q')?.remove(); if (pestana === 'dia') return vistaDia(); if (pestana === 'hoja') return vistaHoja(); return vistaMia(); }
 
   /* =================== MI QUINIELA =================== */
-  const borradorClave = () => 'qn_borrador_' + MIA + '_' + fecha;
+  const borradorClave = () => 'qn_borrador_' + CARP + '_' + fecha;
   async function cargaMia() {
-    Q = null; shaQ = null; cambios = false;
-    app.querySelector('#cuerpo').innerHTML = '<p class="cargando">Cargando tu quiniela…</p>';
+    clearTimeout(tAuto); Q = null; shaQ = null; cambios = false; ultimoGuardado = null;
+    app.querySelector('#cuerpo').innerHTML = '<p class="cargando">Cargando la quiniela…</p>';
     try {
-      const r = await lee(`q/${MIA}/${fecha}.json`);
-      shaQ = r.sha; Q = r.dato;
+      const r = await lee(`q/${CARP}/${fecha}.json`);
+      shaQ = r.sha; Q = r.dato; if (Q) ultimoGuardado = Q.guardada;
       if (r.sha && !r.dato) { app.querySelector('#cuerpo').innerHTML = '<div class="aviso-q">' + ic('info') + '<span>Esta quiniela existe, pero no se puede abrir con tu llave. Avisa a Claude.</span></div>'; return; }
     } catch (e) { aviso(e.message, true); }
-    const b = Hub.lee(borradorClave());   // lo que quedó sin guardar en este aparato
-    if (b) { try { const x = JSON.parse(b); if (!Q || (x.guardada || '') >= (Q.guardada || '')) { Q = x; cambios = true; } } catch (e) {} }
+    const b = Hub.lee(borradorClave());   // lo que quedó sin subir en este aparato (por ejemplo, sin conexión)
+    if (b) { try { const x = JSON.parse(b); if (!Q || (x.guardada || '') > (Q.guardada || '')) { Q = x; cambios = true; programaGuardado(); } else Hub.guarda(borradorClave(), null); } catch (e) {} }
     if (!Q) Q = nueva();
     pintaMia();
     avisoAnterior();
   }
-  // Recordatorio dentro del Hub: si la quiniela del día laborable anterior no está firmada, se avisa al abrir la de hoy.
+  // Aviso dentro del Hub: si la quiniela del día laborable anterior no está firmada, se avisa al abrir la de hoy.
   async function avisoAnterior() {
-    if (fecha !== hoyISO()) return;
+    if (fecha !== hoyISO() || PARA) return;
     let d = sumaDias(fecha, -1); while ([0, 6].includes(new Date(d + 'T12:00:00').getDay())) d = sumaDias(d, -1);
-    let q = null; try { q = (await lee(`q/${MIA}/${d}.json`)).dato; } catch (e) { return; }
+    let q = null; try { q = (await lee(`q/${CARP}/${d}.json`)).dato; } catch (e) { return; }
     if (q && q.firmada) return;
-    const c = app.querySelector('#cuerpo'); if (!c || fecha !== hoyISO()) return;
+    const c = app.querySelector('#cuerpo'); if (!c || fecha !== hoyISO() || PARA) return;
     const div = document.createElement('div'); div.className = 'aviso-q';
     div.innerHTML = `${ic('info')}<span>${q ? 'Tu quiniela del ' : 'No has enviado la quiniela del '}<b>${esc(fechaLarga(d).toLowerCase())}</b>${q ? ' está sin firmar.' : '.'} <a href="#" id="irAnt">Ir a ese día</a></span>`;
     c.prepend(div);
     div.querySelector('#irAnt').onclick = e => { e.preventDefault(); cambiaDia(d); };
   }
-  // Recordatorio fuera del Hub, gratis: un aviso diario (lunes a viernes) en el calendario del propio móvil.
-  function recordatorio() {
-    dlg.innerHTML = `<div class="dc"><h2>Recordatorio diario</h2>
-      <p class="muted" style="font-size:14px">Se añade a tu calendario un aviso de lunes a viernes para rellenar y firmar la quiniela. Es gratis y funciona aunque no tengas el Hub abierto. En el iPhone se abre «Añadir al calendario»; en Android, ábrelo con tu calendario.</p>
-      <label class="c">Hora del aviso<input class="campo" type="time" id="hora" value="${Hub.lee('qn_hora') || '19:30'}"></label>
-      <div class="acciones"><div class="der"><button class="btn chico sec" type="button" id="cancelar">Cancelar</button><button class="btn chico" type="button" id="ok">${ic('dia')}Añadir a mi calendario</button></div></div></div>`;
-    dlg.showModal();
-    dlg.querySelector('#cancelar').onclick = () => dlg.close();
-    dlg.querySelector('#ok').onclick = () => {
-      const h = (dlg.querySelector('#hora').value || '19:30').replace(':', ''); Hub.guarda('qn_hora', dlg.querySelector('#hora').value);
-      let d = hoyISO(); while ([0, 6].includes(new Date(d + 'T12:00:00').getDay())) d = sumaDias(d, 1);
-      const url = new URL(Hub.raiz + 'quinielas/', location.href).href, ahora = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
-      const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Biofy Hub//Quinielas//ES', 'CALSCALE:GREGORIAN',
-        'BEGIN:VTIMEZONE', 'TZID:Europe/Madrid', 'BEGIN:DAYLIGHT', 'TZOFFSETFROM:+0100', 'TZOFFSETTO:+0200', 'TZNAME:CEST', 'DTSTART:19700329T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU', 'END:DAYLIGHT',
-        'BEGIN:STANDARD', 'TZOFFSETFROM:+0200', 'TZOFFSETTO:+0100', 'TZNAME:CET', 'DTSTART:19701025T030000', 'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU', 'END:STANDARD', 'END:VTIMEZONE',
-        'BEGIN:VEVENT', `UID:quiniela-${MIA}@biofy-hub`, `DTSTAMP:${ahora}`, `DTSTART;TZID=Europe/Madrid:${d.replace(/-/g, '')}T${h}00`, 'DURATION:PT15M',
-        'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR', 'SUMMARY:Rellenar y firmar la quiniela', `DESCRIPTION:Biofy Hub > Quinielas: ${url}`, `URL:${url}`, 'TRANSP:TRANSPARENT',
-        'BEGIN:VALARM', 'ACTION:DISPLAY', 'TRIGGER:PT0M', 'DESCRIPTION:Rellenar y firmar la quiniela', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
-      bajaBlob(new Blob([ics], { type: 'text/calendar' }), 'Recordatorio quiniela.ics');
-      dlg.close(); aviso('Abre el archivo descargado para añadirlo a tu calendario.');
-    };
-  }
   function vistaMia() {
+    const equipo = ADMIN ? (K.equipo || []) : [];
     marco(`<div class="card bloque" style="animation-delay:40ms"><h2>${ic('dia')}Día y ruta</h2>
         <div class="fila dr">
+          ${ADMIN ? `<label class="c">Quiniela de<select class="campo" id="para"><option value="">Yo (${esc(K.nombreCompleto || Hub.sesion().nombre)})</option>${equipo.map((m, i) => `<option value="${i}" ${PARA && PARA.uid === m.uid ? 'selected' : ''}>${esc(m.nombre)}</option>`).join('')}</select></label>` : ''}
           <label class="c">Fecha<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${fecha}" max="${hoyISO()}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
           <label class="c">Delegación<select class="campo" id="deleg"><option value="">Elige…</option>${DELEGACIONES.map(d => `<option>${d}</option>`).join('')}</select></label>
           <label class="c">Ruta<input class="campo" id="ruta" placeholder="Zona o pueblos de hoy" autocomplete="off"></label>
-        </div></div>
+        </div>${ADMIN && !equipo.length ? '<p class="muted" style="font-size:12.5px;margin-top:8px">Para rellenar la de otra persona, primero dale «Usuario» en Quinielas desde ACCESOS.</p>' : ''}</div>
       <div id="cuerpo"></div>`);
     const f = app.querySelector('#fecha');
     f.onchange = () => cambiaDia(f.value);
     app.querySelector('#ant').onclick = () => cambiaDia(sumaDias(fecha, -1));
     app.querySelector('#sig').onclick = () => { if (fecha < hoyISO()) cambiaDia(sumaDias(fecha, 1)); };
-    app.querySelector('#deleg').onchange = e => { Q.delegacion = e.target.value; Hub.guarda('qn_deleg', e.target.value); toca(); };
+    app.querySelector('#deleg').onchange = e => { Q.delegacion = e.target.value; if (!PARA) Hub.guarda('qn_deleg', e.target.value); toca(); };
     app.querySelector('#ruta').oninput = e => { Q.ruta = e.target.value; toca(); };
+    const sp = app.querySelector('#para');
+    if (sp) sp.onchange = async () => { await guardaYa(); PARA = sp.value === '' ? null : equipo[+sp.value]; CARP = PARA ? await carpeta(PARA.uid) : MIA; cargaMia(); };
     cargaMia();
   }
-  function cambiaDia(nuevaFecha) {
+  async function cambiaDia(nuevaFecha) {
     if (!nuevaFecha || nuevaFecha === fecha) return;
-    if (cambios && !confirm('Tienes cambios sin guardar. ¿Cambiar de día igualmente? (se quedan guardados en este aparato)')) { app.querySelector('#fecha').value = fecha; return; }
+    await guardaYa();
     fecha = nuevaFecha; app.querySelector('#fecha').value = fecha; cargaMia();
   }
+  // Cada cambio se guarda solo, a los pocos segundos (y en el propio aparato al momento, por si no hay conexión).
   function toca(quitaFirma = true) {
     cambios = true;
-    if (quitaFirma && Q.firma) { Q.firma = null; Q.firmada = null; }
+    if (quitaFirma && Q.firma) { Q.firma = null; Q.firmada = null; Q.firmadaPor = null; }
     Q.guardada = new Date().toISOString();
     Hub.guarda(borradorClave(), JSON.stringify(Q));
-    pintaBarra();
+    programaGuardado(); pintaEstado();
+  }
+  function programaGuardado() { clearTimeout(tAuto); tAuto = setTimeout(() => guarda(false, true), 2500); }
+  async function guardaYa() { clearTimeout(tAuto); if (cambios) await guarda(false, true); }
+  function pintaEstado() {
+    const e = app.querySelector('#estadoG'); if (!e) return;
+    const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    e.className = 'estado-g' + (sinRed ? ' mal' : '');
+    e.innerHTML = guardando ? 'Guardando…' : !Q.delegacion && cambios ? 'Elige la delegación para que se guarde' : sinRed ? 'Sin conexión: guardado en este aparato. Se subirá al volver la conexión.'
+      : cambios ? 'Cambios pendientes de guardar…' : ultimoGuardado ? `${ic('ok')}Guardado a las ${hora(ultimoGuardado)}` : 'Todavía sin datos';
   }
   function pintaMia() {
     app.querySelector('#deleg').value = Q.delegacion || '';
     app.querySelector('#ruta').value = Q.ruta || '';
     const r = resumen(Q), c = app.querySelector('#cuerpo');
-    c.innerHTML = `${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. Si cambias algo, tendrás que volver a firmarla.</span></div>` : ''}
+    c.innerHTML = `${PARA ? `<div class="aviso-q info">${ic('info')}<span>Estás rellenando la quiniela de <b>${esc(PARA.nombre)}</b>. Se guarda en la suya y quedará firmada por ti en su nombre.</span></div>` : ''}
+      ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}. Si cambias algo, habrá que volver a firmarla.</span></div>` : ''}
       <div class="card bloque" style="animation-delay:80ms"><h2>${ic('hoja')}Resumen</h2><div class="resumen">
         <div><small>Visitas</small><b>${Q.visitas.length}</b></div><div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
         <div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Confirmadas</small><b>${r.conf}</b></div>
@@ -378,16 +377,15 @@ Hub.listo.then(async function () {
         <div class="visitas">${Q.visitas.length ? Q.visitas.map((v, i) => tarjetaVisita(v, i)).join('') : '<p class="vacio-q">Todavía no hay visitas. Añádelas según las vayas haciendo.</p>'}
         <button class="anadir" type="button" id="anadir">${ic('mas')}Añadir visita</button></div></div>
       <div class="card bloque" style="animation-delay:160ms"><h2>${ic('firma')}Firma</h2>
-        <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Cuando termines el día, firma con el dedo y envíala.</p>'}</div>
+        <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Puedes ir rellenándola durante el día (se guarda sola) y firmarla al terminar.</p>'}</div>
         <div class="botones-q"><button class="btn chico" type="button" id="firmar2">${ic('firma')}${Q.firmada ? 'Volver a firmar' : 'Firmar y enviar'}</button>
-          ${shaQ || Q.visitas.length ? `<button class="btn chico sec" type="button" id="pdf2">${ic('excel')}Descargar PDF</button>` : ''}</div></div>
-      <p class="no-imprimir" style="text-align:center;margin:4px 0 10px"><button class="volver-q" type="button" id="recordar" style="margin:0">${ic('dia')}Añadir un recordatorio diario a mi calendario</button></p>`;
+          ${shaQ || Q.visitas.length ? `<button class="btn chico sec" type="button" id="pdf2">${ic('excel')}Descargar PDF</button>` : ''}</div>
+        <p class="estado-g" id="estadoG"></p></div>`;
     c.querySelectorAll('.visita').forEach(b => b.onclick = () => editaVisita(+b.dataset.i));
     c.querySelector('#anadir').onclick = () => editaVisita(null);
     c.querySelector('#firmar2').onclick = pideFirma;
-    c.querySelector('#recordar').onclick = recordatorio;
     const bp = c.querySelector('#pdf2'); if (bp) bp.onclick = () => pdfQuiniela(Q, bp);
-    pintaBarra();
+    pintaEstado();
   }
   function tarjetaVisita(v, i) {
     const arts = (v.articulos || []).filter(a => a.nombre).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · ');
@@ -396,25 +394,27 @@ Hub.listo.then(async function () {
       <span class="estado ${v.resultado}">${RES[v.resultado] || '—'}</span>${v.resultado === 'venta' ? ` <span class="estado ${v.estado === 'pte' ? 'pte' : 'venta'}">${v.estado === 'pte' ? 'Pendiente' : 'Confirmada'}</span>` : ''}</span>
       ${v.resultado === 'venta' ? `<span class="imp">${euros(num(v.importe))}</span>` : ''}</button>`;
   }
-  function pintaBarra() {
-    let b = document.querySelector('.barra-q');
-    if (pestana !== 'mia') { b?.remove(); return; }
-    if (!b) { b = document.createElement('div'); b.className = 'barra-q'; document.body.appendChild(b); }
-    b.innerHTML = `<span class="estado-g">${cambios ? 'Cambios sin guardar (guardados en este aparato)' : Q.firmada ? 'Firmada y enviada' : shaQ ? 'Guardada, sin firmar' : 'Sin guardar todavía'}</span>
-      <div class="der"><button class="btn chico ${cambios ? '' : 'sec'}" type="button" id="guardar" ${cambios ? '' : 'disabled'}>${ic('guardar')}${cambios ? 'Guardar cambios' : 'Guardado'}</button></div>`;
-    b.querySelector('#guardar').onclick = () => guarda(false);
-  }
-  async function guarda(conFirma) {
-    if (!Q.delegacion) { aviso('Elige tu delegación antes de guardar.', true); return false; }
-    const bs = document.querySelectorAll('.barra-q .btn'); bs.forEach(x => x.disabled = true);
+  const pintaBarra = pintaEstado;   // (antes había una barra abajo; ahora el estado va junto a la firma)
+  async function guarda(conFirma, silencioso) {
+    if (!Q || !cambios && !conFirma) return true;
+    if (!Q.delegacion) { if (!silencioso) aviso('Elige la delegación antes de firmar.', true); pintaEstado(); return false; }
+    if (guardando) { if (!conFirma) { programaGuardado(); return false; } while (guardando) await new Promise(z => setTimeout(z, 200)); }
+    guardando = true; pintaEstado();
+    const ruta = `q/${CARP}/${fecha}.json`, copia = JSON.stringify(Q);
     try {
-      Q.guardada = new Date().toISOString();
-      shaQ = await escribe(`q/${MIA}/${fecha}.json`, Q, shaQ, `Quiniela ${fecha}${conFirma ? ' (firmada)' : ''}`);
-      cambios = false; Hub.guarda(borradorClave(), null);
-      aviso(conFirma ? 'Quiniela firmada y enviada.' : 'Guardada.');
-      pintaMia(); return true;
-    } catch (e) { aviso(e.message, true); pintaBarra(); return false; }
+      shaQ = await escribe(ruta, Q, shaQ, `Quiniela ${fecha}${conFirma ? ' (firmada)' : ''}`);
+      guardando = false; sinRed = false; ultimoGuardado = Q.guardada;
+      if (JSON.stringify(Q) === copia) { cambios = false; Hub.guarda(borradorClave(), null); } else programaGuardado();
+      if (conFirma) { aviso('Quiniela firmada y enviada.'); pintaMia(); } else pintaEstado();
+      return true;
+    } catch (e) {
+      guardando = false; sinRed = !navigator.onLine || /conexión/i.test(e.message);
+      if (!silencioso || conFirma) aviso(e.message, true);
+      if (sinRed) setTimeout(programaGuardado, 15000);
+      pintaEstado(); return false;
+    }
   }
+  window.addEventListener('online', () => { if (cambios) programaGuardado(); });
 
   /* ---------- Una visita ---------- */
   function editaVisita(i) {
@@ -484,7 +484,7 @@ Hub.listo.then(async function () {
     ok.onclick = async () => {
       ok.disabled = true; ok.textContent = 'Enviando…';
       // la firma, recortada a lo dibujado y en PNG
-      Q.firma = cv.toDataURL('image/png'); Q.firmada = new Date().toISOString(); cambios = true;
+      Q.firma = cv.toDataURL('image/png'); Q.firmada = new Date().toISOString(); Q.firmadaPor = PARA ? (K.nombreCompleto || Hub.sesion().nombre) : null; cambios = true;
       if (await guarda(true)) dlg.close(); else { ok.disabled = false; ok.innerHTML = ic('ok') + 'Firmar y enviar'; Q.firma = null; Q.firmada = null; }
     };
   }
@@ -541,7 +541,7 @@ Hub.listo.then(async function () {
         <td>${esc(v.cobro || '')}</td><td class="n">${esc(v.cuotas || '')}</td><td>${RES[v.resultado] || ''}${v.resultado === 'venta' ? (v.estado === 'pte' ? ' · Pendiente' : ' · Confirmada') : ''}</td></tr>`).join('') || '<tr><td colspan="11" class="cero">Sin visitas</td></tr>'}
       <tr class="tot"><td colspan="6">Total</td><td>${euros(r.importe)}</td><td>${euros(r.cuota)}</td><td colspan="3"></td></tr></tbody></table></div>
       <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen"><div><small>Nulos</small><b>${r.nulos}</b></div><div><small>Confirmadas</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas</small><b>${r.ventas}</b></div></div></div>
-      <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
+      <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}${q.firmadaPor ? ' por ' + esc(q.firmadaPor) + ', en nombre del comercial' : ''}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
     app.querySelector('#volver').onclick = () => vistaDia();
     app.querySelector('#pdfq').onclick = e => pdfQuiniela(q, e.currentTarget);
     scrollTo(0, 0);
@@ -661,7 +661,7 @@ Hub.listo.then(async function () {
       if (q.firma) { try { doc.addImage(q.firma, 'PNG', 222, y - 6, 55, 18); } catch (e) {} }
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('Fdo.:', 210, y + 13); doc.line(219, y + 13.5, 287, y + 13.5);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(110);
-      doc.text(q.firmada ? 'Firmada con el dedo en el Biofy Hub el ' + new Date(q.firmada).toLocaleString('es-ES') : 'Sin firmar', 219, y + 17);
+      doc.text(q.firmada ? 'Firmada con el dedo en el Biofy Hub el ' + new Date(q.firmada).toLocaleString('es-ES') + (q.firmadaPor ? ' por ' + q.firmadaPor + ', en nombre del comercial' : '') : 'Sin firmar', 219, y + 17);
       doc.text('Biofy Hub · Quiniela diaria · descargada el ' + new Date().toLocaleString('es-ES'), 10, 203);
       bajaBlob(doc.output('blob'), `Quiniela ${q.comercial} ${q.fecha}.pdf`);
     });

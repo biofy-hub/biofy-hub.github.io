@@ -12,9 +12,9 @@
     // Productos (Juan, 23/11): ver las fichas; administrar = además ver las eliminadas y elegir qué fichas se ven
     // (guardarlo pide además ser administrador del Hub, que es quien tiene la llave de publicar).
     fichas:      [{ id: 'ver',       nombre: 'Ver las fichas' },      { id: 'admin', nombre: 'Administrar (eliminadas y qué fichas se ven)' }],
-    // Quinielas (Juan, 23/11): cada comercial rellena y ve solo la suya; jefes, dirección y administración ven todas
-    // y la hoja de producción. Las quinielas van cifradas: «rellenar» no tiene la llave para leer las de los demás.
-    quinielas:   [{ id: 'rellenar',  nombre: 'Rellenar su quiniela' }, { id: 'todas', nombre: 'Ver todas y la hoja de producción' }]
+    // Quinielas (Juan, 23/11): Usuario = solo la suya; Jefe = todas y la hoja, sin quiniela propia; Admin = todo
+    // (además puede rellenar la de otra persona). Van cifradas: «Usuario» no tiene la llave para leer las de los demás.
+    quinielas:   [{ id: 'rellenar',  nombre: 'Usuario (solo su quiniela)' }, { id: 'jefe', nombre: 'Jefe (todas y la hoja, sin quiniela propia)' }, { id: 'todas', nombre: 'Admin (todo)' }]
   };
 
   // Llaves de cada persona según sus permisos. S = secretos de los módulos (solo los tienen el Mac y los administradores del Hub).
@@ -29,8 +29,13 @@
     if (w.curso) L.curso = { clave: S.curso };
     if (S.fichas && w.fichas === 'admin') L.fichas = { ver: S.fichas.ver, admin: S.fichas.admin };
     else if (S.fichas && w.fichas === 'ver') L.fichas = { ver: S.fichas.ver };
-    if (S.quinielas && S.quinielas.token && (w.quinielas === 'rellenar' || w.quinielas === 'todas'))
-      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub, ...(w.quinielas === 'todas' ? { priv: S.quinielas.priv, equipo: S.quinielas.equipo || [] } : {}) };
+    if (S.quinielas && S.quinielas.token && ['rellenar', 'jefe', 'todas'].includes(w.quinielas)) {
+      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub };
+      const eq = S.quinielas.equipo || [];
+      // Admin: lee todas y lleva la llave de cada usuario (para rellenarle la quiniela y que él pueda releerla). Jefe: lee todas.
+      if (w.quinielas === 'todas') Object.assign(L.quinielas, { priv: S.quinielas.priv, equipo: eq });
+      if (w.quinielas === 'jefe') Object.assign(L.quinielas, { priv: S.quinielas.priv, equipo: eq.map(m => ({ uid: m.uid, nombre: m.nombre, rol: m.rol })) });
+    }
     if (w.hub === 'admin') L.hub = { clave: S.hub.clave, gh: S.hub.gh || null };
     return L;
   };
@@ -42,14 +47,14 @@
     const dispositivo = /dispositivo/i.test(u.rol || '');
     const llaves = g.HUB_LLAVES(webs, S);
     // Quinielas: cada persona lleva además SU llave (u.qk), con la que relee sus propias quinielas, y su identificador.
-    if (llaves.quinielas) Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre });
+    if (llaves.quinielas && webs.quinielas !== 'jefe') Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre });
     return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
   };
   // Antes de publicar: quien tiene Quinielas y aún no tiene su llave propia, la recibe (al azar, 32 bytes en base64).
   // y quien ve todas recibe la lista de quién tiene que rellenarla (para ver quién la ha enviado y quién no).
   g.HUB_PREPARA = function (usuarios, azar, S) {
-    for (const u of usuarios) if (!u.baja && u.webs && u.webs.quinielas && !u.qk) u.qk = azar();
+    for (const u of usuarios) if (!u.baja && u.webs && ['rellenar', 'todas'].includes(u.webs.quinielas) && !u.qk) u.qk = azar();
     if (S && S.quinielas) S.quinielas.equipo = usuarios.filter(u => !u.baja && u.webs && u.webs.quinielas === 'rellenar')
-      .map(u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '' }));
+      .map(u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '', qk: u.qk }));
   };
 })(typeof window !== 'undefined' ? window : globalThis);
