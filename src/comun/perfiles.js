@@ -30,7 +30,7 @@
     if (S.fichas && w.fichas === 'admin') L.fichas = { ver: S.fichas.ver, admin: S.fichas.admin };
     else if (S.fichas && w.fichas === 'ver') L.fichas = { ver: S.fichas.ver };
     if (S.quinielas && S.quinielas.token && (w.quinielas === 'rellenar' || w.quinielas === 'todas'))
-      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub, ...(w.quinielas === 'todas' ? { priv: S.quinielas.priv } : {}) };
+      L.quinielas = { t: S.quinielas.token, o: S.quinielas.owner, r: S.quinielas.repo, pub: S.quinielas.pub, ...(w.quinielas === 'todas' ? { priv: S.quinielas.priv, equipo: S.quinielas.equipo || [] } : {}) };
     if (w.hub === 'admin') L.hub = { clave: S.hub.clave, gh: S.hub.gh || null };
     return L;
   };
@@ -46,7 +46,10 @@
     return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
   };
   // Antes de publicar: quien tiene Quinielas y aún no tiene su llave propia, la recibe (al azar, 32 bytes en base64).
-  g.HUB_PREPARA = function (usuarios, azar) {
+  // y quien ve todas recibe la lista de quién tiene que rellenarla (para ver quién la ha enviado y quién no).
+  g.HUB_PREPARA = function (usuarios, azar, S) {
     for (const u of usuarios) if (!u.baja && u.webs && u.webs.quinielas && !u.qk) u.qk = azar();
+    if (S && S.quinielas) S.quinielas.equipo = usuarios.filter(u => !u.baja && u.webs && u.webs.quinielas === 'rellenar')
+      .map(u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '' }));
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -201,7 +201,6 @@ if (QN) for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin
   u.webs.quinielas = 'todas';
   historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Quinielas (ver todas), por ser administrador del Hub` });
 }
-HUB_PREPARA(usuarios, () => randomBytes(32).toString('base64'));   // llave propia de quien tiene Quinielas
 const secretos = {
   ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv } } : {}),
   fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
@@ -211,6 +210,7 @@ const secretos = {
   curso: CURSO,
   hub: { clave: HB.clave, gh: HB.gh || null }
 };
+HUB_PREPARA(usuarios, () => randomBytes(32).toString('base64'), secretos);   // Quinielas: llave propia de cada uno y lista de quién rellena
 const llaveros = {}, resumen = [];
 for (const u of usuarios) {
   if (u.baja) continue;
