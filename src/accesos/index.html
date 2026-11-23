@@ -31,7 +31,9 @@
 .pers:hover{transform:translateY(-2px);box-shadow:var(--shadow-up);border-color:var(--line-2)}
 .pers.cambiado{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
 .pers .fila{display:flex;align-items:center;gap:12px}
-.pers .av{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none}
+.pers .av{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none;overflow:hidden}
+.foto-ed{display:flex;align-items:center;gap:14px}
+.foto-ed .av{width:64px;height:64px;border-radius:18px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:22px;overflow:hidden;flex:none}
 .pers h3{font-size:15.5px;font-weight:700;line-height:1.25}
 .pers small{color:var(--ink-3);font-size:12.5px;display:block}
 .pers small.usr{color:var(--brand-ink);font-weight:600}
@@ -129,7 +131,7 @@ Hub.listo.then(async function () {
       ${(reg.historial || []).length ? `<section class="seccion"><h2>Últimos cambios</h2><div class="lista">${reg.historial.slice(-8).reverse().map(h => `<div class="it"><div>${esc(h.que)}</div><span>${esc(h.quien)} · ${esc(h.fecha.split('-').reverse().join('/'))}</span></div>`).join('')}</div></section>` : ''}
       <footer>Biofy Hub · Accesos</footer>`;
     app.querySelector('#alta').onclick = () => editor(null);
-    app.querySelectorAll('.pers').forEach(b => b.onclick = () => editor(+b.dataset.i));
+    app.querySelectorAll('.pers').forEach(b => { b.onclick = () => editor(+b.dataset.i); const u = reg.usuarios[+b.dataset.i]; Hub.foto(u.nombre).then(f => { if (f) b.querySelector('.av').innerHTML = `<img src="${f}" alt="">`; }); });
     barra();
   }
 
@@ -159,6 +161,9 @@ Hub.listo.then(async function () {
     dlg.innerHTML = `<form class="dc" method="dialog">
       <h2>${nuevo ? 'Dar de alta' : esc(u.nombre)}</h2>
       <div><label class="t" for="eNom">Nombre y apellido</label><input class="campo" id="eNom" value="${esc(u.nombre)}" required autocomplete="off"></div>
+      <div class="foto-ed"><div class="av" id="eAv">${esc(u.nombre ? ini(u.nombre) : '?')}</div><div><label class="t">Foto</label>
+        <button class="btn sec chico" type="button" id="eFoto" ${puedePublicar ? '' : 'disabled'}>Poner o cambiar la foto</button>
+        <input type="file" id="eArch" accept="image/*" hidden><p class="nota" style="margin-top:4px">Se recorta en cuadrado y sale en todo el Hub (pizarra, quinielas…). Se guarda al momento.</p></div></div>
       <div class="dos"><div><label class="t" for="eTipo">Tipo</label><select class="campo" id="eTipo"><option value="">Elige…</option>${HUB_TIPOS.map(t => `<option ${u.tipo === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
         <div><label class="t" for="eUsr">Usuario</label><input class="campo" id="eUsr" value="${esc(u.usuario || '')}" placeholder="Ej.: el mismo del CRM" autocomplete="off" autocapitalize="none" spellcheck="false"></div></div>
       <div><label class="t" for="eRol">Cargo</label><input class="campo" id="eRol" value="${esc(u.rol || '')}" placeholder="Ej.: Jefe de equipo (Sevilla) · para una TV: Dispositivo" autocomplete="off"></div>
@@ -184,6 +189,16 @@ Hub.listo.then(async function () {
     const f = dlg.querySelector('form');
     dlg.querySelector('#eNo').onclick = () => dlg.close();
     const err = dlg.querySelector('#eErr');
+    // Foto: se sube al momento (no espera a «Publicar»), con el nombre que haya escrito
+    if (u.nombre) Hub.foto(u.nombre).then(fu => { if (fu) dlg.querySelector('#eAv').innerHTML = `<img src="${fu}" alt="">`; });
+    dlg.querySelector('#eFoto').onclick = () => { if (!f.eNom.value.trim()) { err.textContent = 'Escribe primero el nombre.'; return f.eNom.focus(); } dlg.querySelector('#eArch').click(); };
+    dlg.querySelector('#eArch').onchange = async ev => {
+      const a = ev.target.files[0]; ev.target.value = ''; if (!a) return;
+      const b = dlg.querySelector('#eFoto'), t = b.textContent; b.disabled = true; b.textContent = 'Subiendo…';
+      try { const bytes = await Hub.recortaFoto(a); await Hub.subeFoto(f.eNom.value.trim(), bytes); const fu = await Hub.foto(f.eNom.value.trim()); dlg.querySelector('#eAv').innerHTML = `<img src="${fu}" alt="">`; err.textContent = ''; }
+      catch (e) { err.textContent = 'No se ha podido subir la foto: ' + e.message; }
+      b.disabled = false; b.textContent = t;
+    };
     f.querySelectorAll('input[name="pwModo"]').forEach(x => x.onchange = () => { f.ePw.style.display = f.pwModo.value === 'mia' ? '' : 'none'; if (f.pwModo.value === 'mia') f.ePw.focus(); });
     f.onsubmit = async e => {
       e.preventDefault();

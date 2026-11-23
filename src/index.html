@@ -82,10 +82,11 @@
     }).join('');
     const main = document.createElement('main');
     main.className = 'wrap';
-    main.innerHTML = `<div class="hola"><div><h1>${saludo()}, ${esc(s.nombre)}</h1><p>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))} · Todo lo de Culligan Biofy en un solo sitio</p></div></div>
+    main.innerHTML = `<div class="hola"><div><h1>${saludo()}, ${esc(s.nombre)}</h1><p>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))} · Todo lo de Culligan Biofy en un solo sitio</p></div>${Hub.esMovil() && !Hub.instalado() ? `<button class="btn" type="button" id="instalar" style="width:auto;padding:0 18px;margin:0;display:inline-flex;align-items:center;gap:8px">${icono('hub')}Añadir a la pantalla de inicio</button>` : ''}</div>
       ${grupos}
       <footer>Biofy Hub · Culligan Biofy</footer>`;
     app.appendChild(main);
+    const bi = main.querySelector('#instalar'); if (bi) bi.onclick = Hub.anadirInicio;
   }
 
   Hub.listo.then(() => Hub.sesion() ? inicio() : pantallaEntrada());

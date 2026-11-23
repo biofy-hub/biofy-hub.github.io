@@ -120,6 +120,8 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .fila-c b{display:block;font-size:15px}
 .fila-c small{color:var(--ink-3);font-size:12.5px}
 .fila-c .mini-res{justify-content:flex-end}
+.avq{width:36px;height:36px;border-radius:11px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none;overflow:hidden}
+.avq img{width:100%;height:100%;object-fit:cover}
 .luz{width:12px;height:12px;border-radius:50%;flex:none}
 .luz.si{background:#22a559;box-shadow:0 0 0 4px rgba(34,165,89,.18),0 0 10px rgba(34,165,89,.55)}
 .luz.medio{background:#e8a21d;box-shadow:0 0 0 4px rgba(232,162,29,.18)}
@@ -364,7 +366,7 @@ Hub.listo.then(async function () {
     Hub.guarda(borradorClave(), JSON.stringify(Q));
     programaGuardado(); pintaEstado();
   }
-  function programaGuardado() { clearTimeout(tAuto); tAuto = setTimeout(() => guarda(false, true), 2500); }
+  function programaGuardado() { clearTimeout(tAuto); tAuto = setTimeout(() => guarda(false, true), 5000); }   // 5 s: menos escrituras cuando lo usan muchos a la vez
   async function guardaYa() { clearTimeout(tAuto); if (cambios) await guarda(false, true); }
   function pintaEstado() {
     const e = app.querySelector('#estadoG'); if (!e) return;
@@ -417,8 +419,9 @@ Hub.listo.then(async function () {
     const cab = `<h2>${ic('info')}Avisos en este móvil</h2>`;
     if (!K.vapid) { el.remove(); return; }
     if (esIOS && !instalada()) {
-      el.innerHTML = cab + `<p style="font-size:14px">Para recibir un aviso a las 20:00 si todavía no has registrado tu quiniela, en el iPhone hay que hacer antes esto (una sola vez):</p>
-        <ol style="font-size:14px;margin:8px 0 0 20px;line-height:1.7"><li>En Safari, toca el botón <b>Compartir</b> (el cuadrado con la flecha hacia arriba).</li><li>Elige <b>«Añadir a pantalla de inicio»</b> y luego <b>«Añadir»</b>.</li><li>Abre el Biofy Hub desde ese icono nuevo, entra en Quinielas y pulsa <b>«Activar avisos»</b>.</li></ol>`;
+      el.innerHTML = cab + `<p style="font-size:14px">Para recibir un aviso a las 20:00 si todavía no has registrado tu quiniela, en el iPhone primero hay que añadir el Hub a la pantalla de inicio (una sola vez) y abrirlo desde ese icono. Luego vuelve aquí y pulsa «Activar avisos».</p>
+        <div class="botones-q"><button class="btn chico" type="button" id="inicioIOS">${ic('info')}Añadir a la pantalla de inicio</button></div>`;
+      el.querySelector('#inicioIOS').onclick = Hub.anadirInicio;
       return;
     }
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { el.innerHTML = cab + '<p class="muted" style="font-size:14px">Este navegador no admite avisos. Prueba con Chrome (Android) o Safari (iPhone).</p>'; return; }
@@ -578,12 +581,13 @@ Hub.listo.then(async function () {
         <div class="ven"><small>Firmadas</small><b>${nSi}</b></div><div class="dem"><small>Sin firmar</small><b>${nMedio}</b></div><div><small>Sin enviar</small><b style="color:var(--bad)">${nNo}</b></div>
         <div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>
       ${vis.length ? `<div class="card lista-c">${vis.map((f, i) => { const e = estado(f), r = f.q ? resumen(f.q) : null; return `<button type="button" class="fila-c ${e}" data-i="${i}" ${f.q ? '' : 'disabled'} style="animation-delay:${i * 35}ms">
-          <span class="luz ${e}" title="${TXT[e]}"></span>
+          <span class="luz ${e}" title="${TXT[e]}"></span><span class="avq" data-n="${esc(f.nombre)}">${esc((f.nombre || '?').trim()[0])}</span>
           <span class="t"><b>${esc(f.nombre)}</b><small>${esc([delegDe(f), f.q && f.q.ruta].filter(Boolean).join(' · ') || f.rol || '')}</small></span>
           <span class="mini-res">${r ? `<span>${r.nulos} nulos</span><span class="d">${r.demos} demos</span><span class="v">${r.ventas} ventas</span>` : ''}<span class="est ${e}">${TXT[e]}</span></span>
           ${f.q ? ic('der') : ''}</button>`; }).join('')}</div>`
         : `<p class="vacio-q">Todavía no hay nadie con «Rellenar su quiniela». Dalo en ACCESOS a los comerciales${qs.length ? '' : ' y aquí aparecerá la lista de cada día'}.</p>`}`;
     c.querySelectorAll('.fila-c').forEach(b => b.onclick = () => { const f = vis[+b.dataset.i]; if (f.q) detalle(f.q); });
+    c.querySelectorAll('.avq').forEach(a => Hub.foto(a.dataset.n).then(u => { if (u) a.innerHTML = `<img src="${u}" alt="">`; }));
   }
   function detalle(q) {
     const r = resumen(q);

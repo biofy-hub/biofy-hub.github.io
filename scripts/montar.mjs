@@ -26,7 +26,7 @@
   Nunca escribe contraseñas ni claves en pantalla. Comprueba al final que ninguna sale en claro.
   Al mudarnos a nuestro servidor, este script deja de generar llaveros: el servidor da los permisos.
 */
-import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { webcrypto as crypto, randomBytes, createHash } from 'node:crypto';
@@ -88,7 +88,9 @@ function HUB_ACCESO(){const k=Hub.llave('pizarra');return k?{read:k.read,write:k
     ['function guardarAcceso(recordar){', 'function guardarAcceso(recordar){return;'],
     ["$('#cerrarSesion').onclick=()=>{borrarAcceso();location.reload();};", "$('#cerrarSesion').onclick=()=>{borrarAcceso();Hub.salir();};"],
     ['</head>', HUB_HEAD + '</head>'],
-    ['</style>', '#secAdminLogin,#salirAdmin{display:none!important}.marca{cursor:pointer}\n</style>'],
+    ['</style>', '#secAdminLogin,#salirAdmin,#secFotos{display:none!important}.marca{cursor:pointer}\n</style>'],
+    // Fotos (Juan, 23/11): salen de las fotos del Hub (Accesos); la pizarra ya no las sube
+    ['fotos=await api.fotos().catch(()=>({}));', 'fotos=await (async()=>{const o={};await Hub.listo;await Promise.all(((config&&config.comerciales)||[]).map(async c=>{const u=await Hub.foto(c.nombre);if(u)o[slug(c.nombre)]=u;}));return o;})().catch(()=>({}));'],
     ['burbujas();pintar();marcarRol();', "document.querySelectorAll('.marca').forEach(x=>x.onclick=()=>location.href='../index.html');\nburbujas();pintar();marcarRol();"],
   ]);
 }
@@ -202,6 +204,7 @@ if (QN) for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin
   historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Quinielas (ver todas), por ser administrador del Hub` });
 }
 const secretos = {
+  fotos: HB.fotosClave || null,
   ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv, vapid: QN.vapid ? QN.vapid.pub : null } } : {}),
   fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
   pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
@@ -258,6 +261,30 @@ if (process.argv.includes('--compat')) writeFileSync(join(out, 'comun/llaveros.j
   console.log(`Productos: ${grupos.ver.length} activas y ${grupos.admin.length} eliminadas, ${(bytes / 1e6).toFixed(1)} MB cifrados · ${estado ? 'se conserva qué fichas se ven' : 'todas visibles (sin estado publicado)'}`);
 }
 
+/* 5. Fotos de las personas (Juan, 23/11): se suben desde Accesos y van cifradas en fotos/. Volver a montar no las pisa:
+   se copian las publicadas. Con --importar-fotos-pizarra se traen además las de la pizarra que aún no estén. */
+{
+  mkdirSync(join(out, 'fotos'), { recursive: true });
+  let n = 0, nuevas = 0;
+  try {
+    const lista = JSON.parse(execFileSync('gh', ['api', 'repos/biofy-hub/biofy-hub.github.io/contents/fotos?ref=gh-pages'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+    for (const f of lista) { writeFileSync(join(out, 'fotos', f.name), execFileSync('gh', ['api', `repos/biofy-hub/biofy-hub.github.io/contents/fotos/${f.name}?ref=gh-pages`, '-H', 'Accept: application/vnd.github.raw'], { stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 20e6 })); n++; }
+  } catch (e) {}
+  if (process.argv.includes('--importar-fotos-pizarra')) {
+    if (!HB.fotosClave) falla('falta «fotosClave» en los secretos del Hub');
+    const lista = JSON.parse(execFileSync('gh', ['api', 'repos/Juan-biofy/pizarra-datos/contents/pizarra/fotos'], { encoding: 'utf8' })).filter(f => f.name.endsWith('.jpg'));
+    for (const f of lista) {
+      const destino = join(out, 'fotos', createHash('sha256').update('biofy-hub/foto/' + f.name.slice(0, -4)).digest('hex').slice(0, 24) + '.bin');
+      if (existsSync(destino)) continue;
+      const jpg = execFileSync('gh', ['api', `repos/Juan-biofy/pizarra-datos/contents/pizarra/fotos/${f.name}`, '-H', 'Accept: application/vnd.github.raw'], { maxBuffer: 20e6 });
+      const k = await crypto.subtle.importKey('raw', B(HB.fotosClave), 'AES-GCM', false, ['encrypt']), iv = randomBytes(12);
+      writeFileSync(destino, Buffer.concat([iv, Buffer.from(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, jpg))]));
+      nuevas++;
+    }
+  }
+  console.log(`Fotos: ${n} publicadas se conservan${nuevas ? ` · ${nuevas} traídas de la pizarra` : ''}`);
+}
+
 /* Comprobaciones */
 let ok = true;
 const pwDe = {};
@@ -267,7 +294,7 @@ for (const { u, contenido, kk } of resumen) {
   // si la contraseña está en el Mac, se comprueba también que abre con ella (como en el navegador)
   const pw = pwDe[u.id], abrePw = pw ? JSON.parse(await decrypt(llaveros[kk], pw) || 'null') : abreK;
   const bien = abreK && JSON.stringify(abreK) === JSON.stringify(contenido) && JSON.stringify(abrePw) === JSON.stringify(contenido);
-  const sobran = Object.keys(abreK?.llaves || {}).filter(m => !contenido.permisos[m]);
+  const sobran = Object.keys(abreK?.llaves || {}).filter(m => m !== 'fotos' && !contenido.permisos[m]);
   const verSinEscritura = contenido.permisos.pizarra !== 'ver' || !abreK?.llaves?.pizarra?.write;
   const hubSoloAdmin = !abreK?.llaves?.hub || contenido.admin;
   const eliminadasSoloAdmin = !abreK?.llaves?.fichas?.admin || contenido.permisos.fichas === 'admin';
@@ -275,7 +302,7 @@ for (const { u, contenido, kk } of resumen) {
   if (!bueno) ok = false;
   console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, HB.fotosClave, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');

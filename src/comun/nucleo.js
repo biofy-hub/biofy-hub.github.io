@@ -180,7 +180,7 @@
     const sha = ahora.ok ? (await ahora.json()).sha : null;
     if (!ahora.ok && ahora.status !== 404) throw new Error('GitHub no deja leer (' + ahora.status + ')');
     if (shaEsperado !== undefined && sha !== shaEsperado) throw new Error('Otra persona lo ha cambiado mientras tanto. Recarga la página y vuelve a hacerlo.');
-    const r = await fetch(api, { method:'PUT', headers: h, body: JSON.stringify({ message: mensaje, content: b64(new TextEncoder().encode(texto)), branch: P.rama, ...(sha ? { sha } : {}) }) });
+    const r = await fetch(api, { method:'PUT', headers: h, body: JSON.stringify({ message: mensaje, content: b64(texto instanceof Uint8Array ? texto : new TextEncoder().encode(texto)), branch: P.rama, ...(sha ? { sha } : {}) }) });
     if (!r.ok) throw new Error('GitHub no deja guardar (' + r.status + ')');
     return (await r.json()).content.sha;
   }
@@ -197,6 +197,38 @@
     return crypto.subtle.decrypt({ name:'AES-GCM', iv: new Uint8Array(buf, 0, 12) }, k, new Uint8Array(buf, 12));
   }
   const cifra = { abre: abreConB64, cierra: (kB64, texto) => cierraCon(kB64, texto), abreBinario };
+
+  /* ---------- Fotos de las personas (Juan, 23/11): un solo sitio para todo el Hub ----------
+     Cada foto va cifrada en fotos/<código>.bin; el código sale del nombre (igual que en la pizarra: sin tildes,
+     en minúsculas y con guiones), así la misma persona tiene la misma foto en la pizarra, Accesos y Quinielas. */
+  const slugNombre = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  async function archivoFoto(nombre) { return 'fotos/' + hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-hub/foto/' + slugNombre(nombre)))).slice(0, 24) + '.bin'; }
+  const FOTOS = {};
+  function foto(nombre) {
+    const s = slugNombre(nombre); if (!s) return Promise.resolve(null);
+    if (!(s in FOTOS)) FOTOS[s] = (async () => {
+      const k = ((sesion() || {}).llaves || {}).fotos; if (!k) return null;
+      const r = await fetch(RAIZ + await archivoFoto(nombre) + '?v=' + (window.HUB_BUILD || '')); if (!r.ok) return null;
+      return URL.createObjectURL(new Blob([await abreBinario(k.k, await r.arrayBuffer())], { type: 'image/jpeg' }));
+    })().catch(() => null);
+    return FOTOS[s];
+  }
+  // Solo administradores del Hub (llave de publicar). bytes = JPEG ya recortado.
+  async function subeFoto(nombre, bytes) {
+    const k = ((sesion() || {}).llaves || {}).fotos; if (!k) throw new Error('Falta la llave de las fotos. Vuelve a entrar en el Hub.');
+    const key = await crypto.subtle.importKey('raw', u8(k.k), 'AES-GCM', false, ['encrypt']), iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, bytes)), todo = new Uint8Array(12 + c.length);
+    todo.set(iv); todo.set(c, 12);
+    await publicaArchivo(await archivoFoto(nombre), todo, 'Foto de una persona (Accesos)');
+    FOTOS[slugNombre(nombre)] = Promise.resolve(URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' })));
+  }
+  // Recorta una imagen en cuadrado (centrada) y la deja en JPEG, como en la pizarra
+  async function recortaFoto(archivo, lado = 400) {
+    const img = await createImageBitmap(archivo), m = Math.min(img.width, img.height), cv = document.createElement('canvas');
+    cv.width = cv.height = lado; cv.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, lado, lado);
+    const blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.86));
+    return new Uint8Array(await blob.arrayBuffer());
+  }
 
   const modulo = id => window.HUB_MODULOS.find(m => m.id === id);
   // ¿Puede ver este módulo? Accesos: solo administradores del Hub. En construcción: con permiso o administrador.
@@ -229,6 +261,7 @@
     </div>`;
     document.body.prepend(h);
     h.querySelector('.theme').onclick = cambiaTema;
+    if (s) foto(s.nombreCompleto || s.nombre).then(u => { if (u) h.querySelector('.yo .av').innerHTML = `<img src="${u}" alt="">`; });
     const yo = h.querySelector('.yo'), menu = h.querySelector('.menu');
     if (yo) {
       yo.onclick = e => { e.stopPropagation(); menu.classList.toggle('open'); };
@@ -236,6 +269,26 @@
       menu.onclick = e => { const a = e.target.closest('button')?.dataset.a; if (a === 'salir') salir(); if (a === 'hub') location.href = Hub.raiz + 'index.html'; };
     }
     document.title = `${etiqueta === 'Hub' ? '' : etiqueta + ' · '}${C.nombre}`;
+  }
+
+  /* ---------- Añadir el Hub a la pantalla de inicio (Juan, 23/11) ----------
+     Android/Chrome: abre la ventana de instalar. iPhone: Apple no deja hacerlo con un botón, así que se enseñan los pasos. */
+  let pideInstalar = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pideInstalar = e; });
+  const esIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const instalado = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const esMovil = () => esIOS() || /Android|Mobi/i.test(navigator.userAgent);
+  async function anadirInicio() {
+    if (pideInstalar) { pideInstalar.prompt(); try { await pideInstalar.userChoice; } catch (e) {} pideInstalar = null; return; }
+    const d = document.createElement('dialog');
+    d.style.cssText = 'margin:auto;border:0;border-radius:20px;padding:0;max-width:min(420px,calc(100% - 24px));background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up)';
+    const paso = (n, t) => `<li style="display:flex;gap:12px;align-items:flex-start;margin:10px 0"><b style="flex:none;width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:13px">${n}</b><span>${t}</span></li>`;
+    d.innerHTML = `<div style="padding:22px"><h2 style="font-size:19px;font-weight:800;margin-bottom:6px">Añadir el Hub a la pantalla de inicio</h2>
+      <ol style="list-style:none;font-size:14.5px;line-height:1.45">${esIOS()
+        ? paso(1, 'Abre esta página en <b>Safari</b>.') + paso(2, 'Toca el botón <b>Compartir</b>: el cuadrado con una flecha hacia arriba, abajo en la pantalla.') + paso(3, 'Baja y elige <b>«Añadir a pantalla de inicio»</b>, y luego <b>«Añadir»</b>.') + paso(4, 'Abre el Hub desde el icono nuevo. Así funciona como una app y te pueden llegar los avisos.')
+        : paso(1, 'Abre el menú del navegador (los tres puntos, arriba a la derecha).') + paso(2, 'Elige <b>«Añadir a pantalla de inicio»</b> o <b>«Instalar aplicación»</b>.') + paso(3, 'Abre el Hub desde el icono nuevo.')}</ol>
+      <div style="text-align:right;margin-top:12px"><button class="btn" type="button" style="width:auto;padding:0 22px">Entendido</button></div></div>`;
+    document.body.appendChild(d); d.querySelector('button').onclick = () => { d.close(); d.remove(); }; d.showModal();
   }
 
   // ¿Qué módulo es esta página? Por su carpeta (pizarra/, dashboard/…) o por modulo.html?m=…
@@ -246,5 +299,5 @@
     try { iconoPestana(m ? m.icono : 'hub'); } catch (e) {}
   })();
 
-  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona, claveUsuario }, publicaArchivo, shaDe, cifra, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
+  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona, claveUsuario }, publicaArchivo, shaDe, cifra, foto, subeFoto, recortaFoto, slugNombre, anadirInicio, instalado, esMovil, esIOS, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();

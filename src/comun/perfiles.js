@@ -50,7 +50,8 @@
     const llaves = g.HUB_LLAVES(webs, S);
     // Quinielas: cada persona lleva además SU llave (u.qk), con la que relee sus propias quinielas, y su identificador.
     if (llaves.quinielas && webs.quinielas !== 'jefe') Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre });
-    return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
+    if (S.fotos) llaves.fotos = { k: S.fotos };   // fotos de las personas (Juan, 23/11): las ve todo el Hub
+    return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], nombreCompleto: u.nombre, perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
   };
   // Antes de publicar: quien tiene Quinielas y aún no tiene su llave propia, la recibe (al azar, 32 bytes en base64).
   // y quien ve todas recibe la lista de quién tiene que rellenarla (para ver quién la ha enviado y quién no).
