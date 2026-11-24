@@ -258,6 +258,13 @@ if (process.argv.includes('--compat')) writeFileSync(join(out, 'comun/llaveros.j
   let estado = null;
   try { estado = execFileSync('gh', ['api', 'repos/biofy-hub/biofy-hub.github.io/contents/productos/estado.json?ref=gh-pages', '-H', 'Accept: application/vnd.github.raw'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) {}
   if (estado) writeFileSync(join(out, 'productos/estado.json'), estado);
+  // Artículos de la quiniela = las fichas activas (Juan, 24/11: «que esté vinculado a las fichas de producto»).
+  // Mismo nombre que la ficha y agrupados por su primera etiqueta. Solo nombres y categorías (nada secreto).
+  const nombre = p => (p.nombre + (p.sup ? ' ' + p.sup : '')).replace(/\s+/g, ' ').trim();
+  const cats = cat.etiquetas.map(e => [e, grupos.ver.filter(p => p.etiquetas[0] === e).map(p => ({ id: p.id, n: nombre(p) }))]).filter(c => c[1].length);
+  mkdirSync(join(out, 'quinielas'), { recursive: true });
+  writeFileSync(join(out, 'quinielas/articulos.js'), '/* Sale solo de las fichas de PRODUCTOS al montar el Hub. No editar a mano. */\nwindow.QN_ARTICULOS = ' + JSON.stringify(cats) + ';\n');
+  console.log(`Quinielas: ${cats.reduce((n, c) => n + c[1].length, 0)} artículos de las fichas, en ${cats.length} categorías`);
   console.log(`Productos: ${grupos.ver.length} activas y ${grupos.admin.length} eliminadas, ${(bytes / 1e6).toFixed(1)} MB cifrados · ${estado ? 'se conserva qué fichas se ven' : 'todas visibles (sin estado publicado)'}`);
 }
 

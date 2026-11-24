@@ -17,6 +17,7 @@
 <script src="../comun/perfiles.js"></script>
 <script src="../comun/nucleo.js"></script>
 <script src="../comun/volver.js"></script>
+<script src="articulos.js"></script>
 <style>
 #app{padding-bottom:40px}
 .q-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:6px 0 14px;animation:entra .5s var(--ease) both}
@@ -210,16 +211,20 @@ Hub.listo.then(async function () {
   const origenesDe = () => /VIP/i.test(tipoDe()) || (!PARA && /VIP/i.test((Hub.sesion() || {}).perfil || '')) ? ORIGENES_VIP : ORIGENES_COM;
   const OFERTAS = ['Ultra', 'Plus', 'Bio', 'Minibio', 'Oferta recu'];
   const COBROS = ['Efectivo', 'TPV', 'Transferencia'];
-  // Artículos: lista cerrada y por categorías, las mismas de PRODUCTOS (Juan, 24/11). Se elige, no se escribe.
-  const CATEGORIAS = [
-    ['Fuente', ['Columbia de sobremesa', 'Pure Water Top', 'Pure Water Pie']],
-    ['Ósmosis', ['Voqua', 'Unik']],
-    ['Descalcificador', ['Pure Black 12 L', 'Pure Black 25 L']],
-    ['Desincrustador', ['Technocal', 'Descalpro', 'HidroCal Pro']],
-    ['Enfriador', ['Icebox']],
-    ['Agua hidrogenada', ['Hydronic Pure', 'Jarra hidrogenada']],
-    ['Limpieza con ozono', ['Elektra']]
-  ];
+  // Artículos: lista cerrada y por categorías, vinculada a las FICHAS DE PRODUCTO (Juan, 24/11): mismos nombres y categorías.
+  // Sale de articulos.js, que el montaje del Hub hace con las fichas activas. Si quien rellena puede ver las fichas,
+  // además se quitan las que un administrador haya eliminado desde PRODUCTOS.
+  let CATEGORIAS = (window.QN_ARTICULOS || []).map(([c, ps]) => [c, ps.map(p => p.n)]);
+  try {
+    const LF = Hub.llave('fichas');
+    if (LF && LF.ver) {
+      const r = await fetch('../productos/estado.json?t=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) {
+        const fuera = new Set((JSON.parse(await Hub.cifra.abre(LF.ver, await r.json()) || '{}').eliminados) || []);
+        CATEGORIAS = (window.QN_ARTICULOS || []).map(([c, ps]) => [c, ps.filter(p => !fuera.has(p.id)).map(p => p.n)]).filter(c => c[1].length);
+      }
+    }
+  } catch (e) {}
   const ARTICULOS = CATEGORIAS.flatMap(c => c[1]);
   const DELEGACIONES = ['Córdoba', 'Alicante'];
   // Textos escritos: en mayúsculas y sin signos de puntuación (Juan, 24/11).
