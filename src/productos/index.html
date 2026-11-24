@@ -106,10 +106,14 @@
 .cuad h3{font-size:17px;font-weight:800;letter-spacing:-.2px}
 .cuad .gama{font-size:11px}
 .cuad.oculta{opacity:.55}
-.cuad .ojo{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);z-index:2;transition:transform .15s}
+.cuad .acc{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.cuad .ojo{position:relative;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);z-index:2;transition:transform .15s}
 .cuad .ojo:hover{transform:scale(1.08)}
 .cuad .ojo svg{width:18px;height:18px}
-.cuad.oculta .ojo{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.cuad.oculta .ojo[data-ojo]{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.cuad .ojo.quita:hover{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.cuad .ojo.recupera{background:var(--good-soft);color:var(--good);border-color:transparent}
+.pr-cab .vistas{flex-wrap:wrap}
 .cuad.cambiado{box-shadow:0 0 0 3px var(--brand-soft);border-color:var(--brand)}
 .vacio-f{padding:50px 20px;text-align:center;color:var(--ink-3)}
 /* ---------- Página de un producto ---------- */
@@ -193,6 +197,7 @@ dialog.chico{width:min(480px,calc(100% - 24px))}
   .cuad h3{font-size:15px}
   .cuad .pie{padding:10px 12px 12px}
   .vistas button span{display:none}
+  .vistas.adm button span{display:inline}
   .vistas button{padding:8px 12px}
   .mini{width:44px;height:44px;border-radius:12px}
 }
@@ -229,6 +234,7 @@ Hub.listo.then(async function () {
     ampliar: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
     papelera: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
     cerrar: '<path d="M6 6l12 12M18 6L6 18"/>',
+    recuperar: '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/>',
     compartir: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
     whatsapp: '<path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4l-4.5 1.1z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2L9 8.5z"/>',
     correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/>'
@@ -247,7 +253,7 @@ Hub.listo.then(async function () {
 
   // Qué fichas se ven. Los administradores lo leen directamente de GitHub (siempre al día); el resto, de la web.
   const RUTA_ESTADO = 'productos/estado.json';
-  let ocultos = [], shaEstado;
+  let ocultos = [], eliminados = [], shaEstado;
   async function leeEstado() {
     let t = null;
     try {
@@ -260,17 +266,22 @@ Hub.listo.then(async function () {
         const r = await fetch('estado.json?t=' + Date.now(), { cache: 'no-store' });
         if (r.ok) t = await r.text();
       }
-      if (t) ocultos = (JSON.parse(await Hub.cifra.abre(L.ver, JSON.parse(t)) || '{}').ocultos) || [];
-    } catch (e) { ocultos = []; }
+      if (t) { const e = JSON.parse(await Hub.cifra.abre(L.ver, JSON.parse(t)) || '{}'); ocultos = e.ocultos || []; eliminados = e.eliminados || []; }
+    } catch (e) { ocultos = []; eliminados = []; }
   }
   await leeEstado();
-  let cambios = new Set(ocultos);   // lo que se va a guardar
+  let cambios = new Set(ocultos), cambiosE = new Set(eliminados);   // lo que se va a guardar
 
   const todos = () => CAT.productos.concat(ELIM);
   const porId = id => todos().find(p => p.id === id);
   const oculto = p => (esAdmin ? cambios : new Set(ocultos)).has(p.id);
-  // Lo que ve cada uno: quien no administra no ve las ocultas.
-  const activos = () => CAT.productos.filter(p => esAdmin || !oculto(p));
+  // Eliminar (Juan, 24/11): la ficha sale de la vista de todos y pasa a «Eliminadas» (se puede recuperar).
+  // Ocultar es para algo temporal: los administradores la siguen viendo en la principal y en «Ocultas».
+  const elim = p => p.estado === 'eliminado' || (esAdmin ? cambiosE : new Set(eliminados)).has(p.id);
+  const borradaAqui = p => p.estado === 'activo' && elim(p);   // eliminada desde esta página (se puede recuperar)
+  const activos = () => CAT.productos.filter(p => !elim(p) && (esAdmin || !oculto(p)));
+  const listaElim = () => CAT.productos.filter(borradaAqui).concat(ELIM);
+  const listaOcultas = () => CAT.productos.filter(p => !elim(p) && oculto(p));
 
   /* ---------- Archivos: se descifran al pedirlos y se guardan en memoria ---------- */
   const cache = {}, BLOBS = {}, TIPO = { foto: 'image/png', ficha: 'image/jpeg', pdf: 'application/pdf' };
@@ -296,18 +307,19 @@ Hub.listo.then(async function () {
   /* ---------- Piezas ---------- */
   const conB = s => esc(s).replace(/&lt;(\/?)b&gt;/g, '<$1b>');   // el texto de la ficha solo lleva negritas
   const titulo = p => `${esc(p.nombre)}${p.sup ? `<sup>${esc(p.sup)}</sup>` : ''}`;
-  const etiquetas = p => `<div class="etqs">${p.estado === 'eliminado' ? '<span class="etq elim">Eliminada</span>' : ''}${esAdmin && oculto(p) ? '<span class="etq oculta">Oculta</span>' : ''}${p.etiquetas.map(e => `<span class="etq">${esc(e)}</span>`).join('')}</div>`;
+  const etiquetas = p => `<div class="etqs">${elim(p) ? '<span class="etq elim">Eliminada</span>' : ''}${esAdmin && !elim(p) && oculto(p) ? '<span class="etq oculta">Oculta</span>' : ''}${p.etiquetas.map(e => `<span class="etq">${esc(e)}</span>`).join('')}</div>`;
   const foto = (p, extra = '') => `<div class="foto ${extra}"><img data-p="${esc(p.id)}" alt="${esc(p.nombre)}"><span class="carga"></span></div>`;
   const ventajas = p => `<div class="vent">${p.ventajas.map(v => `<div>${svgIco(v.icono)}<p><b>${esc(v.titulo)}</b><span>${esc(v.texto)}</span></p></div>`).join('')}</div>`;
   const datos = p => `<div class="datos">${p.datos.map(d => `<div><small>${esc(d.etiqueta)}</small><b>${esc(d.valor)}</b></div>`).join('')}</div>`;
   const dato = p => p.dato ? `<div class="dato"><b>${esc(p.dato.titulo)}</b><span>${esc(p.dato.texto)}</span></div>` : '';
 
-  /* ---------- Rutas: #/carrusel · #/cuadricula · #/p/<id> · #/eliminadas ---------- */
+  /* ---------- Rutas: #/carrusel · #/cuadricula · #/p/<id> · #/eliminadas · #/ocultas ---------- */
   let vista = Hub.lee('prod_vista') === 'cuadricula' ? 'cuadricula' : 'carrusel', filtro = 'Todas', ultimaLista = '#/' + vista, posCarrusel = 0;
   function ruta() {
     const h = location.hash.replace(/^#\/?/, '');
-    if (h.startsWith('p/')) { const p = porId(decodeURIComponent(h.slice(2))); if (p && (esAdmin || !oculto(p))) return detalle(p); }
+    if (h.startsWith('p/')) { const p = porId(decodeURIComponent(h.slice(2))); if (p && (esAdmin || (!oculto(p) && !elim(p)))) return detalle(p); }
     if (h === 'eliminadas' && esAdmin) { ultimaLista = '#/eliminadas'; return eliminadas(); }
+    if (h === 'ocultas' && esAdmin) { ultimaLista = '#/ocultas'; return ocultas(); }
     if (h === 'cuadricula' || h === 'carrusel') { vista = h; Hub.guarda('prod_vista', h); }
     ultimaLista = '#/' + vista;
     lista();
@@ -319,13 +331,13 @@ Hub.listo.then(async function () {
     const ps = activos(), etq = CAT.etiquetas.filter(e => ps.some(p => p.etiquetas.includes(e)));
     if (filtro !== 'Todas' && !etq.includes(filtro)) filtro = 'Todas';
     const vis = ps.filter(p => filtro === 'Todas' || p.etiquetas.includes(filtro));
-    const nOcultas = CAT.productos.filter(oculto).length;
+    const nOcultas = listaOcultas().length;
     app.innerHTML = `<div class="pr-cab"><div><h1>Fichas de producto</h1><p>${ps.length} máquinas · ${vista === 'carrusel' ? 'desliza para verlas todas' : 'toca una para ver su ficha'}</p></div>
       <div class="vistas" role="group" aria-label="Cómo ver las fichas">
         <button type="button" data-v="carrusel" class="${vista === 'carrusel' ? 'on' : ''}" aria-pressed="${vista === 'carrusel'}">${ic('carrusel')}<span>Carrusel</span></button>
         <button type="button" data-v="cuadricula" class="${vista === 'cuadricula' ? 'on' : ''}" aria-pressed="${vista === 'cuadricula'}">${ic('cuadricula')}<span>Cuadrícula</span></button></div></div>
       <div class="filtros" role="group" aria-label="Filtrar por tipo">${['Todas'].concat(etq).map((e, i) => `<button type="button" class="filtro ${e === filtro ? 'on' : ''}" data-f="${esc(e)}" style="animation-delay:${i * 40}ms">${esc(e)}<i>${e === 'Todas' ? ps.length : ps.filter(p => p.etiquetas.includes(e)).length}</i></button>`).join('')}</div>
-      ${esAdmin ? `<div class="admin-fila"><a href="#/eliminadas">${ic('papelera')}Eliminadas (${ELIM.length})</a><span class="ojo-info">${ic('ojo')}${nOcultas ? `${nOcultas} oculta${nOcultas > 1 ? 's' : ''} para los demás` : 'Todas visibles para los demás'}${vista === 'carrusel' ? ' · para ocultar, usa la cuadrícula' : ''}</span></div>` : ''}
+      ${esAdmin ? `<div class="admin-fila"><a href="#/eliminadas">${ic('papelera')}Eliminadas (${listaElim().length})</a><a href="#/ocultas">${ic('ojoNo')}Ocultas (${nOcultas})</a><span class="ojo-info">${ic('ojo')}${nOcultas ? `${nOcultas} oculta${nOcultas > 1 ? 's' : ''} para los demás` : 'Todas visibles para los demás'}${vista === 'carrusel' ? ' · para ocultar o eliminar, usa la cuadrícula' : ''}</span></div>` : ''}
       <div id="vista"></div>`;
     app.querySelectorAll('.vistas button').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.v; });
     app.querySelectorAll('.filtro').forEach(b => b.onclick = () => { filtro = b.dataset.f; posCarrusel = 0; lista(); });
@@ -340,17 +352,22 @@ Hub.listo.then(async function () {
     pintaFotos(v);
   }
   function tarjeta(p, i) {
-    return `<div class="card cuad ${oculto(p) ? 'oculta' : ''} ${esAdmin && oculto(p) !== ocultos.includes(p.id) ? 'cambiado' : ''}" role="link" tabindex="0" data-id="${esc(p.id)}" style="animation-delay:${i * 50}ms">
-      ${esAdmin && p.estado === 'activo' ? `<button class="ojo" type="button" data-ojo="${esc(p.id)}" title="${oculto(p) ? 'Oculta para los demás: tócalo para que se vea' : 'Visible para todos: tócalo para ocultarla'}" aria-label="${oculto(p) ? 'Mostrar' : 'Ocultar'} ${esc(p.nombre)}">${ic(oculto(p) ? 'ojoNo' : 'ojo')}</button>` : ''}
+    const cambiada = esAdmin && (oculto(p) !== ocultos.includes(p.id) || (p.estado === 'activo' && elim(p) !== eliminados.includes(p.id)));
+    return `<div class="card cuad ${oculto(p) && !elim(p) ? 'oculta' : ''} ${cambiada ? 'cambiado' : ''}" role="link" tabindex="0" data-id="${esc(p.id)}" style="animation-delay:${i * 50}ms">
+      ${esAdmin && p.estado === 'activo' ? `<div class="acc">${!elim(p) ? `<button class="ojo" type="button" data-ojo="${esc(p.id)}" title="${oculto(p) ? 'Oculta para los demás: tócalo para que se vea' : 'Visible para todos: tócalo para ocultarla'}" aria-label="${oculto(p) ? 'Mostrar' : 'Ocultar'} ${esc(p.nombre)}">${ic(oculto(p) ? 'ojoNo' : 'ojo')}</button>
+        <button class="ojo quita" type="button" data-elim="${esc(p.id)}" title="Eliminar: deja de verse y pasa a «Eliminadas»" aria-label="Eliminar ${esc(p.nombre)}">${ic('papelera')}</button>`
+        : `<button class="ojo recupera" type="button" data-recu="${esc(p.id)}" title="Recuperar: vuelve a las fichas" aria-label="Recuperar ${esc(p.nombre)}">${ic('recuperar')}</button>`}</div>` : ''}
       ${foto(p)}<div class="pie"><span class="gama">${esc(p.gama)}</span><h3>${titulo(p)}</h3>${etiquetas(p)}</div></div>`;
   }
   function enlazaTarjetas(v) {
     v.querySelectorAll('.cuad').forEach(c => {
       const ir = () => { location.hash = '#/p/' + encodeURIComponent(c.dataset.id); };
-      c.onclick = e => { if (!e.target.closest('.ojo')) ir(); };
+      c.onclick = e => { if (!e.target.closest('.acc')) ir(); };
       c.onkeydown = e => { if (e.key === 'Enter') ir(); };
     });
-    v.querySelectorAll('.ojo').forEach(b => b.onclick = e => { e.stopPropagation(); cambia(b.dataset.ojo); });
+    v.querySelectorAll('[data-ojo]').forEach(b => b.onclick = e => { e.stopPropagation(); cambia(b.dataset.ojo); });
+    v.querySelectorAll('[data-elim]').forEach(b => b.onclick = e => { e.stopPropagation(); elimina(b.dataset.elim, true); });
+    v.querySelectorAll('[data-recu]').forEach(b => b.onclick = e => { e.stopPropagation(); elimina(b.dataset.recu, false); });
   }
 
   function carrusel(v, ps) {
@@ -413,14 +430,15 @@ Hub.listo.then(async function () {
 
   /* ---------- Página de un producto ---------- */
   function detalle(p) {
-    const lista = p.estado === 'eliminado' ? ELIM : activos();
+    const lista = elim(p) ? listaElim() : activos();
     const i = lista.indexOf(p), ant = lista[i - 1], sig = lista[i + 1];
-    const volverA = p.estado === 'eliminado' ? '#/eliminadas' : (ultimaLista.includes('eliminadas') ? '#/' + vista : ultimaLista);
-    if (p.estado === 'activo') posCarrusel = Math.max(0, activos().filter(x => filtro === 'Todas' || x.etiquetas.includes(filtro)).indexOf(p));
-    app.innerHTML = `<div class="det-nav"><a href="${volverA}">${ic('izq')}${p.estado === 'eliminado' ? 'Volver a las eliminadas' : 'Volver a las fichas'}</a>
+    const volverA = elim(p) ? '#/eliminadas' : (ultimaLista.includes('eliminadas') ? '#/' + vista : ultimaLista);
+    if (!elim(p)) posCarrusel = Math.max(0, activos().filter(x => filtro === 'Todas' || x.etiquetas.includes(filtro)).indexOf(p));
+    app.innerHTML = `<div class="det-nav"><a href="${volverA}">${ic('izq')}${elim(p) ? 'Volver a las eliminadas' : ultimaLista === '#/ocultas' ? 'Volver a las ocultas' : 'Volver a las fichas'}</a>
         <div class="pasos">${ant ? `<button type="button" data-ir="${esc(ant.id)}">${ic('izq')}${esc(ant.nombre)}</button>` : ''}${sig ? `<button type="button" data-ir="${esc(sig.id)}">${esc(sig.nombre)}${ic('der')}</button>` : ''}</div></div>
       ${p.estado === 'eliminado' ? `<div class="aviso-p">${ic('papelera')}<span>Producto eliminado del catálogo (20/11/2026). Solo lo ven los administradores.</span></div>` : ''}
-      ${esAdmin && oculto(p) ? `<div class="aviso-p ama">${ic('ojoNo')}<span>Esta ficha está oculta: los demás no la ven.</span></div>` : ''}
+      ${borradaAqui(p) ? `<div class="aviso-p">${ic('papelera')}<span>Ficha eliminada: nadie la ve en las fichas. Solo la ven los administradores, aquí en «Eliminadas».</span></div>` : ''}
+      ${esAdmin && !elim(p) && oculto(p) ? `<div class="aviso-p ama">${ic('ojoNo')}<span>Esta ficha está oculta: los demás no la ven.</span></div>` : ''}
       <div class="det">${foto(p)}
         <div class="info">
           <div><span class="gama">${esc(p.gama)}</span><h1>${titulo(p)}</h1><p class="sub">${esc(p.sub)}</p></div>
@@ -437,14 +455,18 @@ Hub.listo.then(async function () {
               ${p.archivos.pdf ? `<button class="btn chico sec" type="button" id="pdf">${ic('pdf')}Descargar PDF</button>` : ''}
               <button class="btn chico sec" type="button" id="img">${ic('pdf')}Descargar imagen</button>
               <button class="btn chico sec" type="button" id="comp">${ic('compartir')}Compartir</button></div></div>
-          ${esAdmin && p.estado === 'activo' ? `<div class="card bloque"><label class="interruptor"><span>Visible para todos</span><input type="checkbox" id="visible" ${oculto(p) ? '' : 'checked'}></label>
-            <p class="muted" style="font-size:13px;margin-top:6px">${puedeGuardar ? 'Si la apagas, solo la verán los administradores. Se guarda con el botón de abajo.' : 'Para guardarlo hace falta ser administrador del Hub.'}</p></div>` : ''}
+          ${esAdmin && p.estado === 'activo' ? `<div class="card bloque">${!elim(p) ? `<label class="interruptor"><span>Visible para todos</span><input type="checkbox" id="visible" ${oculto(p) ? '' : 'checked'}></label>
+            <p class="muted" style="font-size:13px;margin-top:6px">${puedeGuardar ? 'Si la apagas, solo la verán los administradores (es para algo temporal). Se guarda con el botón de abajo.' : 'Para guardarlo hace falta ser administrador del Hub.'}</p>
+            <div class="botones" style="margin-top:12px"><button class="btn chico sec" type="button" id="eliminar">${ic('papelera')}Eliminar ficha</button></div>`
+            : `<div class="botones"><button class="btn chico" type="button" id="recuperar">${ic('recuperar')}Recuperar ficha</button></div>`}</div>` : ''}
         </div></div>`;
     app.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { location.hash = '#/p/' + encodeURIComponent(b.dataset.ir); });
     app.querySelector('.ficha-prev').onclick = app.querySelector('#ampliar').onclick = () => verFicha(p);
     const bp = app.querySelector('#pdf'); if (bp) bp.onclick = () => descargaPdf(p, bp);
     app.querySelector('#img').onclick = async () => baja(await archivo(p, 'ficha'), `Ficha ${p.archivos.nombre}.jpg`);
     const vi = app.querySelector('#visible'); if (vi) vi.onchange = () => cambia(p.id, !vi.checked);
+    const be = app.querySelector('#eliminar'); if (be) be.onclick = () => { elimina(p.id, true); location.hash = '#/' + vista; };
+    const br = app.querySelector('#recuperar'); if (br) br.onclick = () => elimina(p.id, false);
     app.querySelector('#comp').onclick = () => comparte(p);
     archivoCompartir(p);
     pintaFotos(app);
@@ -452,13 +474,24 @@ Hub.listo.then(async function () {
   }
 
   /* ---------- Eliminadas (solo administradores) ---------- */
-  function eliminadas() {
+  const pestanasAdmin = actual => `<div class="vistas adm" role="group" aria-label="Fichas eliminadas u ocultas">
+      <button type="button" data-h="eliminadas" class="${actual === 'eliminadas' ? 'on' : ''}">${ic('papelera')}<span>Eliminadas (${listaElim().length})</span></button>
+      <button type="button" data-h="ocultas" class="${actual === 'ocultas' ? 'on' : ''}">${ic('ojoNo')}<span>Ocultas (${listaOcultas().length})</span></button></div>`;
+  function rejillaAdmin(titulo, texto, ps, actual, vacio) {
     app.innerHTML = `<div class="det-nav"><a href="#/${vista}">${ic('izq')}Volver a las fichas</a></div>
-      <div class="pr-cab"><div><h1>Eliminadas</h1><p>${ELIM.length} productos que se quitaron del catálogo el 20/11/2026. Solo los ven los administradores.</p></div></div>
+      <div class="pr-cab"><div><h1>${titulo}</h1><p>${texto}</p></div>${pestanasAdmin(actual)}</div>
       <div id="vista"></div>`;
+    app.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.h; });
     const v = app.querySelector('#vista');
-    v.innerHTML = `<div class="rejilla-p">${ELIM.map((p, i) => tarjeta(p, i)).join('')}</div>`;
+    v.innerHTML = ps.length ? `<div class="rejilla-p">${ps.map((p, i) => tarjeta(p, i)).join('')}</div>` : `<p class="vacio-f">${vacio}</p>`;
     enlazaTarjetas(v); pintaFotos(v);
+  }
+  function eliminadas() {
+    const n = CAT.productos.filter(borradaAqui).length;
+    rejillaAdmin('Eliminadas', `Ya no se ven en las fichas. Solo las ven los administradores.${n ? ' Las que se eliminaron desde aquí se pueden recuperar con el botón de arriba a la derecha.' : ''}${ELIM.length ? ` ${ELIM.length} se quitaron del catálogo el 20/11/2026.` : ''}`, listaElim(), 'eliminadas', 'No hay fichas eliminadas.');
+  }
+  function ocultas() {
+    rejillaAdmin('Ocultas', 'Los demás no las ven; tú las sigues viendo también en la pantalla principal. Toca el ojo para que vuelvan a verse.', listaOcultas(), 'ocultas', 'No hay fichas ocultas: todas se ven.');
   }
 
   /* ---------- Ver y descargar ---------- */
@@ -532,21 +565,29 @@ Hub.listo.then(async function () {
     pintaBarra();
     if (!location.hash.includes('/p/')) ruta(); else { const p = porId(id); const sc = scrollY; detalle(p); scrollTo(0, sc); }
   }
-  const diferencias = () => [...new Set([...cambios, ...ocultos])].filter(id => cambios.has(id) !== ocultos.includes(id));
+  function elimina(id, quitar) {
+    quitar ? cambiosE.add(id) : cambiosE.delete(id);
+    pintaBarra();
+    if (!location.hash.includes('/p/')) ruta(); else { const sc = scrollY; detalle(porId(id)); scrollTo(0, sc); }
+    if (quitar) aviso('Eliminada. Pulsa «Guardar» abajo para que sea definitivo.');
+  }
+  const diferencias = () => [...new Set([...cambios, ...ocultos])].filter(id => cambios.has(id) !== ocultos.includes(id))
+    .concat([...new Set([...cambiosE, ...eliminados])].filter(id => cambiosE.has(id) !== eliminados.includes(id)).map(id => 'e:' + id));
   function pintaBarra() {
     const n = diferencias().length;
     barra.classList.toggle('ver', n > 0);
     document.getElementById('nCambios').textContent = `${n} cambio${n === 1 ? '' : 's'} sin guardar`;
     document.getElementById('guardar').style.display = puedeGuardar ? '' : 'none';
   }
-  document.getElementById('deshacer').onclick = () => { cambios = new Set(ocultos); pintaBarra(); ruta(); };
+  document.getElementById('deshacer').onclick = () => { cambios = new Set(ocultos); cambiosE = new Set(eliminados); pintaBarra(); ruta(); };
   document.getElementById('guardar').onclick = async function () {
     this.disabled = true; this.textContent = 'Guardando…';
     try {
       const nuevo = [...cambios].filter(id => CAT.productos.some(p => p.id === id));
-      const cuerpo = await Hub.cifra.cierra(L.ver, JSON.stringify({ ocultos: nuevo, fecha: new Date().toISOString(), quien: Hub.sesion().nombre }));
+      const nuevoE = [...cambiosE].filter(id => CAT.productos.some(p => p.id === id));
+      const cuerpo = await Hub.cifra.cierra(L.ver, JSON.stringify({ ocultos: nuevo, eliminados: nuevoE, fecha: new Date().toISOString(), quien: Hub.sesion().nombre }));
       shaEstado = await Hub.publicaArchivo(RUTA_ESTADO, JSON.stringify(cuerpo), `Productos: qué fichas se ven (${Hub.sesion().nombre})`, shaEstado ?? null);
-      ocultos = nuevo; cambios = new Set(nuevo);
+      ocultos = nuevo; cambios = new Set(nuevo); eliminados = nuevoE; cambiosE = new Set(nuevoE);
       aviso('Guardado. Los demás lo verán en unos minutos.');
     } catch (e) { aviso(e.message, true); }
     this.disabled = false; this.textContent = 'Guardar';

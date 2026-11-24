@@ -36,6 +36,7 @@
 .c .campo{width:100%;min-width:0}
 .c{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
 .campo{height:44px;font-size:15px}
+.campo.mayus{text-transform:uppercase}
 select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
 .dia{display:flex;align-items:center;gap:8px}
 .dia .campo{flex:1;min-width:0}
@@ -133,7 +134,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .est.si{background:var(--good-soft);color:var(--good)}
 .est.medio{background:var(--warn-soft);color:var(--warn)}
 .est.no{background:var(--bad-soft);color:var(--bad)}
-@media (max-width:600px){.fila-c{flex-wrap:wrap}.fila-c .mini-res{width:100%;justify-content:flex-start;padding-left:24px}}
+@media (max-width:600px){.fila-c>svg{display:none}.fila-c{flex-wrap:wrap}.fila-c .mini-res{width:100%;justify-content:flex-start;padding-left:24px}}
 /* Tabla de detalle y hoja de producción */
 .tabla-c{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 table.t{border-collapse:collapse;width:100%;font-size:13px;min-width:720px}
@@ -145,6 +146,11 @@ table.t tr.dia td{background:var(--brand-soft);color:var(--brand-ink);font-weigh
 table.t th.g{text-align:center;border-left:1px solid var(--line)}
 table.t td.bl{border-left:1px solid var(--line)}
 .cero{color:var(--ink-3)}
+.atajos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filtro-f{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px;color:var(--ink-2);cursor:pointer;transition:all .15s}
+.filtro-f:hover{border-color:var(--brand);color:var(--brand)}
+.filtro-f.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.avq.fecha-q{background:var(--surface-3);color:var(--ink-2);font-size:14px}
 .volver-q{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:12px;background:none;border:0;color:var(--brand);cursor:pointer;padding:6px 0}
 .volver-q svg{width:17px;height:17px}
 dialog{margin:auto;border:none;border-radius:var(--r);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up);width:min(640px,calc(100% - 20px));max-height:calc(100dvh - 20px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
@@ -196,11 +202,48 @@ Hub.listo.then(async function () {
   const propiaActual = () => PARA ? (PARA.qk || null) : K.propia;
 
   /* ---------- Listas (Juan, 23/11) ---------- */
-  const ORIGENES = ['Registros móviles', 'MKT', 'Autocaptado', 'Guía'];
+  // Orígenes según el tipo de persona en ACCESOS (Juan, 24/11): los VIP tienen los suyos.
+  const ORIGENES_COM = ['Registros móviles', 'MKT', 'Autocaptado', 'Guía'];
+  const ORIGENES_VIP = ['VIP', 'VIP Biofy', 'MKT', 'Registros móviles'];
+  const ORIGENES = ORIGENES_COM.concat(ORIGENES_VIP.filter(o => !ORIGENES_COM.includes(o)));   // todos, en orden (hoja de producción)
+  const tipoDe = () => (PARA ? PARA.tipo : K.tipo) || '';
+  const origenesDe = () => /VIP/i.test(tipoDe()) || (!PARA && /VIP/i.test((Hub.sesion() || {}).perfil || '')) ? ORIGENES_VIP : ORIGENES_COM;
   const OFERTAS = ['Ultra', 'Plus', 'Bio', 'Minibio', 'Oferta recu'];
   const COBROS = ['Efectivo', 'TPV', 'Transferencia'];
-  const ARTICULOS = ['Columbia de sobremesa', 'Voqua', 'Unik', 'Pure Black 12 L', 'Pure Black 25 L', 'Pure Water Top', 'Pure Water Pie', 'Technocal', 'Descalpro', 'HidroCal Pro', 'Icebox', 'Hydronic Pure', 'Elektra'];
+  // Artículos: lista cerrada y por categorías, las mismas de PRODUCTOS (Juan, 24/11). Se elige, no se escribe.
+  const CATEGORIAS = [
+    ['Fuente', ['Columbia de sobremesa', 'Pure Water Top', 'Pure Water Pie']],
+    ['Ósmosis', ['Voqua', 'Unik']],
+    ['Descalcificador', ['Pure Black 12 L', 'Pure Black 25 L']],
+    ['Desincrustador', ['Technocal', 'Descalpro', 'HidroCal Pro']],
+    ['Enfriador', ['Icebox']],
+    ['Agua hidrogenada', ['Hydronic Pure', 'Jarra hidrogenada']],
+    ['Limpieza con ozono', ['Elektra']]
+  ];
+  const ARTICULOS = CATEGORIAS.flatMap(c => c[1]);
   const DELEGACIONES = ['Córdoba', 'Alicante'];
+  // Textos escritos: en mayúsculas y sin signos de puntuación (Juan, 24/11).
+  const limpia = s => String(s || '').toLocaleUpperCase('es-ES').replace(/[^\p{L}\p{N} ]+/gu, '').replace(/ {2,}/g, ' ');
+  // Importes: los puntos de los miles se ponen solos (1500 → 1.500; 1500,5 → 1.500,5) (Juan, 24/11).
+  const conPuntos = s => {
+    let t = String(s || '').replace(/\.$/, ',').replace(/[^\d,]/g, '');
+    const i = t.indexOf(','); let ent = i < 0 ? t : t.slice(0, i), dec = i < 0 ? null : t.slice(i + 1).replace(/,/g, '').slice(0, 2);
+    ent = ent.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return dec === null ? ent : (ent || '0') + ',' + dec;
+  };
+  // Aplica el formato mientras se escribe, sin que el cursor salte.
+  function formatoVivo(input, fn) {
+    input.addEventListener('input', () => {
+      const v = input.value, pos = input.selectionStart ?? v.length, esImp = fn === conPuntos;
+      const nuevo = fn(v);
+      if (nuevo === v) return;
+      // cuántos caracteres «de verdad» hay antes del cursor (en importes, los puntos no cuentan: se ponen solos)
+      const pre = v.slice(0, pos), antes = esImp ? pre.replace(/[^\d,]/g, '').length + (pos === v.length && v.endsWith('.') ? 1 : 0) : fn(pre).length;
+      input.value = nuevo;
+      let k = 0, n = 0; while (k < nuevo.length && n < antes) { if (!esImp || nuevo[k] !== '.') n++; k++; }
+      try { input.setSelectionRange(k, k); } catch (e) {}
+    });
+  }
   const RES = { nulo: 'Nulo', demo: 'Demo', venta: 'Venta' };
 
   /* ---------- Iconos ---------- */
@@ -219,7 +262,8 @@ Hub.listo.then(async function () {
   const sumaDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
   const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); const w = (d.getDay() + 6) % 7; return sumaDias(iso, -w); };
   const fechaLarga = iso => { const t = new Date(iso + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); return t.charAt(0).toUpperCase() + t.slice(1); };
-  const euros = n => (Number(n) || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  // Siempre con punto de miles, también en 4 cifras (1.500,00 €): el navegador no lo pone solo
+  const euros = n => { const [e, d] = Math.abs(Number(n) || 0).toFixed(2).split('.'); return ((Number(n) || 0) < 0 ? '-' : '') + e.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + d + ' €'; };
   const num = s => { const n = parseFloat(String(s || '').replace(/\./g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
 
   /* ---------- Cifrado ---------- */
@@ -275,13 +319,15 @@ Hub.listo.then(async function () {
   async function lista() {   // todas las rutas de quinielas (solo nombres)
     const r = await fetch(`${API}/git/trees/HEAD?recursive=1&t=${Date.now()}`, { headers: H, cache: 'no-store' });
     if (!r.ok) return [];
-    return (await r.json()).tree.filter(x => x.type === 'blob' && /^q\/[0-9a-f]+\/\d{4}-\d{2}-\d{2}\.json$/.test(x.path)).map(x => x.path);
+    const t = (await r.json()).tree.filter(x => x.type === 'blob' && /^q\/[0-9a-f]+\/\d{4}-\d{2}-\d{2}\.json$/.test(x.path));
+    for (const x of t) SHAS[x.path] = x.sha;
+    return t.map(x => x.path);
   }
 
   /* ---------- Estado de la página ---------- */
   const pestanaValida = h => { if (!TODAS) return 'mia'; if (JEFE && (h === 'mia' || !h)) return 'dia'; return ['mia', 'dia', 'hoja'].includes(h) ? h : (JEFE ? 'dia' : 'mia'); };
   let pestana = pestanaValida(location.hash.replace(/^#\/?/, ''));
-  let fecha = hoyISO(), Q = null, shaQ = null, cambios = false, semana = lunesDe(hoyISO()), delegFiltro = 'Todas', diaJefes = hoyISO();
+  let fecha = hoyISO(), Q = null, shaQ = null, cambios = false, semana = lunesDe(hoyISO()), delegFiltro = 'Todas';
   let guardando = false, tAuto = null, ultimoGuardado = null, sinRed = false;
   const nueva = () => ({ v: 1, uid: PARA ? PARA.uid : K.uid, comercial: PARA ? PARA.nombre : (K.nombreCompleto || Hub.sesion().nombre), delegacion: PARA ? '' : (Hub.lee('qn_deleg') || ''), fecha, ruta: '', visitas: [], firma: null, firmada: null, guardada: null });
   const resumen = q => {
@@ -340,7 +386,7 @@ Hub.listo.then(async function () {
           ${ADMIN ? `<label class="c">Quiniela de<select class="campo" id="para"><option value="">Yo (${esc(K.nombreCompleto || Hub.sesion().nombre)})</option>${equipo.map((m, i) => `<option value="${i}" ${PARA && PARA.uid === m.uid ? 'selected' : ''}>${esc(m.nombre)}</option>`).join('')}</select></label>` : ''}
           <label class="c">Fecha<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${fecha}" max="${hoyISO()}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
           <label class="c">Delegación<select class="campo" id="deleg"><option value="">Elige…</option>${DELEGACIONES.map(d => `<option>${d}</option>`).join('')}</select></label>
-          <label class="c">Ruta<input class="campo" id="ruta" placeholder="Zona o pueblos de hoy" autocomplete="off"></label>
+          <label class="c">Ruta<input class="campo mayus" id="ruta" placeholder="ZONA O PUEBLOS DE HOY" autocomplete="off" autocapitalize="characters"></label>
         </div>${ADMIN && !equipo.length ? '<p class="muted" style="font-size:12.5px;margin-top:8px">Para rellenar la de otra persona, primero dale «Usuario» en Quinielas desde ACCESOS.</p>' : ''}</div>
       <div id="cuerpo"></div>`);
     const f = app.querySelector('#fecha');
@@ -348,7 +394,8 @@ Hub.listo.then(async function () {
     app.querySelector('#ant').onclick = () => cambiaDia(sumaDias(fecha, -1));
     app.querySelector('#sig').onclick = () => { if (fecha < hoyISO()) cambiaDia(sumaDias(fecha, 1)); };
     app.querySelector('#deleg').onchange = e => { Q.delegacion = e.target.value; if (!PARA) Hub.guarda('qn_deleg', e.target.value); toca(); };
-    app.querySelector('#ruta').oninput = e => { Q.ruta = e.target.value; toca(); };
+    formatoVivo(app.querySelector('#ruta'), limpia);
+    app.querySelector('#ruta').oninput = e => { Q.ruta = limpia(e.target.value).trim(); toca(); };
     const sp = app.querySelector('#para');
     if (sp) sp.onchange = async () => { await guardaYa(); PARA = sp.value === '' ? null : equipo[+sp.value]; CARP = PARA ? await carpeta(PARA.uid) : MIA; cargaMia(); };
     cargaMia();
@@ -372,7 +419,7 @@ Hub.listo.then(async function () {
     const e = app.querySelector('#estadoG'); if (!e) return;
     const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     e.className = 'estado-g' + (sinRed ? ' mal' : '');
-    e.innerHTML = guardando ? 'Guardando…' : !Q.delegacion && cambios ? 'Elige la delegación para que se guarde' : sinRed ? 'Sin conexión: guardado en este aparato. Se subirá al volver la conexión.'
+    e.innerHTML = guardando ? 'Guardando…' : !Q.delegacion && cambios ? 'Elige la delegación para que se guarde' : sinRed ? 'Sin conexión: guardado en este dispositivo. Se subirá al volver la conexión.'
       : cambios ? 'Cambios pendientes de guardar…' : ultimoGuardado ? `${ic('ok')}Guardado a las ${hora(ultimoGuardado)}` : 'Todavía sin datos';
   }
   function pintaMia() {
@@ -416,7 +463,7 @@ Hub.listo.then(async function () {
   const b64url = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
   async function pintaAvisos() {
     const el = app.querySelector('#avisos'); if (!el) return;
-    const cab = `<h2>${ic('info')}Avisos en este móvil</h2>`;
+    const cab = `<h2>${ic('info')}Avisos en este dispositivo</h2>`;
     if (!K.vapid) { el.remove(); return; }
     if (esIOS && !instalada()) {
       el.innerHTML = cab + `<p style="font-size:14px">Para recibir un aviso a las 20:00 si todavía no has registrado tu quiniela, en el iPhone primero hay que añadir el Hub a la pantalla de inicio (una sola vez) y abrirlo desde ese icono. Luego vuelve aquí y pulsa «Activar avisos».</p>
@@ -429,10 +476,10 @@ Hub.listo.then(async function () {
     let activo = false;
     try { const reg = await navigator.serviceWorker.getRegistration(Hub.raiz); activo = !!(reg && await reg.pushManager.getSubscription()) && Notification.permission === 'granted' && Hub.lee('qn_avisos') === MIA; } catch (e) {}
     el.innerHTML = cab + (activo
-      ? `<p style="font-size:14px;display:flex;gap:8px;align-items:center"><span class="luz si"></span>Activados. Si a las 20:00 (de lunes a viernes) todavía no has registrado tu quiniela, te llegará un aviso a este móvil.</p>`
+      ? `<p style="font-size:14px;display:flex;gap:8px;align-items:center"><span class="luz si"></span>Activados. Si a las 20:00 (de lunes a viernes) todavía no has registrado tu quiniela, te llegará un aviso a este dispositivo.</p>`
       : Notification.permission === 'denied'
-        ? '<p style="font-size:14px">Los avisos están bloqueados en este móvil. Actívalos en los ajustes del navegador (notificaciones de biofy-hub.github.io) y vuelve aquí.</p>'
-        : `<p style="font-size:14px">Si a las 20:00 (de lunes a viernes) todavía no has registrado tu quiniela, te llega un aviso a este móvil. Solo hay que activarlo una vez.</p>
+        ? '<p style="font-size:14px">Los avisos están bloqueados en este dispositivo. Actívalos en los ajustes del navegador (notificaciones de biofy-hub.github.io) y vuelve aquí.</p>'
+        : `<p style="font-size:14px">Si a las 20:00 (de lunes a viernes) todavía no has registrado tu quiniela, te llega un aviso a este dispositivo. Solo hay que activarlo una vez.</p>
            <div class="botones-q"><button class="btn chico" type="button" id="activar">${ic('info')}Activar avisos</button></div>`);
     const b = el.querySelector('#activar'); if (b) b.onclick = () => activaAvisos(b);
   }
@@ -446,10 +493,10 @@ Hub.listo.then(async function () {
       if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64url(K.vapid) });
       const j = sub.toJSON(), ruta = `avisos/${MIA}/${disp()}.json`;
       let sha = null; try { const x = await fetch(`${API}/contents/${ruta}?t=${Date.now()}`, { headers: H, cache: 'no-store' }); if (x.ok) sha = (await x.json()).sha; } catch (e) {}
-      const r = await fetch(`${API}/contents/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Avisos: móvil activado', content: b64(new TextEncoder().encode(JSON.stringify({ endpoint: j.endpoint, keys: j.keys, alta: new Date().toISOString() }))), ...(sha ? { sha } : {}) }) });
+      const r = await fetch(`${API}/contents/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Avisos: dispositivo activado', content: b64(new TextEncoder().encode(JSON.stringify({ endpoint: j.endpoint, keys: j.keys, alta: new Date().toISOString() }))), ...(sha ? { sha } : {}) }) });
       if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + ').');
       Hub.guarda('qn_avisos', MIA);
-      aviso('Avisos activados en este móvil.');
+      aviso('Avisos activados en este dispositivo.');
     } catch (e) { aviso(e.message || 'No se han podido activar los avisos.', true); }
     pintaAvisos();
   }   // (antes había una barra abajo; ahora el estado va junto a la firma)
@@ -475,23 +522,24 @@ Hub.listo.then(async function () {
   window.addEventListener('online', () => { if (cambios) programaGuardado(); });
 
   /* ---------- Una visita ---------- */
+  const opcionesArt = val => `<option value="">— Ninguno —</option>${val && !ARTICULOS.includes(val) ? `<option selected>${esc(val)}</option>` : ''}`
+    + CATEGORIAS.map(([c, ps]) => `<optgroup label="${esc(c)}">${ps.map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</optgroup>`).join('');
   function editaVisita(i) {
     const v = i === null ? { cliente: '', poblacion: '', origen: '', oferta: '', resultado: '', estado: 'conf', articulos: [{}, {}, {}, {}], importe: '', cuota1: '', cobro: '', cuotas: '' } : JSON.parse(JSON.stringify(Q.visitas[i]));
     while ((v.articulos || (v.articulos = [])).length < 4) v.articulos.push({});
     const radios = (n, ops, val, cls = '') => `<div class="seg ${cls}">${ops.map(([k, t]) => `<label><input type="radio" name="${n}" value="${esc(k)}" ${val === k ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div>`;
     dlg.innerHTML = `<form class="dc ${v.resultado === 'venta' ? 'es-venta' : ''}" id="fv" novalidate>
       <h2>${i === null ? 'Nueva visita' : 'Visita ' + (i + 1)}</h2>
-      <div class="fila"><label class="c">Cliente<input class="campo" name="cliente" value="${esc(v.cliente)}" autocomplete="off" required></label>
-        <label class="c">Población<input class="campo" name="poblacion" value="${esc(v.poblacion)}" autocomplete="off"></label></div>
-      <div class="c">Origen del cliente${radios('origen', ORIGENES.map(o => [o, o]), v.origen)}</div>
+      <div class="fila"><label class="c">Cliente<input class="campo mayus" name="cliente" value="${esc(v.cliente)}" autocomplete="off" autocapitalize="characters" required></label>
+        <label class="c">Población<input class="campo mayus" name="poblacion" value="${esc(v.poblacion)}" autocomplete="off" autocapitalize="characters"></label></div>
+      <div class="c">Origen del cliente${radios('origen', origenesDe().concat(v.origen && !origenesDe().includes(v.origen) ? [v.origen] : []).map(o => [o, o]), v.origen)}</div>
       <div class="c">Tipo de oferta${radios('oferta', OFERTAS.map(o => [o, o]), v.oferta)}</div>
       <div class="c">Resultado${radios('resultado', Object.entries(RES), v.resultado, 'res')}</div>
       <div class="solo-venta">
         <div class="c">Estado de la venta${radios('estado', [['conf', 'Confirmada'], ['pte', 'Pendiente']], v.estado || 'conf')}</div>
-        <datalist id="arts">${ARTICULOS.map(a => `<option value="${esc(a)}">`).join('')}</datalist>
-        ${v.articulos.map((a, k) => `<div class="art"><label class="c">Artículo ${k + 1}<input class="campo" name="art${k}" list="arts" value="${esc(a.nombre || '')}" autocomplete="off"></label><label class="ent"><input type="checkbox" name="ent${k}" ${a.entrega ? 'checked' : ''}>Entrega</label></div>`).join('')}
-        <div class="fila"><label class="c">Importe total (€)<input class="campo" name="importe" inputmode="decimal" value="${esc(v.importe)}"></label>
-          <label class="c">1.ª cuota (€)<input class="campo" name="cuota1" inputmode="decimal" value="${esc(v.cuota1)}"></label>
+        ${v.articulos.map((a, k) => `<div class="art"><label class="c">Artículo ${k + 1}<select class="campo" name="art${k}">${opcionesArt(a.nombre)}</select></label><label class="ent"><input type="checkbox" name="ent${k}" ${a.entrega ? 'checked' : ''}>Entrega</label></div>`).join('')}
+        <div class="fila"><label class="c">Importe total (€)<input class="campo" name="importe" inputmode="decimal" value="${esc(conPuntos(v.importe))}"></label>
+          <label class="c">1.ª cuota (€)<input class="campo" name="cuota1" inputmode="decimal" value="${esc(conPuntos(v.cuota1))}"></label>
           <label class="c">N.º de cuotas<input class="campo" name="cuotas" inputmode="numeric" value="${esc(v.cuotas)}"></label></div>
         <div class="c">Forma de cobro (1.ª cuota)${radios('cobro', COBROS.map(o => [o, o]), v.cobro)}</div>
       </div>
@@ -500,16 +548,19 @@ Hub.listo.then(async function () {
         <div class="der"><button class="btn chico sec" type="button" id="cancelar">Cancelar</button><button class="btn chico" type="submit">${i === null ? 'Añadir' : 'Guardar visita'}</button></div></div></form>`;
     dlg.showModal();
     const f = dlg.querySelector('#fv');
+    f.querySelectorAll('.mayus').forEach(x => formatoVivo(x, limpia));
+    ['importe', 'cuota1'].forEach(n => formatoVivo(f.elements[n], conPuntos));
+    formatoVivo(f.elements.cuotas, x => String(x).replace(/\D/g, ''));
     f.querySelectorAll('input[name="resultado"]').forEach(x => x.onchange = () => f.classList.toggle('es-venta', x.value === 'venta' && x.checked));
     dlg.querySelector('#cancelar').onclick = () => dlg.close();
     const q = dlg.querySelector('#quitar'); if (q) q.onclick = () => { if (!confirm('¿Quitar esta visita?')) return; Q.visitas.splice(i, 1); dlg.close(); toca(); pintaMia(); };
     f.onsubmit = e => {
       e.preventDefault();
       const d = new FormData(f), g = k => (d.get(k) || '').toString().trim();
-      const nv = { cliente: g('cliente'), poblacion: g('poblacion'), origen: g('origen'), oferta: g('oferta'), resultado: g('resultado') };
+      const nv = { cliente: limpia(g('cliente')).trim(), poblacion: limpia(g('poblacion')).trim(), origen: g('origen'), oferta: g('oferta'), resultado: g('resultado') };
       const falta = [!nv.cliente && 'el cliente', !nv.origen && 'el origen', !nv.resultado && 'el resultado'].filter(Boolean);
       if (nv.resultado === 'venta') {
-        Object.assign(nv, { estado: g('estado') || 'conf', articulos: [0, 1, 2, 3].map(k => ({ nombre: g('art' + k), entrega: d.get('ent' + k) === 'on' })).filter(a => a.nombre), importe: g('importe'), cuota1: g('cuota1'), cuotas: g('cuotas'), cobro: g('cobro') });
+        Object.assign(nv, { estado: g('estado') || 'conf', articulos: [0, 1, 2, 3].map(k => ({ nombre: g('art' + k), entrega: d.get('ent' + k) === 'on' })).filter(a => a.nombre), importe: conPuntos(g('importe')), cuota1: conPuntos(g('cuota1')), cuotas: g('cuotas'), cobro: g('cobro') });
         if (!nv.articulos.length) falta.push('al menos un artículo');
         if (!nv.importe) falta.push('el importe');
       }
@@ -548,51 +599,116 @@ Hub.listo.then(async function () {
   }
 
   /* =================== QUINIELAS DEL DÍA (ver todas) =================== */
-  let RUTAS = null, CACHE = {};
+  let RUTAS = null, SHAS = {}, CACHE = {};
   async function rutas(forzar) { if (!RUTAS || forzar) RUTAS = await lista(); return RUTAS; }
-  async function quinielaDe(ruta) { if (!CACHE[ruta]) CACHE[ruta] = lee(ruta).then(r => r.dato).catch(() => null); return CACHE[ruta]; }
+  // Se guarda en memoria por versión del archivo: si no ha cambiado, no se vuelve a pedir (menos esperas al ver un mes entero).
+  async function quinielaDe(ruta) { const k = ruta + '@' + (SHAS[ruta] || ''); if (!CACHE[k]) CACHE[k] = lee(ruta).then(r => r.dato).catch(() => { delete CACHE[k]; return null; }); return CACHE[k]; }
+  async function variasDe(rs) {   // de 8 en 8, para no saturar
+    const out = {}; let i = 0;
+    await Promise.all(Array.from({ length: Math.min(8, rs.length) }, async () => { while (i < rs.length) { const r = rs[i++]; out[r] = await quinielaDe(r); } }));
+    return out;
+  }
+
+  /* Filtros (Juan, 24/11): por fechas (un día, una semana, un mes…) y por comercial. */
+  const finDeMes = iso => { const d = new Date(iso.slice(0, 7) + '-01T12:00:00'); d.setMonth(d.getMonth() + 1); d.setDate(0); return d.toISOString().slice(0, 10); };
+  const mesEntero = (a, b) => a.endsWith('-01') && b === finDeMes(a);
+  const laborable = iso => ![0, 6].includes(new Date(iso + 'T12:00:00').getDay());
+  const diasEntre = (a, b) => { const t = []; for (let d = a; d <= b && t.length < 400; d = sumaDias(d, 1)) t.push(d); return t; };
+  const ATAJOS = {
+    hoy: () => [hoyISO(), hoyISO()],
+    ayer: () => { let d = sumaDias(hoyISO(), -1); while (!laborable(d)) d = sumaDias(d, -1); return [d, d]; },
+    semana: () => [lunesDe(hoyISO()), sumaDias(lunesDe(hoyISO()), 6)],
+    mes: () => [hoyISO().slice(0, 8) + '01', finDeMes(hoyISO())],
+    mesPasado: () => { const d = new Date(hoyISO().slice(0, 8) + '01T12:00:00'); d.setDate(0); const f = d.toISOString().slice(0, 10); return [f.slice(0, 8) + '01', f]; }
+  };
+  let desde = hoyISO(), hasta = hoyISO(), comFiltro = '';
+  function mueve(n) {   // flechas: un día, una semana o un mes, según lo que se esté viendo
+    if (mesEntero(desde, hasta)) { const d = new Date(desde + 'T12:00:00'); d.setMonth(d.getMonth() + n); desde = d.toISOString().slice(0, 10); hasta = finDeMes(desde); }
+    else { const l = diasEntre(desde, hasta).length; desde = sumaDias(desde, n * l); hasta = sumaDias(hasta, n * l); }
+    vistaDia();
+  }
+  const fechaCortaL = iso => new Date(iso + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  const tituloPeriodo = () => desde === hasta ? fechaLarga(desde) : mesEntero(desde, hasta)
+    ? (t => t.charAt(0).toUpperCase() + t.slice(1))(new Date(desde + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }))
+    : `Del ${fechaCortaL(desde)} al ${fechaCortaL(hasta)}`;
+
   async function vistaDia() {
-    marco(`<div class="card bloque no-imprimir"><div class="fila">
-        <label class="c">Día<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${diaJefes}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
-        <label class="c">Delegación<select class="campo" id="deleg">${['Todas'].concat(DELEGACIONES).map(d => `<option ${d === delegFiltro ? 'selected' : ''}>${d}</option>`).join('')}</select></label></div></div>
-      <div id="cuerpo"><p class="cargando">Abriendo las quinielas…</p></div>`);
-    const f = app.querySelector('#fecha');
-    f.onchange = () => { diaJefes = f.value; vistaDia(); };
-    app.querySelector('#ant').onclick = () => { diaJefes = sumaDias(diaJefes, -1); vistaDia(); };
-    app.querySelector('#sig').onclick = () => { diaJefes = sumaDias(diaJefes, 1); vistaDia(); };
-    app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaDia(); };
-    const todas = await rutas(true), rs = todas.filter(p => p.endsWith(`/${diaJefes}.json`));
-    const primera = {}; for (const p of todas) { const [, cp, f] = p.split('/'), d = f.slice(0, 10); if (!primera[cp] || d < primera[cp]) primera[cp] = d; }
-    CACHE = {};
-    // Quién tiene que rellenarla (lista que llega en el llavero) y qué ha llegado este día
+    if (hasta < desde) [desde, hasta] = [hasta, desde];
     const equipo = await Promise.all((K.equipo || []).map(async m => ({ ...m, carpeta: await carpeta(m.uid) })));
-    const porCarpeta = {}; for (const p of rs) porCarpeta[p.split('/')[1]] = p;
-    const filas = [];
-    for (const m of equipo) filas.push({ nombre: m.nombre, rol: [m.tipo, m.rol].filter(Boolean).join(' · '), ruta: porCarpeta[m.carpeta] || null, antes: !primera[m.carpeta] || diaJefes < primera[m.carpeta] });
-    for (const [carp, p] of Object.entries(porCarpeta)) if (!equipo.some(m => m.carpeta === carp)) filas.push({ nombre: null, rol: '', ruta: p });
-    await Promise.all(filas.map(async f => { f.q = f.ruta ? await quinielaDe(f.ruta) : null; if (!f.nombre) f.nombre = f.q ? f.q.comercial : '¿?'; }));
-    const delegDe = f => (f.q && f.q.delegacion) || DELEGACIONES.find(d => (f.rol || '').toLowerCase().includes(d.toLowerCase())) || '';
-    const vis = filas.filter(f => delegFiltro === 'Todas' || !delegDe(f) || delegDe(f) === delegFiltro).sort((x, y) => x.nombre.localeCompare(y.nombre));
-    const estado = f => f.q ? (f.q.firmada ? 'si' : 'medio') : f.antes ? 'antes' : 'no';
+    const atajo = Object.keys(ATAJOS).find(k => { const [a, b] = ATAJOS[k](); return a === desde && b === hasta; }) || '';
+    const chip = (k, t) => `<button type="button" class="filtro-f ${atajo === k ? 'on' : ''}" data-a="${k}">${t}</button>`;
+    marco(`<div class="card bloque no-imprimir">
+        <div class="atajos">${chip('hoy', 'Hoy')}${chip('ayer', 'Día anterior')}${chip('semana', 'Esta semana')}${chip('mes', 'Este mes')}${chip('mesPasado', 'Mes pasado')}</div>
+        <div class="fila dr">
+        <label class="c">Desde<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Anterior">${ic('izq')}</button><input class="campo" type="date" id="desde" value="${desde}"></div></label>
+        <label class="c">Hasta<div class="dia"><input class="campo" type="date" id="hasta" value="${hasta}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Siguiente">${ic('der')}</button></div></label>
+        <label class="c">Delegación<select class="campo" id="deleg">${['Todas'].concat(DELEGACIONES).map(d => `<option ${d === delegFiltro ? 'selected' : ''}>${d}</option>`).join('')}</select></label>
+        <label class="c">Comercial<select class="campo" id="com"><option value="">Todos</option>${[...new Set(equipo.map(m => m.nombre).concat(comFiltro ? [comFiltro] : []))].sort((a, b) => a.localeCompare(b)).map(n => `<option ${n === comFiltro ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div></div>
+      <div id="cuerpo"><p class="cargando">Abriendo las quinielas…</p></div>`);
+    app.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { [desde, hasta] = ATAJOS[b.dataset.a](); vistaDia(); });
+    app.querySelector('#desde').onchange = e => { if (!e.target.value) return; desde = e.target.value; if (hasta < desde) hasta = desde; vistaDia(); };
+    app.querySelector('#hasta').onchange = e => { if (!e.target.value) return; hasta = e.target.value; if (hasta < desde) desde = hasta; vistaDia(); };
+    app.querySelector('#ant').onclick = () => mueve(-1);
+    app.querySelector('#sig').onclick = () => mueve(1);
+    app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaDia(); };
+    app.querySelector('#com').onchange = e => { comFiltro = e.target.value; vistaDia(); };
+
+    const todas = await rutas(true);
+    const primera = {}; for (const p of todas) { const [, cp, f] = p.split('/'), d = f.slice(0, 10); if (!primera[cp] || d < primera[cp]) primera[cp] = d; }
+    // Personas: las de la lista (quien tiene que rellenarla) y cualquier otra que haya enviado en esas fechas
+    const enRango = todas.filter(p => { const d = p.slice(-15, -5); return d >= desde && d <= hasta; });
+    const personas = equipo.map(m => ({ nombre: m.nombre, rol: [m.tipo, m.rol].filter(Boolean).join(' · '), carpeta: m.carpeta }));
+    for (const p of enRango) { const cp = p.split('/')[1]; if (!personas.some(x => x.carpeta === cp)) personas.push({ nombre: null, rol: '', carpeta: cp }); }
+    const elegidas = comFiltro ? personas.filter(x => x.nombre === comFiltro) : personas;
+    const qsDe = await variasDe(enRango.filter(p => elegidas.some(x => x.carpeta === p.split('/')[1])));
+    for (const x of personas) if (!x.nombre) { const r = Object.keys(qsDe).find(p => p.split('/')[1] === x.carpeta && qsDe[p]); x.nombre = r ? qsDe[r].comercial : '¿?'; }
+    const dias = diasEntre(desde, hasta);
+    // Un registro por persona y día: con quiniela, o día laborable (hasta hoy) en que ya la usaba y no la envió
+    const registros = [];
+    for (const x of elegidas) for (const d of dias) {
+      const ruta = `q/${x.carpeta}/${d}.json`, q = qsDe[ruta] || null;
+      const antes = !primera[x.carpeta] || d < primera[x.carpeta];
+      if (q || desde === hasta || (laborable(d) && d <= hoyISO() && !antes)) registros.push({ x, d, q, antes });
+    }
+    const delegDe = x => { const q = registros.find(r => r.x === x && r.q); return (q && q.q.delegacion) || DELEGACIONES.find(d => (x.rol || '').toLowerCase().includes(d.toLowerCase())) || ''; };
+    const vale = r => delegFiltro === 'Todas' || !delegDe(r.x) || delegDe(r.x) === delegFiltro;
+    const vis = registros.filter(vale);
+    const estado = r => r.q ? (r.q.firmada ? 'si' : 'medio') : r.antes ? 'antes' : 'no';
     const TXT = { si: 'Enviada y firmada', medio: 'Guardada, sin firmar', no: 'Sin enviar', antes: 'Aún no usaba la digital' };
-    const qs = vis.map(f => f.q).filter(Boolean);
-    const c = app.querySelector('#cuerpo'), tot = qs.reduce((t, q) => { const r = resumen(q); for (const k in r) t[k] = (t[k] || 0) + r[k]; return t; }, {});
-    const nSi = vis.filter(f => estado(f) === 'si').length, nMedio = vis.filter(f => estado(f) === 'medio').length, nNo = vis.filter(f => estado(f) === 'no').length;
-    c.innerHTML = `<div class="card bloque"><h2>${ic('hoja')}${esc(fechaLarga(diaJefes))}</h2><div class="resumen">
-        <div class="ven"><small>Firmadas</small><b>${nSi}</b></div><div class="dem"><small>Sin firmar</small><b>${nMedio}</b></div><div><small>Sin enviar</small><b style="color:var(--bad)">${nNo}</b></div>
-        <div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>
-      ${vis.length ? `<div class="card lista-c">${vis.map((f, i) => { const e = estado(f), r = f.q ? resumen(f.q) : null; return `<button type="button" class="fila-c ${e}" data-i="${i}" ${f.q ? '' : 'disabled'} style="animation-delay:${i * 35}ms">
-          <span class="luz ${e}" title="${TXT[e]}"></span><span class="avq" data-n="${esc(f.nombre)}">${esc((f.nombre || '?').trim()[0])}</span>
-          <span class="t"><b>${esc(f.nombre)}</b><small>${esc([delegDe(f), f.q && f.q.ruta].filter(Boolean).join(' · ') || f.rol || '')}</small></span>
-          <span class="mini-res">${r ? `<span>${r.nulos} nulos</span><span class="d">${r.demos} demos</span><span class="v">${r.ventas} ventas</span>` : ''}<span class="est ${e}">${TXT[e]}</span></span>
-          ${f.q ? ic('der') : ''}</button>`; }).join('')}</div>`
-        : `<p class="vacio-q">Todavía no hay nadie con «Rellenar su quiniela». Dalo en ACCESOS a los comerciales${qs.length ? '' : ' y aquí aparecerá la lista de cada día'}.</p>`}`;
-    c.querySelectorAll('.fila-c').forEach(b => b.onclick = () => { const f = vis[+b.dataset.i]; if (f.q) detalle(f.q); });
-    c.querySelectorAll('.avq').forEach(a => Hub.foto(a.dataset.n).then(u => { if (u) a.innerHTML = `<img src="${u}" alt="">`; }));
+    const suma = rs => rs.filter(r => r.q).reduce((t, r) => { const s = resumen(r.q); for (const k in s) t[k] = (t[k] || 0) + s[k]; return t; }, {});
+    const cuenta = (rs, e) => rs.filter(r => estado(r) === e).length;
+    const tot = suma(vis), c = app.querySelector('#cuerpo');
+    const cabecera = `<div class="card bloque"><h2>${ic('hoja')}${esc(tituloPeriodo())}${comFiltro ? ' · ' + esc(comFiltro) : ''}</h2><div class="resumen">
+        <div class="ven"><small>Firmadas</small><b>${cuenta(vis, 'si')}</b></div><div class="dem"><small>Sin firmar</small><b>${cuenta(vis, 'medio')}</b></div><div><small>Sin enviar</small><b style="color:var(--bad)">${cuenta(vis, 'no')}</b></div>
+        <div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>`;
+    const avatar = n => `<span class="avq" data-n="${esc(n)}">${esc((n || '?').trim()[0])}</span>`;
+    const mini = s => s ? `<span>${s.nulos || 0} nulos</span><span class="d">${s.demos || 0} demos</span><span class="v">${s.ventas || 0} ventas</span>` : '';
+    let filas = [], html = '';
+    if (desde === hasta || comFiltro) {
+      // Un día (todas las personas) o una persona (todos sus días): una fila por quiniela
+      filas = vis.slice().sort((a, b) => desde === hasta ? a.x.nombre.localeCompare(b.x.nombre) : b.d.localeCompare(a.d));
+      html = filas.map((r, i) => { const e = estado(r), s = r.q ? resumen(r.q) : null; return `<button type="button" class="fila-c ${e}" data-i="${i}" ${r.q ? '' : 'disabled'} style="animation-delay:${Math.min(i, 20) * 30}ms">
+          <span class="luz ${e}" title="${TXT[e]}"></span>${desde === hasta ? avatar(r.x.nombre) : `<span class="avq fecha-q">${new Date(r.d + 'T12:00:00').getDate()}</span>`}
+          <span class="t"><b>${esc(desde === hasta ? r.x.nombre : fechaLarga(r.d))}</b><small>${esc([delegDe(r.x), r.q && r.q.ruta].filter(Boolean).join(' · ') || r.x.rol || '')}</small></span>
+          <span class="mini-res">${mini(s)}<span class="est ${e}">${TXT[e]}</span></span>${r.q ? ic('der') : ''}</button>`; }).join('');
+    } else {
+      // Varios días y todos los comerciales: una fila por persona con lo de todo el periodo; al tocarla, se ven sus días
+      filas = [...new Set(vis.map(r => r.x))].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(x => ({ x, rs: vis.filter(r => r.x === x) }));
+      html = filas.map((f, i) => { const s = suma(f.rs), n = { si: cuenta(f.rs, 'si'), medio: cuenta(f.rs, 'medio'), no: cuenta(f.rs, 'no') };
+        const e = n.no ? 'no' : n.medio ? 'medio' : n.si ? 'si' : 'antes';
+        return `<button type="button" class="fila-c ${e}" data-i="${i}" style="animation-delay:${Math.min(i, 20) * 30}ms">
+          <span class="luz ${e}"></span>${avatar(f.x.nombre)}
+          <span class="t"><b>${esc(f.x.nombre)}</b><small>${esc(delegDe(f.x) || f.x.rol || '')}</small></span>
+          <span class="mini-res">${mini(s)}<span class="est si">${n.si} firmadas</span>${n.medio ? `<span class="est medio">${n.medio} sin firmar</span>` : ''}${n.no ? `<span class="est no">${n.no} sin enviar</span>` : ''}</span>${ic('der')}</button>`; }).join('');
+    }
+    c.innerHTML = cabecera + (filas.length ? `<div class="card lista-c">${html}</div>`
+      : `<p class="vacio-q">${equipo.length ? 'No hay quinielas en estas fechas.' : 'Todavía no hay nadie con «Rellenar su quiniela». Dalo en ACCESOS a los comerciales y aquí aparecerá la lista de cada día.'}</p>`);
+    c.querySelectorAll('.fila-c').forEach(b => b.onclick = () => { const f = filas[+b.dataset.i]; if (f.rs) { comFiltro = f.x.nombre; vistaDia(); } else if (f.q) detalle(f.q); });
+    c.querySelectorAll('.avq[data-n]').forEach(a => Hub.foto(a.dataset.n).then(u => { if (u) a.innerHTML = `<img src="${u}" alt="">`; }));
   }
   function detalle(q) {
     const r = resumen(q);
-    app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a la lista del día</button>
+    app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a la lista</button>
       <div class="q-cab"><div><h1>${esc(q.comercial)}</h1><p>Quiniela diaria · ${esc(fechaLarga(q.fecha))} · ${esc(q.delegacion)}${q.ruta ? ' · Ruta: ' + esc(q.ruta) : ''}</p></div>
         <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico" type="button" id="pdfq">${ic('excel')}Descargar PDF</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
       <div class="tabla-c"><table class="t"><thead><tr><th>#</th><th>Cliente</th><th>Población</th><th>Oferta</th><th>Origen</th><th>Artículos (entrega)</th><th>Importe</th><th>1.ª cuota</th><th>Cobro</th><th class="n">Cuotas</th><th>Resultado</th></tr></thead><tbody>
@@ -608,6 +724,7 @@ Hub.listo.then(async function () {
   }
 
   /* =================== HOJA DE PRODUCCIÓN (sale de las quinielas) =================== */
+  let ORH = ORIGENES_COM;
   async function vistaHoja() {
     const dias = [0, 1, 2, 3, 4].map(n => sumaDias(semana, n));
     marco(`<div class="card bloque no-imprimir"><div class="fila">
@@ -621,27 +738,28 @@ Hub.listo.then(async function () {
     app.querySelector('#sig').onclick = () => { semana = sumaDias(semana, 7); vistaHoja(); };
     app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaHoja(); };
     const rs = (await rutas(true)).filter(p => dias.some(d => p.endsWith(`/${d}.json`)));
-    CACHE = {};
-    const qs = (await Promise.all(rs.map(quinielaDe))).filter(q => q && (delegFiltro === 'Todas' || q.delegacion === delegFiltro));
+    const qs = Object.values(await variasDe(rs)).filter(q => q && (delegFiltro === 'Todas' || q.delegacion === delegFiltro));
     const comerciales = [...new Set(qs.map(q => q.comercial))].sort((a, b) => a.localeCompare(b));
+    // Columnas: las de los comerciales siempre; las de los VIP, solo si alguien las ha usado esa semana
+    ORH = ORIGENES.filter(o => ORIGENES_COM.includes(o) || qs.some(q => q.visitas.some(v => v.origen === o)));
     const cuenta = (q, o, res) => q ? q.visitas.filter(v => v.origen === o && v.resultado === res).length : 0;
-    const filaDe = q => ORIGENES.flatMap(o => ['nulo', 'demo', 'venta'].map(res => cuenta(q, o, res))).concat(q ? q.visitas.filter(v => v.resultado === 'venta').length : 0);
-    const suma = filas => filas.reduce((t, f) => t.map((x, k) => x + f[k]), new Array(ORIGENES.length * 3 + 1).fill(0));
+    const filaDe = q => ORH.flatMap(o => ['nulo', 'demo', 'venta'].map(res => cuenta(q, o, res))).concat(q ? q.visitas.filter(v => v.resultado === 'venta').length : 0);
+    const suma = filas => filas.reduce((t, f) => t.map((x, k) => x + f[k]), new Array(ORH.length * 3 + 1).fill(0));
     const celdas = f => f.map((x, k) => `<td class="n ${k % 3 === 0 && k < f.length - 1 ? 'bl' : ''} ${k === f.length - 1 ? 'bl' : ''} ${x ? '' : 'cero'}">${x}</td>`).join('');
     const filasSemana = [];
     let cuerpo = '';
     for (const d of dias) {
       const delDia = comerciales.map(n => [n, filaDe(qs.find(q => q.comercial === n && q.fecha === d))]);
       const tot = suma(delDia.map(x => x[1])); filasSemana.push(tot);
-      cuerpo += `<tr class="dia"><td colspan="${3 + ORIGENES.length * 3}">${esc(fechaLarga(d))}</td></tr>` + delDia.map(([n, f], i) => `<tr><td class="n">${i + 1}º</td><td>${esc(n)}</td>${celdas(f)}</tr>`).join('') + `<tr class="tot"><td></td><td>Totales</td>${celdas(tot)}</tr>`;
+      cuerpo += `<tr class="dia"><td colspan="${3 + ORH.length * 3}">${esc(fechaLarga(d))}</td></tr>` + delDia.map(([n, f], i) => `<tr><td class="n">${i + 1}º</td><td>${esc(n)}</td>${celdas(f)}</tr>`).join('') + `<tr class="tot"><td></td><td>Totales</td>${celdas(tot)}</tr>`;
     }
     const totSem = suma(filasSemana);
     const c = app.querySelector('#cuerpo');
     c.innerHTML = `<div class="q-cab" style="margin-top:4px"><div><h1 style="font-size:20px">Hoja de producción · ${esc(delegFiltro === 'Todas' ? 'todas las delegaciones' : delegFiltro)}</h1><p>Semana del ${esc(fechaLarga(semana))} · ${comerciales.length ? comerciales.length + ' comerciales' : 'todavía no hay quinielas guardadas esta semana'}</p></div>
         <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico sec" type="button" id="csv">${ic('excel')}Descargar Excel</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
-      <div class="tabla-c"><table class="t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${ORIGENES.map(o => `<th class="g" colspan="3">${esc(o)}</th>`).join('')}<th class="g" rowspan="2">Total ventas</th></tr>
-        <tr>${ORIGENES.map(() => '<th class="n bl">Nul</th><th class="n">Demo</th><th class="n">Vent</th>').join('')}</tr></thead>
-        <tbody>${cuerpo}<tr class="dia"><td colspan="${3 + ORIGENES.length * 3}">Total semanal</td></tr><tr class="tot"><td></td><td>Total</td>${celdas(totSem)}</tr></tbody></table></div>`;
+      <div class="tabla-c"><table class="t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${ORH.map(o => `<th class="g" colspan="3">${esc(o)}</th>`).join('')}<th class="g" rowspan="2">Total ventas</th></tr>
+        <tr>${ORH.map(() => '<th class="n bl">Nul</th><th class="n">Demo</th><th class="n">Vent</th>').join('')}</tr></thead>
+        <tbody>${cuerpo}<tr class="dia"><td colspan="${3 + ORH.length * 3}">Total semanal</td></tr><tr class="tot"><td></td><td>Total</td>${celdas(totSem)}</tr></tbody></table></div>`;
     c.querySelector('#csv').onclick = e => excelHoja(qs, dias, filaDe, e.currentTarget);
   }
 
@@ -735,13 +853,13 @@ Hub.listo.then(async function () {
       const delegs = delegFiltro === 'Todas' ? DELEGACIONES.filter(d => qs.some(q => q.delegacion === d)) : [delegFiltro];
       if (!delegs.length) delegs.push(delegFiltro === 'Todas' ? DELEGACIONES[0] : delegFiltro);
       const DIAS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
-      const nC = 3 + ORIGENES.length * 3 + 1, ult = nC;   // A día, B nº, C nombre, grupos, total
+      const nC = 3 + ORH.length * 3 + 1, ult = nC;   // A día, B nº, C nombre, grupos, total
       const col = n => { let t = ''; while (n > 0) { const m = (n - 1) % 26; t = String.fromCharCode(65 + m) + t; n = Math.floor((n - 1) / 26); } return t; };
       const fino = { style: 'thin', color: { argb: 'FF000000' } }, borde = { top: fino, left: fino, bottom: fino, right: fino };
       const gris = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } }, gris2 = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
       for (const dg of delegs) {
         const ws = wb.addWorksheet(dg.toUpperCase(), { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } } });
-        ws.columns = [{ width: 12 }, { width: 5 }, { width: 26 }].concat(ORIGENES.flatMap(() => [{ width: 6 }, { width: 6 }, { width: 6 }]), [{ width: 9 }]);
+        ws.columns = [{ width: 12 }, { width: 5 }, { width: 26 }].concat(ORH.flatMap(() => [{ width: 6 }, { width: 6 }, { width: 6 }]), [{ width: 9 }]);
         const deDg = qs.filter(q => q.delegacion === dg);
         const nombres = [...new Set(deDg.map(q => q.comercial))].sort((a, b) => a.localeCompare(b));
         // Título, delegación y semana
@@ -751,7 +869,7 @@ Hub.listo.then(async function () {
         ws.mergeCells(2, 4, 2, ult); ws.getCell(2, 4).value = 'SEMANA DEL ' + fechaCorta(dias[0]) + ' AL ' + fechaCorta(dias[4]); ws.getCell(2, 4).font = { bold: true };
         // Cabecera de dos filas: NOMBRE, un grupo por origen (NUL, DEMO, VENT) y TOTAL
         ws.mergeCells(3, 1, 4, 2); ws.mergeCells(3, 3, 4, 3); ws.getCell(3, 3).value = 'NOMBRE';
-        ORIGENES.forEach((o, k) => { const c0 = 4 + k * 3; ws.mergeCells(3, c0, 3, c0 + 2); ws.getCell(3, c0).value = o.toUpperCase(); ['NUL', 'DEMO', 'VENT'].forEach((t, j) => ws.getCell(4, c0 + j).value = t); });
+        ORH.forEach((o, k) => { const c0 = 4 + k * 3; ws.mergeCells(3, c0, 3, c0 + 2); ws.getCell(3, c0).value = o.toUpperCase(); ['NUL', 'DEMO', 'VENT'].forEach((t, j) => ws.getCell(4, c0 + j).value = t); });
         ws.mergeCells(3, ult, 4, ult); ws.getCell(3, ult).value = 'TOTAL';
         for (let rr = 3; rr <= 4; rr++) for (let cc = 1; cc <= ult; cc++) { const ce = ws.getCell(rr, cc); ce.fill = gris; ce.font = { bold: true, size: 9 }; ce.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; ce.border = borde; }
         // Un bloque por día: una fila por comercial y la fila de totales (con fórmulas, como el original)
@@ -761,8 +879,8 @@ Hub.listo.then(async function () {
           for (let i = 0; i < filasDia; i++, fila++) {
             const n = nombres[i] || '', q = n ? deDg.find(x => x.comercial === n && x.fecha === d) : null, v = q ? filaDe(q) : null;
             ws.getCell(fila, 2).value = n ? (i + 1) + 'º' : ''; ws.getCell(fila, 3).value = n;
-            for (let j = 0; j < ORIGENES.length * 3; j++) ws.getCell(fila, 4 + j).value = v && v[j] ? v[j] : null;
-            const vent = ORIGENES.map((_, o) => col(6 + o * 3) + fila);
+            for (let j = 0; j < ORH.length * 3; j++) ws.getCell(fila, 4 + j).value = v && v[j] ? v[j] : null;
+            const vent = ORH.map((_, o) => col(6 + o * 3) + fila);
             ws.getCell(fila, ult).value = { formula: `IF(COUNT(${vent.join(',')})=0,"",SUM(${vent.join(',')}))` };
           }
           ws.mergeCells(ini, 1, fila - 1, 1); ws.getCell(ini, 1).value = DIAS[k] + '\n' + fechaCorta(d);

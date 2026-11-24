@@ -49,7 +49,7 @@
     const dispositivo = /dispositivo/i.test(u.rol || '');
     const llaves = g.HUB_LLAVES(webs, S);
     // Quinielas: cada persona lleva además SU llave (u.qk), con la que relee sus propias quinielas, y su identificador.
-    if (llaves.quinielas && webs.quinielas !== 'jefe') Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre });
+    if (llaves.quinielas && webs.quinielas !== 'jefe') Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre, tipo: u.tipo || '' });   // tipo: la quiniela cambia según sea (p. ej., VIP)
     if (S.fotos) llaves.fotos = { k: S.fotos };   // fotos de las personas (Juan, 23/11): las ve todo el Hub
     return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], nombreCompleto: u.nombre, perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
   };
