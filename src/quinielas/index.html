@@ -421,14 +421,15 @@ Hub.listo.then(async function () {
     div.querySelector('#irAnt').onclick = e => { e.preventDefault(); cambiaDia(d); };
   }
   function vistaMia() {
-    const equipo = ADMIN ? (K.equipo || []) : [];
+    // Admin: puede rellenar la de cualquier usuario y también la de los jefes de equipo (Juan, 24/11)
+    const equipo = ADMIN ? (K.equipo || []).concat((K.jefes || []).filter(j => !(K.equipo || []).some(m => m.uid === j.uid)).map(j => ({ ...j, esJefe: true }))) : [];
     marco(`<div class="card bloque" style="animation-delay:40ms"><h2>${ic('dia')}Día y ruta</h2>
         <div class="fila dr">
-          ${ADMIN ? `<label class="c">Quiniela de<select class="campo" id="para"><option value="">Yo (${esc(K.nombreCompleto || Hub.sesion().nombre)})</option>${equipo.map((m, i) => `<option value="${i}" ${PARA && PARA.uid === m.uid ? 'selected' : ''}>${esc(m.nombre)}</option>`).join('')}</select></label>` : ''}
+          ${ADMIN ? `<label class="c">Quiniela de<select class="campo" id="para"><option value="">Yo (${esc(K.nombreCompleto || Hub.sesion().nombre)})</option>${equipo.map((m, i) => `<option value="${i}" ${PARA && PARA.uid === m.uid ? 'selected' : ''}>${esc(m.nombre)}${m.esJefe ? ' (jefe de equipo)' : ''}</option>`).join('')}</select></label>` : ''}
           <label class="c">Fecha<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${fecha}" max="${hoyISO()}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
           <label class="c">Delegación<select class="campo" id="deleg"><option value="">Elige…</option>${DELEGACIONES.map(d => `<option>${d}</option>`).join('')}</select></label>
           <label class="c">Ruta<input class="campo mayus" id="ruta" placeholder="PUEBLO - PUEBLO - PUEBLO" autocomplete="off" autocapitalize="characters"></label>
-        </div>${ADMIN && !equipo.length ? '<p class="muted" style="font-size:12.5px;margin-top:8px">Para rellenar la de otra persona, primero dale «Usuario» en Quinielas desde ACCESOS.</p>' : ''}</div>
+        </div>${ADMIN && !equipo.length ? '<p class="muted" style="font-size:12.5px;margin-top:8px">Para rellenar la de otra persona, primero dale «Usuario» (o «Jefe») en Quinielas desde ACCESOS.</p>' : ''}</div>
       <div id="cuerpo"></div>`);
     const f = app.querySelector('#fecha');
     f.onchange = () => cambiaDia(f.value);

@@ -46,7 +46,7 @@
       const Q = S.quinielas, eq = Q.equipo || [], sinQk = m => ({ uid: m.uid, nombre: m.nombre, rol: m.rol, tipo: m.tipo, equipo: m.equipo });
       L.quinielas = { t: Q.token, o: Q.owner, r: Q.repo, pub: Q.pub, vapid: Q.vapid || null, pubEq: Q.pubEq || {} };
       // Admin: lee todas y lleva la llave de cada usuario (para rellenarle la quiniela y que él pueda releerla).
-      if (w.quinielas === 'todas') Object.assign(L.quinielas, { priv: Q.priv, equipo: eq, hk: Q.hk, hojas: Q.hojas });
+      if (w.quinielas === 'todas') Object.assign(L.quinielas, { priv: Q.priv, equipo: eq, jefes: Q.jefes || [], hk: Q.hk, hojas: Q.hojas });
       if (w.quinielas === 'ver') Object.assign(L.quinielas, { priv: Q.priv, equipo: eq.map(sinQk), hk: Q.hk, hojas: Q.hojas });
       // Coordinadoras: solo su hoja (la llave de las hojas y su lista de chicas), sin llave para leer quinielas
       if (w.quinielas === 'hojatel' || w.quinielas === 'hojamail') { const h = w.quinielas === 'hojatel' ? 'tel' : 'mail'; Object.assign(L.quinielas, { hk: Q.hk, hojas: { [h]: (Q.hojas || {})[h] || [] }, soloHoja: h }); }
@@ -77,10 +77,13 @@
   // Antes de publicar: quien tiene Quinielas y aún no tiene su llave propia, la recibe (al azar, 32 bytes en base64).
   // y quien ve todas recibe la lista de quién tiene que rellenarla (para ver quién la ha enviado y quién no).
   g.HUB_PREPARA = function (usuarios, azar, S) {
-    for (const u of usuarios) if (!u.baja && !u.sinAcceso && u.webs && ['rellenar', 'todas'].includes(u.webs.quinielas) && !u.qk) u.qk = azar();
+    for (const u of usuarios) if (!u.baja && u.webs && ['rellenar', 'todas', 'jefe'].includes(u.webs.quinielas) && !u.qk) u.qk = azar();
     if (S && S.quinielas) {
-      S.quinielas.equipo = usuarios.filter(u => !u.baja && !u.sinAcceso && u.webs && u.webs.quinielas === 'rellenar')
-        .map(u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '', tipo: u.tipo || '', equipo: g.HUB_EQUIPO_DE(u), qk: u.qk }));
+      // quien rellena quiniela (también una ficha sin acceso con «Usuario»: el admin se la rellena)
+      const ficha = u => ({ uid: u.uid, nombre: u.nombre, rol: u.rol || '', tipo: u.tipo || '', equipo: g.HUB_EQUIPO_DE(u), qk: u.qk });
+      S.quinielas.equipo = usuarios.filter(u => !u.baja && u.webs && u.webs.quinielas === 'rellenar').map(ficha);
+      // jefes de equipo: el admin también puede rellenarles la quiniela (Juan, 24/11), aunque no salgan en la lista de quién la debe enviar
+      S.quinielas.jefes = usuarios.filter(u => !u.baja && u.webs && u.webs.quinielas === 'jefe').map(ficha);
       // Quién sale en cada hoja de producción a mano, en el orden del registro (el de la hoja en papel). Con o sin acceso al Hub.
       S.quinielas.hojas = {};
       // orden: el de la hoja en papel si se dio (ordenHojas), y si no, el del registro
