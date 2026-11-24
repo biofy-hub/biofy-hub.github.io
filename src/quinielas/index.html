@@ -710,7 +710,9 @@ Hub.listo.then(async function () {
 
   async function vistaDia() {
     if (hasta < desde) [desde, hasta] = [hasta, desde];
-    const equipo = await Promise.all((K.equipo || []).map(async m => ({ ...m, carpeta: await carpeta(m.uid) })));
+    // Quien ve todos los equipos ve también a los jefes de equipo (Juan, 24/11)
+    const lista = (K.equipo || []).concat(GLOBAL ? (K.jefes || []).filter(j => !(K.equipo || []).some(m => m.uid === j.uid)) : []);
+    const equipo = await Promise.all(lista.map(async m => ({ ...m, carpeta: await carpeta(m.uid) })));
     const atajo = Object.keys(ATAJOS).find(k => { const [a, b] = ATAJOS[k](); return a === desde && b === hasta; }) || '';
     const chip = (k, t) => `<button type="button" class="filtro-f ${atajo === k ? 'on' : ''}" data-a="${k}">${t}</button>`;
     marco(`<div class="card bloque no-imprimir">

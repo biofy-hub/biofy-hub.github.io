@@ -47,7 +47,7 @@
       L.quinielas = { t: Q.token, o: Q.owner, r: Q.repo, pub: Q.pub, vapid: Q.vapid || null, pubEq: Q.pubEq || {} };
       // Admin: lee todas y lleva la llave de cada usuario (para rellenarle la quiniela y que él pueda releerla).
       if (w.quinielas === 'todas') Object.assign(L.quinielas, { priv: Q.priv, equipo: eq, jefes: Q.jefes || [], hk: Q.hk, hojas: Q.hojas });
-      if (w.quinielas === 'ver') Object.assign(L.quinielas, { priv: Q.priv, equipo: eq.map(sinQk), hk: Q.hk, hojas: Q.hojas });
+      if (w.quinielas === 'ver') Object.assign(L.quinielas, { priv: Q.priv, equipo: eq.map(sinQk), jefes: (Q.jefes || []).map(sinQk), hk: Q.hk, hojas: Q.hojas });
       // Coordinadoras: solo su hoja (la llave de las hojas y su lista de chicas), sin llave para leer quinielas
       if (w.quinielas === 'hojatel' || w.quinielas === 'hojamail') { const h = w.quinielas === 'hojatel' ? 'tel' : 'mail'; Object.assign(L.quinielas, { hk: Q.hk, hojas: { [h]: (Q.hojas || {})[h] || [] }, soloHoja: h }); }
       // Jefe: su equipo se pone en HUB_CONTENIDO (hace falta saber quién es)
