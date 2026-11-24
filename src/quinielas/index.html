@@ -411,7 +411,7 @@ Hub.listo.then(async function () {
 
   /* ---------- Avisos en el móvil (Juan, 23/11): a las 20:00, de lunes a viernes, a quien no la haya registrado ---------- */
   const esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const instalada = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const instalada = () => Hub.enIcono();
   const disp = () => { let d = Hub.lee('qn_disp'); if (!d) { d = [...crypto.getRandomValues(new Uint8Array(6))].map(x => x.toString(16).padStart(2, '0')).join(''); Hub.guarda('qn_disp', d); } return d; };
   const b64url = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
   async function pintaAvisos() {
@@ -420,6 +420,7 @@ Hub.listo.then(async function () {
     if (!K.vapid) { el.remove(); return; }
     if (esIOS && !instalada()) {
       el.innerHTML = cab + `<p style="font-size:14px">Para recibir un aviso a las 20:00 si todavía no has registrado tu quiniela, en el iPhone primero hay que añadir el Hub a la pantalla de inicio (una sola vez) y abrirlo desde ese icono. Luego vuelve aquí y pulsa «Activar avisos».</p>
+        <p class="muted" style="font-size:13px">¿Ya lo tienes en la pantalla de inicio? Ciérralo aquí y ábrelo desde el icono del Hub.</p>
         <div class="botones-q"><button class="btn chico" type="button" id="inicioIOS">${ic('info')}Añadir a la pantalla de inicio</button></div>`;
       el.querySelector('#inicioIOS').onclick = Hub.anadirInicio;
       return;

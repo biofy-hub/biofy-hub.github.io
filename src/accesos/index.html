@@ -170,7 +170,7 @@ Hub.listo.then(async function () {
       ${nuevo ? `<div class="pwm"><label class="t">Contraseña</label><div class="seg">
         <label><input type="radio" name="pwModo" value="azar" checked><span>Generar una al azar</span></label>
         <label><input type="radio" name="pwModo" value="mia"><span>Escribirla yo (p. ej., la del CRM)</span></label></div>
-        <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 8 caracteres)" autocomplete="new-password" style="display:none"></div>` : ''}
+        <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 7 caracteres)" autocomplete="new-password" style="display:none"></div>` : ''}
       <div><label class="t">Qué puede hacer en cada módulo</label><div class="mods">${MODS.map(m => `<div class="m"><div class="nm">${icono(m.icono)}${esc(m.nombre)}</div><div class="seg">
         ${[{ id: '', nombre: 'Sin acceso' }].concat(HUB_PERFILES[m.permiso]).map(p => `<label><input type="radio" name="p_${m.permiso}" value="${p.id}" ${(u.webs[m.permiso] || '') === p.id ? 'checked' : ''}><span>${esc(p.nombre)}</span></label>`).join('')}
       </div></div>`).join('')}
@@ -208,7 +208,7 @@ Hub.listo.then(async function () {
       if (usuario && reg.usuarios.some(x => x !== u && !x.baja && (x.usuario || '').toLowerCase() === usuario.toLowerCase())) { err.textContent = 'Ese usuario ya lo tiene otra persona.'; return f.eUsr.focus(); }
       if (usuario && !/^[\w.@-]{3,40}$/.test(usuario)) { err.textContent = 'El usuario: de 3 a 40 letras, números, puntos o guiones, sin espacios.'; return f.eUsr.focus(); }
       const escrita = nuevo && f.pwModo.value === 'mia' ? f.ePw.value : null;
-      if (escrita !== null && escrita.length < 8) { err.textContent = 'La contraseña tiene que tener al menos 8 caracteres.'; return f.ePw.focus(); }
+      if (escrita !== null && escrita.length < 7) { err.textContent = 'La contraseña tiene que tener al menos 7 caracteres.'; return f.ePw.focus(); }
       if (escrita !== null && !usuario) { err.textContent = 'Si escribes tú la contraseña, ponle también usuario (así no choca con la de otra persona).'; return f.eUsr.focus(); }
       const webs = {};
       for (const m of MODS) { const v = f['p_' + m.permiso].value; if (v) webs[m.permiso] = v; }
@@ -240,7 +240,7 @@ Hub.listo.then(async function () {
     dlg.innerHTML = `<form class="dc" method="dialog"><h2>Contraseña nueva · ${esc(u.nombre)}</h2>
       <p class="nota">La de ahora dejará de funcionar al publicar.</p>
       <div class="seg"><label><input type="radio" name="pwModo" value="azar" checked><span>Generar una al azar</span></label><label><input type="radio" name="pwModo" value="mia"><span>Escribirla yo (p. ej., la del CRM)</span></label></div>
-      <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 8 caracteres)" autocomplete="new-password" style="display:none">
+      <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 7 caracteres)" autocomplete="new-password" style="display:none">
       ${u.usuario ? '' : '<p class="nota">Si la escribes tú, ponle antes un usuario en su ficha.</p>'}
       <p class="error" id="eErr"></p>
       <div class="acciones"><div class="der"><button class="btn sec chico" type="button" id="eNo">Cancelar</button><button class="btn chico" type="submit">Cambiar</button></div></div></form>`;
@@ -250,7 +250,7 @@ Hub.listo.then(async function () {
     f.onsubmit = async e => {
       e.preventDefault();
       const escrita = f.pwModo.value === 'mia' ? f.ePw.value : null;
-      if (escrita !== null && escrita.length < 8) { err.textContent = 'Al menos 8 caracteres.'; return; }
+      if (escrita !== null && escrita.length < 7) { err.textContent = 'Al menos 7 caracteres.'; return; }
       if (escrita !== null && !u.usuario) { err.textContent = 'Primero ponle un usuario en su ficha.'; return; }
       const pw = escrita !== null ? escrita : clavito(), p = await Hub.accesos.nuevaPersona(pw);
       delete claves[u.id]; u.id = p.id; u.k = p.k; if (escrita === null) claves[p.id] = { nombre: u.nombre, pw, usuario: u.usuario };

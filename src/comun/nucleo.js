@@ -276,17 +276,30 @@
   let pideInstalar = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pideInstalar = e; });
   const esIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const instalado = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const esAndroid = () => /Android/i.test(navigator.userAgent);
+  const enIcono = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  // Se recuerda en el móvil: si una vez se abrió desde el icono (o se instaló), ya no se enseñan los pasos (Juan, 24/11).
+  if (enIcono()) guarda('instalado', '1');
+  window.addEventListener('appinstalled', () => guarda('instalado', '1'));
+  const instalado = () => enIcono() || lee('instalado') === '1';
   const esMovil = () => esIOS() || /Android|Mobi/i.test(navigator.userAgent);
+  // iPhone: solo Safari (y Chrome con iOS reciente) dejan añadirlo; en otros navegadores se pide abrirlo en Safari.
+  const navegadorIOS = () => /CriOS/.test(navigator.userAgent) ? 'Chrome' : /FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent) ? 'otro' : 'Safari';
   async function anadirInicio() {
-    if (pideInstalar) { pideInstalar.prompt(); try { await pideInstalar.userChoice; } catch (e) {} pideInstalar = null; return; }
+    if (pideInstalar) { pideInstalar.prompt(); try { if ((await pideInstalar.userChoice).outcome === 'accepted') guarda('instalado', '1'); } catch (e) {} pideInstalar = null; return; }
     const d = document.createElement('dialog');
     d.style.cssText = 'margin:auto;border:0;border-radius:20px;padding:0;max-width:min(420px,calc(100% - 24px));background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up)';
     const paso = (n, t) => `<li style="display:flex;gap:12px;align-items:flex-start;margin:10px 0"><b style="flex:none;width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:13px">${n}</b><span>${t}</span></li>`;
     d.innerHTML = `<div style="padding:22px"><h2 style="font-size:19px;font-weight:800;margin-bottom:6px">Añadir el Hub a la pantalla de inicio</h2>
+      <p style="font-size:13px;color:var(--muted)">${esIOS() ? 'Pasos para iPhone' : esAndroid() ? 'Pasos para Android' : 'Pasos para tu móvil'}</p>
       <ol style="list-style:none;font-size:14.5px;line-height:1.45">${esIOS()
-        ? paso(1, 'Abre esta página en <b>Safari</b>.') + paso(2, 'Toca el botón <b>Compartir</b>: el cuadrado con una flecha hacia arriba, abajo en la pantalla.') + paso(3, 'Baja y elige <b>«Añadir a pantalla de inicio»</b>, y luego <b>«Añadir»</b>.') + paso(4, 'Abre el Hub desde el icono nuevo. Así funciona como una app y te pueden llegar los avisos.')
-        : paso(1, 'Abre el menú del navegador (los tres puntos, arriba a la derecha).') + paso(2, 'Elige <b>«Añadir a pantalla de inicio»</b> o <b>«Instalar aplicación»</b>.') + paso(3, 'Abre el Hub desde el icono nuevo.')}</ol>
+        ? (navegadorIOS() === 'Safari'
+            ? paso(1, 'Toca el botón <b>Compartir</b>: el cuadrado con una flecha hacia arriba, abajo en la pantalla.')
+            : navegadorIOS() === 'Chrome'
+              ? paso(1, 'Toca el botón <b>Compartir</b> (el cuadrado con una flecha hacia arriba), arriba a la derecha, junto a la dirección. Si no te sale la opción del paso 2, abre esta página en <b>Safari</b>.')
+              : paso(1, 'Abre esta página en <b>Safari</b> (este navegador no deja añadirla). Allí toca <b>Compartir</b>: el cuadrado con una flecha hacia arriba.'))
+          + paso(2, 'Baja y elige <b>«Añadir a pantalla de inicio»</b>, y luego <b>«Añadir»</b>.') + paso(3, 'Abre el Hub desde el icono nuevo. Así funciona como una app y te pueden llegar los avisos.')
+        : paso(1, 'Abre el menú del navegador (los tres puntos, arriba a la derecha).') + paso(2, 'Elige <b>«Instalar aplicación»</b> o <b>«Añadir a pantalla de inicio»</b>, y luego <b>«Instalar»</b>.') + paso(3, 'Abre el Hub desde el icono nuevo.')}</ol>
       <div style="text-align:right;margin-top:12px"><button class="btn" type="button" style="width:auto;padding:0 22px">Entendido</button></div></div>`;
     document.body.appendChild(d); d.querySelector('button').onclick = () => { d.close(); d.remove(); }; d.showModal();
   }
@@ -299,5 +312,5 @@
     try { iconoPestana(m ? m.icono : 'hub'); } catch (e) {}
   })();
 
-  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona, claveUsuario }, publicaArchivo, shaDe, cifra, foto, subeFoto, recortaFoto, slugNombre, anadirInicio, instalado, esMovil, esIOS, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
+  window.Hub = { raiz: RAIZ, config: C, accesos: { registro, publica: publicaAccesos, nuevaPersona, claveUsuario }, publicaArchivo, shaDe, cifra, foto, subeFoto, recortaFoto, slugNombre, anadirInicio, instalado, enIcono, esMovil, esIOS, esAndroid, icono, esc, cambiaTema, sesion, entrar, salir, listo, puede, permiso, llave, misModulos, modulo, href, cabecera, guarda, lee };
 })();
