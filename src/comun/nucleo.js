@@ -153,7 +153,7 @@
     const llaveros = {};
     if (window.HUB_PREPARA) HUB_PREPARA(reg.usuarios, () => b64(crypto.getRandomValues(new Uint8Array(32))), reg.secretos);
     for (const u of reg.usuarios) {
-      if (u.baja) continue;
+      if (u.baja || u.sinAcceso) continue;   // sin acceso = solo ficha (para listas): no lleva llavero
       const kk = await claveLlavero(u);
       if (llaveros[kk]) throw new Error(u.usuario ? 'Dos personas con el mismo usuario (' + u.usuario + ')' : 'Dos personas sin usuario con la misma contraseña. Ponles usuario.');
       llaveros[kk] = await cierraLlavero(u, JSON.stringify(HUB_CONTENIDO(u, reg.secretos)));

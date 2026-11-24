@@ -156,7 +156,19 @@ const HUB_SCRIPTS=${JSON.stringify(HUB_HEAD).replace(/<\//g, '<\\/')};
 
 /* 3. Registro y llaveros */
 vm.runInThisContext(readFileSync(join(raiz, 'src/comun/perfiles.js'), 'utf8'));
-const { HUB_CONTENIDO, HUB_PREPARA } = globalThis;
+const { HUB_CONTENIDO, HUB_PREPARA, HUB_EQUIPOS } = globalThis;
+// Quinielas (24/11): una clave por equipo (el jefe solo lleva la de su equipo) y la llave de las hojas de producción a mano
+// (teleoperadoras y mailing). Se crean una vez y se guardan en el archivo de claves del Mac (nunca en el cerebro).
+if (QN) {
+  let nuevo = false;
+  QN.equipos = QN.equipos || {};
+  for (const e of HUB_EQUIPOS) if (!QN.equipos[e]) {
+    const kp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+    QN.equipos[e] = { pub: await crypto.subtle.exportKey('jwk', kp.publicKey), priv: await crypto.subtle.exportKey('jwk', kp.privateKey) }; nuevo = true;
+  }
+  if (!QN.hk) { QN.hk = randomBytes(32).toString('base64'); nuevo = true; }
+  if (nuevo) { writeFileSync(arg('quinielas'), JSON.stringify(QN, null, 1)); console.log('Quinielas: claves de equipo y de las hojas creadas y guardadas en el archivo de claves'); }
+}
 const hex = b => Buffer.from(b).toString('hex'), B = s => Buffer.from(s, 'base64');
 async function idDe(pw) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
@@ -192,6 +204,16 @@ if (process.argv.includes('--importar')) {
   if (!t) falla('el registro publicado no se abre con la llave del Hub');
   ({ usuarios, historial = [] } = JSON.parse(t));
 }
+// --altas-sin-acceso f.json (Juan, 24/11): fichas sin acceso al Hub, solo para que su nombre salga en las listas
+// (p. ej., las chicas de las hojas de teleoperadoras y mailing). Si ya existe alguien con ese nombre, se le añaden las hojas.
+if (arg('altas-sin-acceso')) {
+  for (const a of JSON.parse(readFileSync(arg('altas-sin-acceso'), 'utf8'))) {
+    const ya = usuarios.find(u => !u.baja && u.nombre.toLowerCase() === a.nombre.toLowerCase());
+    if (ya) { ya.hojas = [...new Set((ya.hojas || []).concat(a.hojas || []))]; ya.ordenHojas = { ...(ya.ordenHojas || {}), ...(a.ordenHojas || {}) }; continue; }
+    usuarios.push({ uid: randomBytes(6).toString('hex'), nombre: a.nombre, rol: a.rol || '', tipo: a.tipo || '', equipo: a.equipo || '', hojas: a.hojas || [], ordenHojas: a.ordenHojas || {}, webs: {}, alta: new Date().toISOString().slice(0, 10), sinAcceso: true });
+    historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: 'Alta sin acceso (solo ficha): ' + a.nombre });
+  }
+}
 // Productos (Juan, 23/11): los administradores del Hub lo administran (eliminadas y qué fichas se ven).
 if (!HB.fichas || !HB.fichas.ver || !HB.fichas.admin) falla('faltan las llaves de «fichas» en los secretos del Hub');
 for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin' && !u.webs.fichas) {
@@ -205,7 +227,8 @@ if (QN) for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin
 }
 const secretos = {
   fotos: HB.fotosClave || null,
-  ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv, vapid: QN.vapid ? QN.vapid.pub : null } } : {}),
+  ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv, vapid: QN.vapid ? QN.vapid.pub : null,
+    pubEq: Object.fromEntries(Object.entries(QN.equipos).map(([e, k]) => [e, k.pub])), privEq: Object.fromEntries(Object.entries(QN.equipos).map(([e, k]) => [e, k.priv])), hk: QN.hk } } : {}),
   fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
   pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
   dashboard: { read_token: DB.read_token, write_token: DB.write_token },
@@ -216,7 +239,7 @@ const secretos = {
 HUB_PREPARA(usuarios, () => randomBytes(32).toString('base64'), secretos);   // Quinielas: llave propia de cada uno y lista de quién rellena
 const llaveros = {}, resumen = [];
 for (const u of usuarios) {
-  if (u.baja) continue;
+  if (u.baja || u.sinAcceso) continue;   // sin acceso: solo ficha, sin llavero
   // Con usuario, el llavero se guarda con su usuario (Juan, 23/11); sin usuario, con el nombre sacado de la contraseña
   const kk = u.usuario ? 'u' + createHash('sha256').update('biofy-hub/usuario/' + String(u.usuario).trim().toLowerCase()).digest('hex').slice(0, 32) : u.id;
   if (llaveros[kk]) falla(u.usuario ? 'dos personas con el mismo usuario' : 'dos personas sin usuario con la misma contraseña');
@@ -309,7 +332,7 @@ for (const { u, contenido, kk } of resumen) {
   if (!bueno) ok = false;
   console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, HB.fotosClave, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, HB.fotosClave, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, QN && QN.hk, ...(QN ? Object.values(QN.equipos).map(k => k.priv.d) : []), ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');
