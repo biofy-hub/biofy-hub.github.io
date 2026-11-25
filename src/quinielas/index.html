@@ -341,9 +341,12 @@ Hub.listo.then(async function () {
     const j = await r.json();
     return { sha: j.sha, dato: await abre(JSON.parse(new TextDecoder().decode(u8(j.content.replace(/\n/g, ''))))) };
   }
+  // Marca de esta pestaña: sirve para reconocer los guardados propios (si el almacén tarda en dar la última versión)
+  const DISP = (() => { let d = null; try { d = sessionStorage.getItem('qn_disp'); if (!d) { d = Math.random().toString(36).slice(2, 10); sessionStorage.setItem('qn_disp', d); } } catch (e) { d = Math.random().toString(36).slice(2, 10); } return d; })();
+  const CONFLICTO = 'Esta quiniela se ha cambiado desde otro dispositivo o por otra persona (por ejemplo, un administrador). Recarga la página para ver la última versión.';
   async function escribe(ruta, obj, sha, msg) {
     const r = await fetch(`${API}/contents/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: msg, content: b64(new TextEncoder().encode(JSON.stringify({ ...(await cierra(obj)), f: obj.firmada ? 1 : 0 }))), ...(sha ? { sha } : {}) }) });
-    if (r.status === 409 || r.status === 422) throw new Error('Se ha guardado desde otro aparato mientras tanto. Recarga la página.');
+    if (r.status === 409 || r.status === 422) { const e = new Error(CONFLICTO); e.conflicto = true; throw e; }
     if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + '). Revisa la conexión.');
     return (await r.json()).content.sha;
   }
@@ -456,7 +459,7 @@ Hub.listo.then(async function () {
     programaGuardado(); pintaEstado();
   }
   function programaGuardado() { clearTimeout(tAuto); tAuto = setTimeout(() => guarda(false, true), 5000); }   // 5 s: menos escrituras cuando lo usan muchos a la vez
-  async function guardaYa() { clearTimeout(tAuto); if (cambios) await guarda(false, true); }
+  async function guardaYa() { clearTimeout(tAuto); while (guardando) await new Promise(z => setTimeout(z, 200)); if (cambios) await guarda(false, true); }   // espera a que acabe el guardado en curso
   function pintaEstado() {
     const e = app.querySelector('#estadoG'); if (!e) return;
     const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -552,10 +555,22 @@ Hub.listo.then(async function () {
     if (!Q.delegacion) { if (!silencioso) aviso('Elige la delegación antes de firmar.', true); pintaEstado(); return false; }
     if (guardando) { if (!conFirma) { programaGuardado(); return false; } while (guardando) await new Promise(z => setTimeout(z, 200)); }
     guardando = true; pintaEstado();
-    const ruta = `q/${CARP}/${fecha}.json`, copia = JSON.stringify(Q);
+    Q.disp = DISP;
+    const ruta = `q/${CARP}/${fecha}.json`, copia = JSON.stringify(Q), QQ = Q, msg = `Quiniela ${fecha}${conFirma ? ' (firmada)' : ''}`;
     try {
-      shaQ = await escribe(ruta, Q, shaQ, `Quiniela ${fecha}${conFirma ? ' (firmada)' : ''}`);
-      guardando = false; sinRed = false; ultimoGuardado = Q.guardada;
+      let sha;
+      try { sha = await escribe(ruta, QQ, shaQ, msg); }
+      catch (e) {
+        if (!e.conflicto) throw e;
+        // Conflicto: si lo que hay guardado lo guardó esta misma pestaña o es anterior a lo nuestro (el almacén aún no daba la última), se vuelve a guardar.
+        // Si alguien la ha cambiado después (otro dispositivo, un administrador), se avisa y no se pisa.
+        const r = await lee(ruta);
+        if (r.dato && r.dato.disp !== DISP && (r.dato.guardada || '') > (ultimoGuardado || '')) throw e;
+        sha = await escribe(ruta, QQ, r.sha, msg);
+      }
+      guardando = false; sinRed = false;
+      if (ruta !== `q/${CARP}/${fecha}.json` || QQ !== Q) return true;   // mientras se guardaba se cambió de fecha o de persona: lo de ahora no se toca
+      shaQ = sha; ultimoGuardado = Q.guardada;
       if (JSON.stringify(Q) === copia) { cambios = false; Hub.guarda(borradorClave(), null); } else programaGuardado();
       if (conFirma) { aviso('Quiniela firmada y enviada.'); pintaMia(); } else pintaEstado();
       return true;
