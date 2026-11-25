@@ -367,6 +367,9 @@ Hub.listo.then(async function () {
   const nueva = () => ({ v: 1, uid: PARA ? PARA.uid : K.uid, comercial: PARA ? PARA.nombre : (K.nombreCompleto || Hub.sesion().nombre), tipo: tipoDe(), equipo: equipoDueno(),
     delegacion: PARA ? '' : (Hub.lee('qn_deleg') || ''), fecha, ruta: '', visitas: [], firma: null, firmada: null, guardada: null });
   const esInst = q => /Instalador/i.test((q && q.tipo) || '');
+  // A las 24 horas de firmarla, ya no la cambian ni el usuario ni el jefe; solo un administrador (Juan, 25/11)
+  const BLOQUEO_H = 24;
+  const bloqueada = q => !ADMIN && !!(q && q.firmada) && Date.now() - new Date(q.firmada).getTime() > BLOQUEO_H * 3600e3;
   const resumen = q => {
     const v = q.visitas, ven = v.filter(x => x.resultado === 'venta');
     if (esInst(q)) {   // instaladores: realizadas, nulas, pendientes, demos y ventas de mantenimiento
@@ -401,7 +404,8 @@ Hub.listo.then(async function () {
       if (r.sha && !r.dato) { app.querySelector('#cuerpo').innerHTML = '<div class="aviso-q">' + ic('info') + '<span>Esta quiniela existe, pero no se puede abrir con tu llave. Avisa a Claude.</span></div>'; return; }
     } catch (e) { aviso(e.message, true); }
     const b = Hub.lee(borradorClave());   // lo que quedó sin subir en este aparato (por ejemplo, sin conexión)
-    if (b) { try { const x = JSON.parse(b); if (!Q || (x.guardada || '') > (Q.guardada || '')) { Q = x; cambios = true; programaGuardado(); } else Hub.guarda(borradorClave(), null); } catch (e) {} }
+    if (b && bloqueada(Q)) Hub.guarda(borradorClave(), null);   // firmada hace más de 24 h: lo que quedara en el aparato no se sube
+    else if (b) { try { const x = JSON.parse(b); if (!Q || (x.guardada || '') > (Q.guardada || '')) { Q = x; cambios = true; programaGuardado(); } else Hub.guarda(borradorClave(), null); } catch (e) {} }
     if (!Q) Q = nueva();
     if (!Q.tipo) Q.tipo = tipoDe();
     if (!Q.equipo) Q.equipo = equipoDueno();
@@ -452,6 +456,7 @@ Hub.listo.then(async function () {
   }
   // Cada cambio se guarda solo, a los pocos segundos (y en el propio aparato al momento, por si no hay conexión).
   function toca(quitaFirma = true) {
+    if (bloqueada(Q)) { aviso('Esta quiniela se firmó hace más de 24 horas y ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.', true); pintaMia(); return; }
     cambios = true;
     if (quitaFirma && Q.firma) { Q.firma = null; Q.firmada = null; Q.firmadaPor = null; }
     Q.guardada = new Date().toISOString();
@@ -468,11 +473,13 @@ Hub.listo.then(async function () {
       : cambios ? 'Cambios pendientes de guardar…' : ultimoGuardado ? `${ic('ok')}Guardado a las ${hora(ultimoGuardado)}` : 'Todavía sin datos';
   }
   function pintaMia() {
+    const cerrada = bloqueada(Q);
     app.querySelector('#deleg').value = Q.delegacion || '';
     app.querySelector('#ruta').value = Q.ruta || '';
+    app.querySelector('#deleg').disabled = app.querySelector('#ruta').disabled = cerrada;
     const r = resumen(Q), c = app.querySelector('#cuerpo');
     c.innerHTML = `${PARA ? `<div class="aviso-q info">${ic('info')}<span>Estás rellenando la quiniela de <b>${esc(PARA.nombre)}</b>. Se guarda en la suya y quedará firmada por ti en su nombre.</span></div>` : ''}
-      ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}. Si cambias algo, habrá que volver a firmarla.</span></div>` : ''}
+      ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}. ${cerrada ? 'Han pasado más de 24 horas, así que ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.' : 'Si cambias algo, habrá que volver a firmarla.' + (ADMIN ? '' : ' Se puede cambiar hasta 24 horas después de firmarla.')}</span></div>` : ''}
       <div class="card bloque" style="animation-delay:80ms"><h2>${ic('hoja')}Resumen</h2><div class="resumen">
         <div><small>Visitas</small><b>${Q.visitas.length}</b></div>${esInst(Q) ? `<div class="ven"><small>Realizadas</small><b>${r.hechas}</b></div><div><small>Nulas</small><b>${r.nulos}</b></div><div><small>Pendientes</small><b>${r.pte}</b></div>
         <div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>` : `<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
@@ -480,16 +487,19 @@ Hub.listo.then(async function () {
         <div><small>Importe total</small><b style="font-size:17px">${euros(r.importe)}</b></div><div><small>1.ª cuota</small><b style="font-size:17px">${euros(r.cuota)}</b></div></div></div>
       <div class="card bloque" style="animation-delay:120ms"><h2>${ic('mia')}Visitas del día</h2>
         <div class="visitas">${Q.visitas.length ? Q.visitas.map((v, i) => tarjetaVisita(v, i)).join('') : '<p class="vacio-q">Todavía no hay visitas. Añádelas según las vayas haciendo.</p>'}
-        <button class="anadir" type="button" id="anadir">${ic('mas')}Añadir visita</button></div></div>
+        ${cerrada ? '' : `<button class="anadir" type="button" id="anadir">${ic('mas')}Añadir visita</button>`}</div></div>
       <div class="card bloque" style="animation-delay:160ms"><h2>${ic('firma')}Firma</h2>
         <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Puedes ir rellenándola durante el día (se guarda sola) y firmarla al terminar.</p>'}</div>
-        <div class="botones-q"><button class="btn chico" type="button" id="firmar2">${ic('firma')}${Q.firmada ? 'Volver a firmar' : 'Firmar y enviar'}</button>
+        <div class="botones-q">${cerrada ? '' : `<button class="btn chico" type="button" id="firmar2">${ic('firma')}${Q.firmada ? 'Volver a firmar' : 'Firmar y enviar'}</button>`}
           ${shaQ || Q.visitas.length ? `<button class="btn chico sec" type="button" id="pdf2">${ic('excel')}Descargar PDF</button>` : ''}</div>
         <p class="estado-g" id="estadoG"></p></div>
       ${PARA ? '' : '<div class="card bloque no-imprimir" id="avisos" style="animation-delay:200ms"></div>'}`;
-    c.querySelectorAll('.visita').forEach(b => b.onclick = () => editaVisita(+b.dataset.i));
-    c.querySelector('#anadir').onclick = () => editaVisita(null);
-    c.querySelector('#firmar2').onclick = pideFirma;
+    if (cerrada) c.querySelectorAll('.visita').forEach(b => { b.disabled = true; b.style.cursor = 'default'; });
+    else {
+      c.querySelectorAll('.visita').forEach(b => b.onclick = () => editaVisita(+b.dataset.i));
+      c.querySelector('#anadir').onclick = () => editaVisita(null);
+      c.querySelector('#firmar2').onclick = pideFirma;
+    }
     const bp = c.querySelector('#pdf2'); if (bp) bp.onclick = () => pdfQuiniela(Q, bp);
     pintaEstado(); pintaAvisos();
   }
@@ -552,6 +562,7 @@ Hub.listo.then(async function () {
   }   // (antes había una barra abajo; ahora el estado va junto a la firma)
   async function guarda(conFirma, silencioso) {
     if (!Q || !cambios && !conFirma) return true;
+    if (bloqueada(Q) && !conFirma) { cambios = false; return true; }
     if (!Q.delegacion) { if (!silencioso) aviso('Elige la delegación antes de firmar.', true); pintaEstado(); return false; }
     if (guardando) { if (!conFirma) { programaGuardado(); return false; } while (guardando) await new Promise(z => setTimeout(z, 200)); }
     guardando = true; pintaEstado();
@@ -593,6 +604,7 @@ Hub.listo.then(async function () {
   const TRABAJOS = ['Instalación', 'Mantenimiento', 'Incidencia'];
   const RES_INST = { hecha: 'Realizada', nulo: 'Nula', pte: 'Pendiente' };
   function editaVisita(i) {
+    if (bloqueada(Q)) return toca();
     const inst = esInst(Q);
     const v = i === null ? { cliente: '', poblacion: '', origen: '', oferta: '', trabajo: '', resultado: '', estado: 'conf', articulos: [{}, {}, {}, {}], importe: '', cuota1: '', cobro: '', cuotas: '' } : JSON.parse(JSON.stringify(Q.visitas[i]));
     while ((v.articulos || (v.articulos = [])).length < 4) v.articulos.push({});
@@ -663,6 +675,7 @@ Hub.listo.then(async function () {
 
   /* ---------- Firma con el dedo ---------- */
   function pideFirma() {
+    if (bloqueada(Q)) return toca();
     if (!Q.delegacion) { aviso('Elige tu delegación antes de firmar.', true); return; }
     if (!Q.visitas.length && !confirm('No hay visitas. ¿Firmar la quiniela vacía?')) return;
     dlg.innerHTML = `<div class="dc"><h2>Firma tu quiniela</h2><p class="muted" style="font-size:14px">${esc(fechaLarga(fecha))} · ${Q.visitas.length} visita${Q.visitas.length === 1 ? '' : 's'}. Firma con el dedo (o el ratón) dentro del recuadro.</p>
@@ -798,8 +811,17 @@ Hub.listo.then(async function () {
           <span class="t"><b>${esc(f.x.nombre)}</b><small>${esc(delegDe(f.x) || f.x.rol || '')}</small></span>
           <span class="mini-res">${mini(s)}<span class="est si">${n.si} firmadas</span>${n.medio ? `<span class="est medio">${n.medio} sin firmar</span>` : ''}${n.no ? `<span class="est no">${n.no} sin enviar</span>` : ''}</span>${ic('der')}</button>`; }).join('');
     }
-    c.innerHTML = cabecera + (filas.length ? `<div class="card lista-c">${html}</div>`
+    // «Descargar todo» e «Imprimir todo» (Juan, 25/11): solo administradores y «Ver todas» (dirección y administración)
+    const conQ = vis.filter(r => r.q).sort((a, b) => a.d.localeCompare(b.d) || a.x.nombre.localeCompare(b.x.nombre)).map(r => r.q);
+    const todo = (ADMIN || VER) && conQ.length ? `<div class="botones-q no-imprimir" style="margin:-4px 0 14px"><button class="btn chico" type="button" id="todoPdf">${ic('excel')}Descargar todo (${conQ.length})</button><button class="btn chico sec" type="button" id="todoImp">${ic('imprimir')}Imprimir todo</button></div>` : '';
+    c.innerHTML = cabecera + todo + (filas.length ? `<div class="card lista-c">${html}</div>`
       : `<p class="vacio-q">${equipo.length ? 'No hay quinielas en estas fechas.' : JEFE ? 'Todavía no hay nadie de tu equipo (' + esc(K.equipoJefe || 'sin equipo') + ') con «Usuario» en QUINIELAS. Se pone en ACCESOS.' : 'Todavía no hay nadie con «Rellenar su quiniela». Dalo en ACCESOS a los comerciales y aquí aparecerá la lista de cada día.'}</p>`);
+    const bt = c.querySelector('#todoPdf');
+    if (bt) {
+      const nombre = `Quinielas ${desde === hasta ? desde : desde + ' a ' + hasta}${tipoFiltro ? ' ' + tipoFiltro : ''}${comFiltro ? ' ' + comFiltro : ''}${delegFiltro !== 'Todas' ? ' ' + delegFiltro : ''}.pdf`;
+      bt.onclick = () => pdfVarias(conQ, nombre, bt);
+      c.querySelector('#todoImp').onclick = e => imprimeQuinielas(conQ, e.currentTarget);
+    }
     c.querySelectorAll('.fila-c').forEach(b => b.onclick = () => { const f = filas[+b.dataset.i]; if (f.rs) { comFiltro = f.x.nombre; vistaDia(); } else if (f.q) detalle(f.q); });
     c.querySelectorAll('.avq[data-n]').forEach(a => Hub.foto(a.dataset.n).then(u => { if (u) a.innerHTML = `<img src="${u}" alt="">`; }));
   }
@@ -809,7 +831,7 @@ Hub.listo.then(async function () {
     const r = resumen(q);
     app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a la lista</button>
       <div class="q-cab"><div><h1>${esc(q.comercial)}</h1><p>Quiniela diaria · ${esc(fechaLarga(q.fecha))} · ${esc(q.delegacion)}${q.ruta ? ' · Ruta: ' + esc(q.ruta) : ''}</p></div>
-        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico" type="button" id="pdfq">${ic('excel')}Descargar PDF</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
+        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico" type="button" id="pdfq">${ic('excel')}Descargar PDF</button><button class="btn chico sec" type="button" id="impq">${ic('imprimir')}Imprimir</button></div></div>
       <div class="tabla-c"><table class="t"><thead><tr><th>#</th><th>Cliente</th><th>Población</th><th>${esInst(q) ? 'Trabajo' : 'Oferta'}</th><th>Origen</th><th>Artículos (entrega)</th><th>Importe</th><th>1.ª cuota</th><th>Cobro</th><th class="n">Cuotas</th><th>Resultado</th></tr></thead><tbody>
       ${q.visitas.map((v, i) => `<tr><td>${i + 1}</td><td>${esc(v.cliente)}</td><td>${esc(v.poblacion)}</td><td>${esc(v.oferta || v.trabajo || '')}</td><td>${esc(v.origen)}</td>
         <td>${esc((v.articulos || []).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · '))}</td><td>${v.resultado === 'venta' || num(v.importe) ? euros(num(v.importe)) : ''}</td><td>${v.resultado === 'venta' || num(v.cuota1) ? euros(num(v.cuota1)) : ''}</td>
@@ -819,6 +841,7 @@ Hub.listo.then(async function () {
       <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}${q.firmadaPor ? ' por ' + esc(q.firmadaPor) + ', en nombre del comercial' : ''}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
     app.querySelector('#volver').onclick = () => vistaDia();
     app.querySelector('#pdfq').onclick = e => pdfQuiniela(q, e.currentTarget);
+    app.querySelector('#impq').onclick = e => imprimeQuinielas([q], e.currentTarget);
     scrollTo(0, 0);
   }
 
@@ -1039,10 +1062,8 @@ Hub.listo.then(async function () {
   }
 
   // PDF de una quiniela, con la forma de la «Quiniela diaria» en papel (A4 apaisado)
-  function pdfQuiniela(q, boton) {
-    return conEspera(boton, async () => {
-      await carga('jspdf'); await carga('tabla');
-      const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  // Dibuja una quiniela en la página actual del PDF (sirve para una sola, para «Descargar todo» y para imprimir)
+  async function dibujaQuiniela(doc, q, pie) {
       const N = '#000000', G = [217, 217, 217];
       // Cabecera: recuadros como en el papel y el logo a la derecha
       doc.setDrawColor(N); doc.setLineWidth(0.3);
@@ -1088,8 +1109,38 @@ Hub.listo.then(async function () {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('Fdo.:', 210, y + 13); doc.line(219, y + 13.5, 287, y + 13.5);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(110);
       doc.text(q.firmada ? 'Firmada con el dedo en el Biofy Hub el ' + new Date(q.firmada).toLocaleString('es-ES') + (q.firmadaPor ? ' por ' + q.firmadaPor + ', en nombre del comercial' : '') : 'Sin firmar', 219, y + 17);
-      doc.text('Biofy Hub · Quiniela diaria · descargada el ' + new Date().toLocaleString('es-ES'), 10, 203);
+      doc.text('Biofy Hub · Quiniela diaria · ' + pie + ' el ' + new Date().toLocaleString('es-ES'), 10, 203);
+      doc.setTextColor(0);
+  }
+  const nuevoPdf = async () => { await carga('jspdf'); await carga('tabla'); return new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); };
+  function pdfQuiniela(q, boton) {
+    return conEspera(boton, async () => {
+      const doc = await nuevoPdf(); await dibujaQuiniela(doc, q, 'descargada');
       bajaBlob(doc.output('blob'), `Quiniela ${q.comercial} ${q.fecha}.pdf`);
+    });
+  }
+  // «Descargar todo» (Juan, 25/11): todas las quinielas de la lista en un solo PDF, una detrás de otra (cada una en su página)
+  function pdfVarias(qs, nombre, boton) {
+    return conEspera(boton, async () => {
+      const doc = await nuevoPdf();
+      for (let i = 0; i < qs.length; i++) { if (i) doc.addPage(); await dibujaQuiniela(doc, qs[i], 'descargada'); }
+      bajaBlob(doc.output('blob'), nombre);
+    });
+  }
+  // Imprimir (Juan, 25/11): con el diseño de la quiniela en papel (el mismo del PDF), no con el de la pantalla.
+  // En el ordenador se abre el cuadro de imprimir; en el móvil se abre el PDF para imprimirlo o compartirlo desde ahí.
+  const esMovil = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function imprimeQuinielas(qs, boton) {
+    const w = esMovil() ? window.open('', '_blank') : null;   // se abre ya, al tocar, para que el navegador no la bloquee
+    return conEspera(boton, async () => {
+      const doc = await nuevoPdf();
+      for (let i = 0; i < qs.length; i++) { if (i) doc.addPage(); await dibujaQuiniela(doc, qs[i], 'impresa'); }
+      const url = URL.createObjectURL(doc.output('blob'));
+      if (w) { w.location.href = url; return; }
+      document.getElementById('qn-imprimir')?.remove();
+      const f = document.createElement('iframe'); f.id = 'qn-imprimir'; f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+      f.onload = () => setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, '_blank'); } }, 300);
+      f.src = url; document.body.appendChild(f);
     });
   }
 
