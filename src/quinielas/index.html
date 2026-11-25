@@ -356,7 +356,7 @@ Hub.listo.then(async function () {
   }
 
   /* ---------- Estado de la página ---------- */
-  const pestanaValida = h => { if (COORD) return 'hoja'; if (!TODAS) return 'mia'; if (!ADMIN && (h === 'mia' || !h)) return 'dia'; return ['mia', 'dia', 'hoja'].includes(h) ? h : (ADMIN ? 'mia' : 'dia'); };
+  const pestanaValida = h => { if (COORD) return 'hoja'; if (!TODAS) return 'mia'; if (!ADMIN && !JEFE && (h === 'mia' || !h)) return 'dia'; return ['mia', 'dia', 'hoja'].includes(h) ? h : (ADMIN || JEFE ? 'mia' : 'dia'); };   // los jefes también rellenan la suya (Juan, 25/11)
   let pestana = pestanaValida(location.hash.replace(/^#\/?/, ''));
   let fecha = hoyISO(), Q = null, shaQ = null, cambios = false, semana = lunesDe(hoyISO()), delegFiltro = 'Todas';
   let guardando = false, tAuto = null, ultimoGuardado = null, sinRed = false;
@@ -380,7 +380,7 @@ Hub.listo.then(async function () {
   function marco(contenido) {
     const tab = (id, ico, largo, corto) => `<button type="button" data-p="${id}" class="${pestana === id ? 'on' : ''}">${ic(ico)}<span class="l">${largo}</span><span class="s">${corto}</span></button>`;
     app.innerHTML = `<div class="q-cab"><div><h1>${COORD ? 'Hoja de producción' : 'Quinielas'}</h1><p>${COORD ? 'Rellena los números de cada una, día a día. Se guarda solo.' : TODAS ? (JEFE ? 'Seguimiento diario de tu equipo (' + esc(K.equipoJefe || 'sin equipo') + ') y su producción' : 'Seguimiento diario de los equipos y producción de la semana') : 'Rellena tu quiniela durante el día y fírmala al terminar'}</p></div>
-      ${TODAS ? `<div class="pestanas" role="tablist">${ADMIN ? tab('mia', 'mia', 'Mi quiniela', 'Mía') : ''}${tab('dia', 'dia', 'Quinielas del día', 'Del día')}${tab('hoja', 'hoja', 'Hoja de producción', 'Hoja')}</div>` : ''}</div>${contenido}`;
+      ${TODAS ? `<div class="pestanas" role="tablist">${ADMIN || JEFE ? tab('mia', 'mia', 'Mi quiniela', 'Mía') : ''}${tab('dia', 'dia', 'Quinielas del día', 'Del día')}${tab('hoja', 'hoja', 'Hoja de producción', 'Hoja')}</div>` : ''}</div>${contenido}`;
     app.querySelectorAll('.pestanas button').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.p; });
   }
   window.addEventListener('hashchange', () => { pestana = pestanaValida(location.hash.replace(/^#\/?/, '')); pinta(); });
@@ -711,7 +711,8 @@ Hub.listo.then(async function () {
   async function vistaDia() {
     if (hasta < desde) [desde, hasta] = [hasta, desde];
     // Quien ve todos los equipos ve también a los jefes de equipo (Juan, 24/11)
-    const lista = (K.equipo || []).concat(GLOBAL ? (K.jefes || []).filter(j => !(K.equipo || []).some(m => m.uid === j.uid)) : []);
+    const lista = (K.equipo || []).concat(GLOBAL ? (K.jefes || []).filter(j => !(K.equipo || []).some(m => m.uid === j.uid)) : [])
+      .concat(JEFE && K.uid ? [{ uid: K.uid, nombre: K.nombreCompleto, tipo: K.tipo || '', rol: '', equipo: K.equipoJefe }] : []);   // el jefe se ve también a sí mismo
     const equipo = await Promise.all(lista.map(async m => ({ ...m, carpeta: await carpeta(m.uid) })));
     const atajo = Object.keys(ATAJOS).find(k => { const [a, b] = ATAJOS[k](); return a === desde && b === hasta; }) || '';
     const chip = (k, t) => `<button type="button" class="filtro-f ${atajo === k ? 'on' : ''}" data-a="${k}">${t}</button>`;

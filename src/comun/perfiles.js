@@ -65,7 +65,7 @@
     const llaves = g.HUB_LLAVES(webs, S);
     // Quinielas: cada persona lleva además SU llave (u.qk), con la que relee sus propias quinielas, y su identificador.
     const equipo = g.HUB_EQUIPO_DE(u);
-    if (llaves.quinielas && ['rellenar', 'todas'].includes(webs.quinielas)) Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre, tipo: u.tipo || '', equipoPropio: equipo });   // tipo: la quiniela cambia según sea (VIP, instalador)
+    if (llaves.quinielas && ['rellenar', 'todas', 'jefe'].includes(webs.quinielas)) Object.assign(llaves.quinielas, { propia: u.qk || null, uid: u.uid, nombreCompleto: u.nombre, tipo: u.tipo || '', equipoPropio: equipo });   // tipo: la quiniela cambia según sea (VIP, instalador)
     if (llaves.quinielas && webs.quinielas === 'jefe') {   // Jefe: solo su equipo (su llave de equipo y su lista)
       const Q = S.quinielas || {};
       Object.assign(llaves.quinielas, { equipoJefe: equipo, privEq: (Q.privEq || {})[equipo] || null,
