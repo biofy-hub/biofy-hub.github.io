@@ -115,6 +115,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .mini-res span{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--surface-3);color:var(--ink-2)}
 .mini-res span.v{background:var(--good-soft);color:var(--good)}
 .mini-res span.d{background:var(--warn-soft);color:var(--warn)}
+.mini-res span.c{background:var(--brand-soft);color:var(--brand-ink)}
 /* Lista de comerciales del día, con una luz: verde firmada, ámbar sin firmar, roja sin enviar */
 .lista-c{padding:6px;display:flex;flex-direction:column}
 .fila-c{display:flex;align-items:center;gap:12px;padding:12px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%;cursor:pointer;border-radius:12px;animation:entra .4s var(--ease) both;transition:background .15s}
@@ -799,7 +800,8 @@ Hub.listo.then(async function () {
         <div class="ven"><small>Firmadas</small><b>${cuenta(vis, 'si')}</b></div><div class="dem"><small>Sin firmar</small><b>${cuenta(vis, 'medio')}</b></div><div><small>Sin enviar</small><b style="color:var(--bad)">${cuenta(vis, 'no')}</b></div>
         <div class="cnf"><small>Confirmados</small><b>${tot.confirmados || 0}</b></div><div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>`;
     const avatar = n => `<span class="avq" data-n="${esc(n)}">${esc((n || '?').trim()[0])}</span>`;
-    const mini = s => s ? `${s.confirmados ? `<span>${s.confirmados} confirm.</span>` : ''}<span>${s.nulos || 0} nulos</span><span class="d">${s.demos || 0} demos</span><span class="v">${s.ventas || 0} ventas</span>` : '';
+    // Confirmados (25/11): siempre a los comerciales de Córdoba y Alicante; a los demás, solo si tienen alguno
+    const mini = (s, conf) => s ? `${conf || s.confirmados ? `<span class="c">${s.confirmados || 0} confirmados</span>` : ''}<span>${s.nulos || 0} nulos</span><span class="d">${s.demos || 0} demos</span><span class="v">${s.ventas || 0} ventas</span>` : '';
     let filas = [], html = '';
     if (desde === hasta || comFiltro) {
       // Un día (todas las personas) o una persona (todos sus días): una fila por quiniela
@@ -807,7 +809,7 @@ Hub.listo.then(async function () {
       html = filas.map((r, i) => { const e = estado(r), s = r.q ? resumen(r.q) : null; return `<button type="button" class="fila-c ${e}" data-i="${i}" ${r.q ? '' : 'disabled'} style="animation-delay:${Math.min(i, 20) * 30}ms">
           <span class="luz ${e}" title="${TXT[e]}"></span>${desde === hasta ? avatar(r.x.nombre) : `<span class="avq fecha-q">${new Date(r.d + 'T12:00:00').getDate()}</span>`}
           <span class="t"><b>${esc(desde === hasta ? r.x.nombre : fechaLarga(r.d))}</b><small>${esc([delegDe(r.x), r.q && r.q.ruta].filter(Boolean).join(' · ') || r.x.rol || '')}</small></span>
-          <span class="mini-res">${mini(s)}<span class="est ${e}">${TXT[e]}</span></span>${r.q ? ic('der') : ''}</button>`; }).join('');
+          <span class="mini-res">${mini(s, r.q && conConf(r.q))}<span class="est ${e}">${TXT[e]}</span></span>${r.q ? ic('der') : ''}</button>`; }).join('');
     } else {
       // Varios días y todos los comerciales: una fila por persona con lo de todo el periodo; al tocarla, se ven sus días
       filas = [...new Set(vis.map(r => r.x))].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(x => ({ x, rs: vis.filter(r => r.x === x) }));
@@ -816,7 +818,7 @@ Hub.listo.then(async function () {
         return `<button type="button" class="fila-c ${e}" data-i="${i}" style="animation-delay:${Math.min(i, 20) * 30}ms">
           <span class="luz ${e}"></span>${avatar(f.x.nombre)}
           <span class="t"><b>${esc(f.x.nombre)}</b><small>${esc(delegDe(f.x) || f.x.rol || '')}</small></span>
-          <span class="mini-res">${mini(s)}<span class="est si">${n.si} firmadas</span>${n.medio ? `<span class="est medio">${n.medio} sin firmar</span>` : ''}${n.no ? `<span class="est no">${n.no} sin enviar</span>` : ''}</span>${ic('der')}</button>`; }).join('');
+          <span class="mini-res">${mini(s, conConf({ tipo: f.x.tipo }))}<span class="est si">${n.si} firmadas</span>${n.medio ? `<span class="est medio">${n.medio} sin firmar</span>` : ''}${n.no ? `<span class="est no">${n.no} sin enviar</span>` : ''}</span>${ic('der')}</button>`; }).join('');
     }
     // «Descargar todo» e «Imprimir todo» (Juan, 25/11): solo administradores y «Ver todas» (dirección y administración)
     const conQ = vis.filter(r => r.q).sort((a, b) => a.d.localeCompare(b.d) || a.x.nombre.localeCompare(b.x.nombre)).map(r => r.q);
