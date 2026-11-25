@@ -140,8 +140,17 @@
   /* ---------- Panel de Accesos (solo administradores del Hub) ----------
      El REGISTRO (personas, permisos y secretos de los módulos) va cifrado con la llave del Hub,
      que solo está en los llaveros de los administradores. Publicar = reescribir comun/llaveros.json. */
+  // El panel lee los accesos directamente de GitHub (al día), no de la copia de la web, que tarda un minuto en ponerse al día
+  // tras cada publicación: con la copia vieja, al guardar parecía que «otra persona» los había cambiado (Juan, 25/11).
+  async function llaverosAlDia(k) {
+    const P = C.acceso.publicar;
+    const r = await fetch(`https://api.github.com/repos/${P.owner}/${P.repo}/contents/${P.ruta}?ref=${P.rama}&t=${Date.now()}`, { headers: { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github.raw+json' }, cache:'no-store' });
+    if (!r.ok) throw new Error('GitHub no deja leer (' + r.status + ')');
+    return r.json();
+  }
   async function registro() {
     const k = llave('accesos');
+    if (k && k.gh) { try { const x = await llaverosAlDia(k); if (x && x.registro) { LL = x; window.HUB_BUILD = x.build; window.HUB_LLAVEROS = x.llaveros || {}; } } catch (e) {} }
     if (!k || !LL || !LL.registro) return null;
     const t = await abreConB64(k.clave, LL.registro);
     return t ? JSON.parse(t) : null;
@@ -162,9 +171,14 @@
     const api = `https://api.github.com/repos/${P.owner}/${P.repo}/contents/${P.ruta}`, h = { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github+json' };
     const ahora = await fetch(`${api}?ref=${P.rama}&t=${Date.now()}`, { headers: h, cache:'no-store' });
     if (!ahora.ok) throw new Error('GitHub no deja leer (' + ahora.status + ')');
-    const j = await ahora.json(), sha = j.sha;
-    let actual = null; try { actual = JSON.parse(new TextDecoder().decode(u8((j.content || '').replace(/\n/g, '')))); } catch (e) {}
-    if (!actual || actual.build !== LL.build) throw new Error('Otra persona ha cambiado los accesos mientras tanto. Recarga la página y vuelve a hacer el cambio.');
+    const sha = (await ahora.json()).sha;
+    const actual = await llaverosAlDia(k).catch(() => null);
+    if (!actual) throw new Error('No se pueden leer los accesos publicados. Revisa la conexión.');
+    // Si lo publicado es otro «build» pero con los mismos accesos (por ejemplo, Claude ha vuelto a publicar el Hub), no hay conflicto.
+    if (actual.build !== LL.build) {
+      const [a, b] = await Promise.all([abreConB64(k.clave, actual.registro), abreConB64(k.clave, LL.registro)]);
+      if (!a || a !== b) throw new Error('Otra persona ha cambiado los accesos mientras tanto. Recarga la página y vuelve a hacer el cambio.');
+    }
     const r = await fetch(api, { method:'PUT', headers: h, body: JSON.stringify({ message:'Accesos: cambios desde el panel (' + new Date().toISOString().slice(0, 10) + ')', content: b64(new TextEncoder().encode(JSON.stringify(nuevo))), sha, branch: P.rama }) });
     if (!r.ok) throw new Error('GitHub no deja publicar (' + r.status + ')');
     LL = nuevo; window.HUB_BUILD = nuevo.build; window.HUB_LLAVEROS = llaveros;

@@ -222,7 +222,7 @@ Hub.listo.then(async function () {
   const instalador = () => /Instalador/i.test(tipoDe());
   const origenesDe = () => /VIP/i.test(tipoDe()) || (!PARA && /VIP/i.test((Hub.sesion() || {}).perfil || '')) ? ORIGENES_VIP : ORIGENES_COM;
   const OFERTAS = ['Ultra', 'Plus', 'Bio', 'Minibio', 'Oferta recu'];
-  const COBROS = ['Efectivo', 'TPV', 'Transferencia'];
+  const COBROS = ['Efectivo', 'TPV', 'Transferencia', 'Pago a instalador'];   // «Pago a instalador»: Juan, 25/11
   // Artículos: lista cerrada y por categorías, vinculada a las FICHAS DE PRODUCTO (Juan, 24/11): mismos nombres y categorías.
   // Sale de articulos.js, que el montaje del Hub hace con las fichas activas. Si quien rellena puede ver las fichas,
   // además se quitan las que un administrador haya eliminado desde PRODUCTOS.
@@ -870,7 +870,7 @@ Hub.listo.then(async function () {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aes(u8(K.hk), 'encrypt'), new TextEncoder().encode(JSON.stringify(dato)));
     const r = await fetch(`${API}/contents/h/${h}/${lunes}.json`, { method: 'PUT', headers: H, body: JSON.stringify({ message: `Hoja ${h} ${lunes}`, content: b64(new TextEncoder().encode(JSON.stringify({ v: 1, i: b64(iv), c: b64(c) }))), ...(sha ? { sha } : {}) }) });
-    if (r.status === 409 || r.status === 422) throw new Error('Alguien ha guardado esta hoja desde otro aparato. Recarga la página.');
+    if (r.status === 409 || r.status === 422) { const e = new Error('Esta hoja se ha cambiado desde otro dispositivo o por otra persona. Recarga la página para ver la última versión.'); e.conflicto = true; throw e; }
     if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + '). Revisa la conexión.');
     return (await r.json()).content.sha;
   }
@@ -958,13 +958,22 @@ Hub.listo.then(async function () {
 
   // Hoja a mano: cada número se guarda solo, a los pocos segundos
   function enlazaEdicion(c, x, cols) {
-    let t = null, guardandoH = false;
+    let t = null, guardandoH = false, ultimaH = x.dato.guardada || '';
+    const hH = hojaSel, lunesH = semana;   // la hoja y la semana de lo que se está editando (aunque luego se cambie de semana)
     const est = c.querySelector('#estadoH'), pon = s => { est.textContent = s; };
     pon(x.dato.guardada ? 'Guardada a las ' + new Date(x.dato.guardada).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '');
     const guardaH = async () => {
       if (guardandoH) { t = setTimeout(guardaH, 1500); return; }
       guardandoH = true; pon('Guardando…');
-      try { x.dato.guardada = new Date().toISOString(); x.dato.quien = (Hub.sesion() || {}).nombre || ''; x.sha = await escribeHoja(hojaSel, semana, x.dato, x.sha); pon('Guardada a las ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })); }
+      try { x.dato.guardada = new Date().toISOString(); x.dato.quien = (Hub.sesion() || {}).nombre || ''; x.dato.disp = DISP;
+        try { x.sha = await escribeHoja(hH, lunesH, x.dato, x.sha); }
+        catch (e) {   // si lo último guardado es de esta pestaña o anterior a lo nuestro, se vuelve a guardar; si es de otro, se avisa
+          if (!e.conflicto) throw e;
+          const r = await leeHoja(hH, lunesH);
+          if (r.sha && r.dato.disp !== DISP && (r.dato.guardada || '') > ultimaH) throw e;
+          x.sha = await escribeHoja(hH, lunesH, x.dato, r.sha);
+        }
+        ultimaH = x.dato.guardada; pon('Guardada a las ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })); }
       catch (e) { pon(e.message); aviso(e.message, true); }
       guardandoH = false;
     };
