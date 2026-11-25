@@ -53,6 +53,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .seg span{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line-2);font-size:14px;font-weight:600;color:var(--ink-2);background:var(--surface);transition:all .15s}
 .seg input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
 .seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.seg.res input[value="conf"]:checked+span{background:var(--brand);border-color:var(--brand)}
 .seg.res input[value="nulo"]:checked+span{background:var(--ink-3);border-color:var(--ink-3)}
 .seg.res input[value="demo"]:checked+span{background:var(--warn);border-color:var(--warn)}
 .seg.res input[value="venta"]:checked+span{background:var(--good);border-color:var(--good)}
@@ -63,6 +64,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .resumen b{font-size:22px;font-weight:800}
 .resumen .ven b{color:var(--good)}
 .resumen .dem b{color:var(--warn)}
+.resumen .cnf b{color:var(--brand)}
 /* Visitas */
 .visitas{display:flex;flex-direction:column;gap:10px}
 .visita{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);cursor:pointer;text-align:left;width:100%;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;animation:entra .45s var(--ease) both}
@@ -70,6 +72,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .visita .n{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--surface-3);color:var(--ink-2)}
 .visita.venta .n{background:var(--good-soft);color:var(--good)}
 .visita.demo .n{background:var(--warn-soft);color:var(--warn)}
+.visita.conf .n{background:var(--brand-soft);color:var(--brand-ink)}
 .visita .t{flex:1;min-width:0}
 .visita b{display:block;font-size:15px}
 .visita small{color:var(--ink-3);font-size:12.5px;display:block;margin-top:2px}
@@ -77,6 +80,7 @@ select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 
 .estado{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-block;margin-top:6px}
 .estado.nulo{background:var(--surface-3);color:var(--ink-2)}
 .estado.demo{background:var(--warn-soft);color:var(--warn)}
+.estado.conf{background:var(--brand-soft);color:var(--brand-ink)}
 .estado.venta{background:var(--good-soft);color:var(--good)}
 .estado.pte{background:var(--brand-soft);color:var(--brand-ink)}
 .vacio-q{padding:26px 10px;text-align:center;color:var(--ink-3);font-size:14px}
@@ -262,7 +266,10 @@ Hub.listo.then(async function () {
       try { input.setSelectionRange(k, k); } catch (e) {}
     });
   }
-  const RES = { nulo: 'Nulo', demo: 'Demo', venta: 'Venta' };
+  // «Confirmado» (Juan, 25/11): entra y entrega el economizador, pero no llega a hacer la demo. Orden: Confirmado · Nulo · Demo · Venta
+  const RES = { conf: 'Confirmado', nulo: 'Nulo', demo: 'Demo', venta: 'Venta' };
+  // Por ahora, «Confirmado» solo para los comerciales de Córdoba y Alicante (Juan, 25/11); VIP y consultores técnicos, como antes
+  const conConf = q => { const e = (q && q.equipo) || '', t = (q && q.tipo) || ''; return !(['VIP', 'Instaladores', 'Consultores técnicos'].includes(e) || /VIP|Instalador|Consultor/i.test(t)); };
 
   /* ---------- Iconos ---------- */
   const I = {
@@ -377,7 +384,7 @@ Hub.listo.then(async function () {
       return { nulos: v.filter(x => x.resultado === 'nulo').length, demos: v.filter(x => x.demo).length, ventas: vm.length, conf: ok.length, pte: v.filter(x => x.resultado === 'pte').length,
         hechas: ok.length, importe: v.reduce((s, x) => s + num(x.importe), 0), cuota: v.reduce((s, x) => s + num(x.cuota1), 0) };
     }
-    return { nulos: v.filter(x => x.resultado === 'nulo').length, demos: v.filter(x => x.resultado === 'demo').length, ventas: ven.length,
+    return { confirmados: v.filter(x => x.resultado === 'conf').length, nulos: v.filter(x => x.resultado === 'nulo').length, demos: v.filter(x => x.resultado === 'demo').length, ventas: ven.length,
       conf: ven.filter(x => x.estado !== 'pte').length, pte: ven.filter(x => x.estado === 'pte').length,
       importe: ven.reduce((s, x) => s + num(x.importe), 0), cuota: ven.reduce((s, x) => s + num(x.cuota1), 0) };
   };
@@ -482,8 +489,8 @@ Hub.listo.then(async function () {
       ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}. ${cerrada ? 'Han pasado más de 24 horas, así que ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.' : 'Si cambias algo, habrá que volver a firmarla.' + (ADMIN ? '' : ' Se puede cambiar hasta 24 horas después de firmarla.')}</span></div>` : ''}
       <div class="card bloque" style="animation-delay:80ms"><h2>${ic('hoja')}Resumen</h2><div class="resumen">
         <div><small>Visitas</small><b>${Q.visitas.length}</b></div>${esInst(Q) ? `<div class="ven"><small>Realizadas</small><b>${r.hechas}</b></div><div><small>Nulas</small><b>${r.nulos}</b></div><div><small>Pendientes</small><b>${r.pte}</b></div>
-        <div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>` : `<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
-        <div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Confirmadas</small><b>${r.conf}</b></div>`}
+        <div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>` : `${conConf(Q) || r.confirmados ? `<div class="cnf"><small>Confirmados</small><b>${r.confirmados}</b></div>` : ''}<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
+        <div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Ventas cerradas</small><b>${r.conf}</b></div>`}
         <div><small>Importe total</small><b style="font-size:17px">${euros(r.importe)}</b></div><div><small>1.ª cuota</small><b style="font-size:17px">${euros(r.cuota)}</b></div></div></div>
       <div class="card bloque" style="animation-delay:120ms"><h2>${ic('mia')}Visitas del día</h2>
         <div class="visitas">${Q.visitas.length ? Q.visitas.map((v, i) => tarjetaVisita(v, i)).join('') : '<p class="vacio-q">Todavía no hay visitas. Añádelas según las vayas haciendo.</p>'}
@@ -511,7 +518,7 @@ Hub.listo.then(async function () {
       ${num(v.importe) ? `<span class="imp">${euros(num(v.importe))}</span>` : ''}</button>`;
     return `<button type="button" class="visita ${v.resultado}" data-i="${i}" style="animation-delay:${i * 40}ms"><span class="n">${i + 1}</span>
       <span class="t"><b>${esc(v.cliente || 'Sin nombre')}</b><small>${esc([v.poblacion, v.origen, v.oferta].filter(Boolean).join(' · '))}</small>${arts ? `<small>${esc(arts)}</small>` : ''}
-      <span class="estado ${v.resultado}">${RES[v.resultado] || '—'}</span>${v.resultado === 'venta' ? ` <span class="estado ${v.estado === 'pte' ? 'pte' : 'venta'}">${v.estado === 'pte' ? 'Pendiente' : 'Confirmada'}</span>` : ''}</span>
+      <span class="estado ${v.resultado}">${RES[v.resultado] || '—'}</span>${v.resultado === 'venta' ? ` <span class="estado ${v.estado === 'pte' ? 'pte' : 'venta'}">${v.estado === 'pte' ? 'Pendiente' : 'Cerrada'}</span>` : ''}</span>
       ${v.resultado === 'venta' ? `<span class="imp">${euros(num(v.importe))}</span>` : ''}</button>`;
   }
   const pintaBarra = pintaEstado;
@@ -629,9 +636,9 @@ Hub.listo.then(async function () {
       : `
       <div class="c">Origen del cliente${radios('origen', origenesDe().concat(v.origen && !origenesDe().includes(v.origen) ? [v.origen] : []).map(o => [o, o]), v.origen)}</div>
       <div class="c">Tipo de oferta${radios('oferta', OFERTAS.map(o => [o, o]), v.oferta)}</div>
-      <div class="c">Resultado${radios('resultado', Object.entries(RES), v.resultado, 'res')}</div>
+      <div class="c">Resultado${radios('resultado', Object.entries(RES).filter(([k]) => k !== 'conf' || conConf(Q) || v.resultado === 'conf'), v.resultado, 'res')}</div>
       <div class="solo-venta">
-        <div class="c">Estado de la venta${radios('estado', [['conf', 'Confirmada'], ['pte', 'Pendiente']], v.estado || 'conf')}</div>
+        <div class="c">Estado de la venta${radios('estado', [['conf', 'Cerrada'], ['pte', 'Pendiente']], v.estado || 'conf')}</div>
         ${articulos}${cobro}
       </div>`}
       <p class="error-q" id="errv"></p>
@@ -790,9 +797,9 @@ Hub.listo.then(async function () {
     const tot = suma(vis), c = app.querySelector('#cuerpo');
     const cabecera = `<div class="card bloque"><h2>${ic('hoja')}${esc(tituloPeriodo())}${tipoFiltro ? ' · ' + esc(tipoFiltro) : ''}${comFiltro ? ' · ' + esc(comFiltro) : ''}</h2><div class="resumen">
         <div class="ven"><small>Firmadas</small><b>${cuenta(vis, 'si')}</b></div><div class="dem"><small>Sin firmar</small><b>${cuenta(vis, 'medio')}</b></div><div><small>Sin enviar</small><b style="color:var(--bad)">${cuenta(vis, 'no')}</b></div>
-        <div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>`;
+        <div class="cnf"><small>Confirmados</small><b>${tot.confirmados || 0}</b></div><div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>`;
     const avatar = n => `<span class="avq" data-n="${esc(n)}">${esc((n || '?').trim()[0])}</span>`;
-    const mini = s => s ? `<span>${s.nulos || 0} nulos</span><span class="d">${s.demos || 0} demos</span><span class="v">${s.ventas || 0} ventas</span>` : '';
+    const mini = s => s ? `${s.confirmados ? `<span>${s.confirmados} confirm.</span>` : ''}<span>${s.nulos || 0} nulos</span><span class="d">${s.demos || 0} demos</span><span class="v">${s.ventas || 0} ventas</span>` : '';
     let filas = [], html = '';
     if (desde === hasta || comFiltro) {
       // Un día (todas las personas) o una persona (todos sus días): una fila por quiniela
@@ -826,7 +833,7 @@ Hub.listo.then(async function () {
     c.querySelectorAll('.avq[data-n]').forEach(a => Hub.foto(a.dataset.n).then(u => { if (u) a.innerHTML = `<img src="${u}" alt="">`; }));
   }
   const resTexto = (q, v) => esInst(q) ? [RES_INST[v.resultado] || '', v.demo && 'demo', v.ventaMant && 'venta de mantenimiento'].filter(Boolean).join(' · ')
-    : (RES[v.resultado] || '') + (v.resultado === 'venta' ? (v.estado === 'pte' ? ' · Pendiente' : ' · Confirmada') : '');
+    : (RES[v.resultado] || '') + (v.resultado === 'venta' ? (v.estado === 'pte' ? ' · Pendiente' : ' · Cerrada') : '');
   function detalle(q) {
     const r = resumen(q);
     app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a la lista</button>
@@ -837,7 +844,8 @@ Hub.listo.then(async function () {
         <td>${esc((v.articulos || []).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · '))}</td><td>${v.resultado === 'venta' || num(v.importe) ? euros(num(v.importe)) : ''}</td><td>${v.resultado === 'venta' || num(v.cuota1) ? euros(num(v.cuota1)) : ''}</td>
         <td>${esc(v.cobro || '')}</td><td class="n">${esc(v.cuotas || '')}</td><td>${resTexto(q, v)}</td></tr>`).join('') || '<tr><td colspan="11" class="cero">Sin visitas</td></tr>'}
       <tr class="tot"><td colspan="6">Total</td><td>${euros(r.importe)}</td><td>${euros(r.cuota)}</td><td colspan="3"></td></tr></tbody></table></div>
-      <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen"><div><small>Nulos</small><b>${r.nulos}</b></div><div><small>${esInst(q) ? 'Realizadas' : 'Confirmadas'}</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>${esInst(q) ? 'Ventas mant.' : 'Ventas'}</small><b>${r.ventas}</b></div></div></div>
+      <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen">${esInst(q) ? `<div><small>Nulos</small><b>${r.nulos}</b></div><div><small>Realizadas</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>`
+        : `${conConf(q) || r.confirmados ? `<div class="cnf"><small>Confirmados</small><b>${r.confirmados}</b></div>` : ''}<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Ventas cerradas</small><b>${r.conf}</b></div>`}</div></div>
       <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}${q.firmadaPor ? ' por ' + esc(q.firmadaPor) + ', en nombre del comercial' : ''}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
     app.querySelector('#volver').onclick = () => vistaDia();
     app.querySelector('#pdfq').onclick = e => pdfQuiniela(q, e.currentTarget);
@@ -849,13 +857,13 @@ Hub.listo.then(async function () {
      Comerciales, VIP, consultores técnicos e instaladores salen solas de las quinielas.
      Teleoperadoras y mailing las rellena a mano su coordinadora (como el papel, pero digital). */
   const contar = (q, f) => q ? q.visitas.filter(f).length : 0;
-  const hojaOrigenes = os => os.flatMap(o => [['nulo', 'Nul'], ['demo', 'Demo'], ['venta', 'Vent']].map(([r, t]) => ({ g: o, s: t, v: q => contar(q, x => x.origen === o && x.resultado === r) })))
+  const hojaOrigenes = (os, conf) => os.flatMap(o => (conf ? [['conf', 'Conf']] : []).concat([['nulo', 'Nul'], ['demo', 'Demo'], ['venta', 'Vent']]).map(([r, t]) => ({ g: o, s: t, v: q => contar(q, x => x.origen === o && x.resultado === r) })))
     .concat([{ g: 'Total ventas', s: '', v: q => contar(q, x => x.resultado === 'venta') }]);
   const pct = (g, a, b) => ({ g, s: '%', pct: [a, b] });
   const MANUAL_TEL = ['Registros móviles', 'MKT'].flatMap(o => ['CED', 'NUL', 'ERR', 'NO LOC', 'PROD'].map(t => ({ g: o, s: t, m: true })));
   const MANUAL_MAIL = ['MKT', 'Demos com'].flatMap(o => ['CED', 'NUL', 'ERR', 'NO LOC', 'DEMO', 'VENT'].map(t => ({ g: o, s: t, m: true })));
   const HOJAS_DEF = {
-    com: { nombre: 'Comerciales', deleg: true, cols: () => hojaOrigenes(ORIGENES_COM), texto: 'Sale sola de las quinielas: nulos, demos y ventas de cada comercial por origen del cliente.' },
+    com: { nombre: 'Comerciales', deleg: true, cols: () => hojaOrigenes(ORIGENES_COM, true), texto: 'Sale sola de las quinielas: confirmados, nulos, demos y ventas de cada comercial por origen del cliente.' },
     vip: { nombre: 'VIP', cols: () => hojaOrigenes(ORIGENES_VIP), texto: 'Sale sola de las quinielas de los VIP, por sus orígenes.' },
     tec: { nombre: 'Consultores técnicos', cols: () => hojaOrigenes(ORIGENES_COM), texto: 'Sale sola de las quinielas de los consultores técnicos.' },
     inst: { nombre: 'Instaladores', texto: 'Sale sola de las quinielas de los instaladores, con las columnas de su cuadro.', cols: () => [
@@ -1081,28 +1089,28 @@ Hub.listo.then(async function () {
         const a = v.articulos || [], art = k => (a[k] && a[k].nombre) || '', ent = k => X(a[k] && a[k].entrega), venta = v.resultado === 'venta';
         if (inst) return [v.cliente, v.poblacion, v.trabajo || '', '', art(0), ent(0), art(1), ent(1), art(2), ent(2), art(3), ent(3),
           num(v.importe) ? euros(num(v.importe)) : '', num(v.cuota1) ? euros(num(v.cuota1)) : '', v.cobro || '', v.cuotas || '',
-          X(v.resultado === 'hecha'), X(v.resultado === 'nulo'), X(v.demo), X(v.resultado === 'pte')];
+          X(v.resultado === 'hecha'), X(v.resultado === 'nulo'), X(v.demo), X(v.ventaMant), X(v.resultado === 'pte')];
         return [v.cliente, v.poblacion, v.oferta, v.origen, art(0), ent(0), art(1), ent(1), art(2), ent(2), art(3), ent(3),
           venta ? euros(num(v.importe)) : '', venta ? euros(num(v.cuota1)) : '', venta ? v.cobro || '' : '', venta ? v.cuotas || '' : '',
-          X(venta && v.estado !== 'pte'), X(v.resultado === 'nulo'), X(v.resultado === 'demo'), X(venta && v.estado === 'pte')];
+          X(v.resultado === 'conf'), X(v.resultado === 'nulo'), X(v.resultado === 'demo'), X(venta), X(venta && v.estado === 'pte')];
       });
-      while (filas.length < 10) filas.push(new Array(20).fill(''));
+      while (filas.length < 10) filas.push(new Array(21).fill(''));
       const r = resumen(q);
-      filas.push([{ content: 'TOTAL', colSpan: 12, styles: { halign: 'right', fontStyle: 'bold' } }, { content: euros(r.importe), styles: { fontStyle: 'bold' } }, { content: euros(r.cuota), styles: { fontStyle: 'bold' } }, { content: '', colSpan: 6 }]);
+      filas.push([{ content: 'TOTAL', colSpan: 12, styles: { halign: 'right', fontStyle: 'bold' } }, { content: euros(r.importe), styles: { fontStyle: 'bold' } }, { content: euros(r.cuota), styles: { fontStyle: 'bold' } }, { content: '', colSpan: 7 }]);
       doc.autoTable({
         startY: 44, margin: { left: 10, right: 10 }, theme: 'grid',
-        head: [['NOMBRE', 'POBLACIÓN', inst ? 'TRABAJO' : 'TIPO\nOFERTA', inst ? '' : 'ORIGEN\nCLIENTE', 'ARTÍCULO 1', 'ENTREGA', 'ARTÍCULO 2', 'ENTREGA', 'ARTÍCULO 3', 'ENTREGA', 'ARTÍCULO 4', 'ENTREGA', 'IMPORTE\nTOTAL', '1ª CUOTA', 'FORMA\nCOBRO', 'Nº\nCUOTAS', 'CONF', 'NULO', 'DEMO', 'PTE']],
+        head: [['NOMBRE', 'POBLACIÓN', inst ? 'TRABAJO' : 'TIPO\nOFERTA', inst ? '' : 'ORIGEN\nCLIENTE', 'ARTÍCULO 1', 'ENTREGA', 'ARTÍCULO 2', 'ENTREGA', 'ARTÍCULO 3', 'ENTREGA', 'ARTÍCULO 4', 'ENTREGA', 'IMPORTE\nTOTAL', '1ª CUOTA', 'FORMA\nCOBRO', 'Nº\nCUOTAS', inst ? 'REALIZ.' : 'CONF', 'NULO', 'DEMO', inst ? 'V.\nMANT.' : 'VENTA', 'PTE']],
         body: filas,
         styles: { font: 'helvetica', fontSize: 6.6, cellPadding: 1.1, lineColor: N, lineWidth: 0.2, textColor: N, valign: 'middle', minCellHeight: 6.2 },
         headStyles: { fillColor: G, textColor: N, fontStyle: 'bold', halign: 'center', fontSize: 5.8, cellPadding: 0.7 },
-        columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 18 }, 2: { cellWidth: 11, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' }, 5: { cellWidth: 12.5, halign: 'center' }, 7: { cellWidth: 12.5, halign: 'center' }, 9: { cellWidth: 12.5, halign: 'center' }, 11: { cellWidth: 12.5, halign: 'center' }, 12: { cellWidth: 15, halign: 'right' }, 13: { cellWidth: 13, halign: 'right' }, 14: { cellWidth: 12, halign: 'center' }, 15: { cellWidth: 11, halign: 'center' }, 16: { cellWidth: 9, halign: 'center' }, 17: { cellWidth: 9, halign: 'center' }, 18: { cellWidth: 9, halign: 'center' }, 19: { cellWidth: 9, halign: 'center' } }
+        columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 17 }, 2: { cellWidth: 11, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' }, 5: { cellWidth: 12.5, halign: 'center' }, 7: { cellWidth: 12.5, halign: 'center' }, 9: { cellWidth: 12.5, halign: 'center' }, 11: { cellWidth: 12.5, halign: 'center' }, 12: { cellWidth: 15, halign: 'right' }, 13: { cellWidth: 13, halign: 'right' }, 14: { cellWidth: 12, halign: 'center' }, 15: { cellWidth: 11, halign: 'center' }, 16: { cellWidth: 8.5, halign: 'center' }, 17: { cellWidth: 8.5, halign: 'center' }, 18: { cellWidth: 8.5, halign: 'center' }, 19: { cellWidth: 8.5, halign: 'center' }, 20: { cellWidth: 8.5, halign: 'center' } }
       });
       // Resumen y firma
       let y = doc.lastAutoTable.finalY + 8;
       if (y > 170) { doc.addPage(); y = 20; }
       doc.autoTable({ startY: y, margin: { left: 95 }, tableWidth: 107, theme: 'grid',
         head: [[{ content: 'RESUMEN', colSpan: 8, styles: { halign: 'center' } }]],
-        body: [['NULOS', r.nulos, inst ? 'REALIZ.' : 'CONF', r.conf, 'DEMOS', r.demos, inst ? 'V. MANT.' : 'VENTAS', r.ventas]],
+        body: [inst ? ['NULOS', r.nulos, 'REALIZ.', r.conf, 'DEMOS', r.demos, 'V. MANT.', r.ventas] : ['CONF', r.confirmados, 'NULOS', r.nulos, 'DEMOS', r.demos, 'VENTAS', r.ventas]],
         styles: { fontSize: 8, lineColor: N, lineWidth: 0.2, textColor: N, halign: 'center' }, headStyles: { fillColor: [255, 255, 255], textColor: N, fontStyle: 'normal', fontSize: 9 } });
       y = doc.lastAutoTable.finalY + 10;
       if (q.firma) { try { doc.addImage(q.firma, 'PNG', 222, y - 6, 55, 18); } catch (e) {} }
