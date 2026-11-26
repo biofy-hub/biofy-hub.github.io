@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Accesos · Biofy Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/estilo.css?v=mwxli7w1">
+<script src="../comun/config.js?v=mwxli7w1"></script>
+<script src="../comun/perfiles.js?v=mwxli7w1"></script>
+<script src="../comun/nucleo.js?v=mwxli7w1"></script>
+<script src="../comun/volver.js?v=mwxli7w1"></script>
+<style>
+.ac-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 22px}
+.ac-bot{display:flex;gap:10px;flex-wrap:wrap}
+.volver-bajas{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:8px}
+.volver-bajas svg{width:16px;height:16px}
+.ac-cab h1{font-size:26px;font-weight:800;letter-spacing:-.4px}
+.ac-cab p{color:var(--ink-2);max-width:620px}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line-2);box-shadow:none}
+.btn.sec:hover{background:var(--surface-3)}
+.btn.peligro{background:var(--bad-soft);color:var(--bad);box-shadow:none}
+.btn.chico{width:auto;padding:10px 16px;font-size:14px}
+.aviso svg{width:18px;height:18px;flex:none;margin-top:1px}
+#app{padding-bottom:90px}
+.aviso{display:flex;gap:10px;align-items:flex-start;background:var(--warn-soft);color:var(--warn);border-radius:14px;padding:12px 16px;margin-bottom:18px;font-weight:600;font-size:14px}
+.gente{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pers{display:flex;flex-direction:column;gap:12px;padding:18px;cursor:pointer;text-align:left;border:1px solid var(--line);transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s}
+.pers:hover{transform:translateY(-2px);box-shadow:var(--shadow-up);border-color:var(--line-2)}
+.pers.cambiado{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.pers .fila{display:flex;align-items:center;gap:12px}
+.pers .av{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none;overflow:hidden}
+.foto-ed{display:flex;align-items:center;gap:14px}
+.foto-ed .av{width:64px;height:64px;border-radius:18px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:22px;overflow:hidden;flex:none}
+.pers h3{font-size:15.5px;font-weight:700;line-height:1.25}
+.pers small{color:var(--ink-3);font-size:12.5px;display:block}
+.pers small.usr{color:var(--brand-ink);font-weight:600}
+.pers small.usr.sin{color:var(--warn)}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.dos{grid-template-columns:1fr}}
+.pwm{display:flex;flex-direction:column;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--surface-3);color:var(--ink-2)}
+.chip.fuerte{background:var(--brand-soft);color:var(--brand-ink)}
+.chip.nuevo{background:var(--good-soft);color:var(--good)}
+.seccion{margin-top:34px}
+.seccion h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-3);margin-bottom:12px}
+.lista{display:flex;flex-direction:column;gap:8px}
+.lista .it{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:14px}
+.lista .it span{color:var(--ink-3);font-size:12.5px}
+.barra{position:fixed;left:50%;bottom:18px;transform:translate(-50%,200%);visibility:hidden;transition:transform .35s var(--ease),visibility .35s;z-index:30;display:flex;gap:10px;align-items:center;background:var(--ink);color:var(--bg);padding:10px 10px 10px 20px;border-radius:999px;box-shadow:var(--shadow-up);width:max-content;max-width:calc(100% - 32px)}
+.barra.ver{transform:translate(-50%,0);visibility:visible}
+.barra b{font-weight:700;font-size:14px;white-space:nowrap}
+.barra .btn{width:auto;padding:9px 18px;font-size:14px}
+.barra .btn.sec{background:transparent;color:inherit;border-color:color-mix(in srgb,var(--bg) 30%,transparent)}
+dialog{margin:auto;border:none;border-radius:var(--r);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up);width:min(560px,calc(100% - 32px));max-height:calc(100% - 32px)}
+dialog::backdrop{background:rgba(10,14,25,.45);backdrop-filter:blur(3px)}
+dialog .dc{padding:24px;display:flex;flex-direction:column;gap:16px}
+dialog h2{font-size:20px;font-weight:800}
+dialog label.t{font-size:13px;font-weight:700;color:var(--ink-2);display:block;margin-bottom:6px}
+.mods{display:flex;flex-direction:column;gap:12px}
+.mods .m{border:1px solid var(--line);border-radius:14px;padding:12px}
+.mods .m .nm{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;margin-bottom:8px}
+.mods .m .nm svg{width:18px;height:18px;color:var(--brand)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:inline-block;padding:7px 12px;border-radius:10px;border:1px solid var(--line-2);font-size:13px;font-weight:600;color:var(--ink-2);transition:all .15s}
+.seg input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.seg input:disabled+span{opacity:.45;cursor:not-allowed}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}
+.acciones .der{display:flex;gap:10px;margin-left:auto}
+.nota{font-size:13px;color:var(--ink-3)}
+.clave{display:flex;gap:8px;align-items:center;background:var(--surface-3);border-radius:12px;padding:10px 12px}
+.clave code{font:700 16px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.5px;flex:1;word-break:break-all}
+.clave .quien{font-weight:700;font-size:13px;min-width:110px}
+.cargando{padding:60px 0;text-align:center;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="cargando">Abriendo los accesos…</p></main>
+<div class="barra" id="barra" role="status"><b id="nCambios"></b><button class="btn sec" id="deshacer" type="button">Deshacer</button><button class="btn" id="publicar" type="button">Publicar</button></div>
+<dialog id="dlg"></dialog>
+<script>
+/* Panel de Accesos: altas, bajas y qué ve cada persona.
+   Los cambios se preparan aquí y se publican de una vez. Al publicar, cada llavero se vuelve a cerrar
+   con la llave de su persona (que guarda el registro cifrado): nadie tiene que cambiar su contraseña.
+   Las contraseñas no se guardan nunca: las nuevas se enseñan una sola vez, para el Excel. */
+Hub.listo.then(async function () {
+  if (!Hub.sesion() || !Hub.puede('accesos')) { location.replace('../index.html'); return; }
+  Hub.cabecera('Accesos', 'llave');
+  const app = document.getElementById('app'), dlg = document.getElementById('dlg'), { esc, icono } = Hub;
+  let original = await Hub.accesos.registro();
+  if (!original) { app.innerHTML = '<div class="card vacio"><div class="ic">' + icono('llave') + '</div><h1>No se pueden abrir los accesos</h1><p>Vuelve a entrar en el Hub. Si sigue pasando, avisa a Claude.</p></div>'; return; }
+  let reg = JSON.parse(JSON.stringify(original));
+  const yo = Hub.sesion().id, puedePublicar = !!(Hub.llave('accesos') || {}).gh;
+  let claves = {};   // contraseñas nuevas, solo en memoria hasta enseñarlas
+  const hoy = () => new Date().toISOString().slice(0, 10);
+  const MODS = HUB_MODULOS.filter(m => HUB_PERFILES[m.permiso]);
+  const nombrePerfil = (perm, id) => ((HUB_PERFILES[perm] || []).find(p => p.id === id) || {}).nombre || id;
+  const corto = (perm, id) => nombrePerfil(perm, id).replace(/\s*\(.*\)$/, '');
+  const ini = n => n.trim()[0].toUpperCase();
+  const cambios = () => resumen().length;
+  const ord = w => JSON.stringify(Object.keys(w || {}).sort().map(k => [k, w[k]]));
+  const uid = () => [...crypto.getRandomValues(new Uint8Array(6))].map(x => x.toString(16).padStart(2, '0')).join('');
+  const admins = () => reg.usuarios.filter(u => !u.baja && u.webs.hub === 'admin').length;
+
+  function clavito() {   // contraseña nueva al azar, fácil de leer (sin 0/O, 1/l/I)
+    const A = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint8Array(12));
+    const t = [...r].map(x => A[x % A.length]).join('');
+    return t.slice(0, 4) + '-' + t.slice(4, 8) + '-' + t.slice(8);
+  }
+
+  /* ---------- Pantalla ---------- */
+  function pinta() {
+    const activos = reg.usuarios.filter(u => !u.baja), bajas = reg.usuarios.filter(u => u.baja);
+    const orig = new Map(original.usuarios.map(u => [u.uid, JSON.stringify(u)]));
+    app.innerHTML = `<div class="ac-cab"><div><h1>Accesos</h1><p>Quién entra en el Hub y qué puede hacer en cada módulo. Lo que alguien no tiene, no le aparece y no puede abrirlo.</p></div>
+      <div class="ac-bot">${bajas.length ? `<a class="btn sec chico" href="#bajas">Bajas (${bajas.length})</a>` : ''}<button class="btn chico" id="alta" type="button">+ Dar de alta</button></div></div>
+      ${puedePublicar ? '' : `<div class="aviso">${icono('llave')}<div>Falta la llave de publicar del Hub. Puedes preparar cambios, pero no publicarlos hasta que Claude la añada.</div></div>`}
+      <div class="gente">${activos.map(u => {
+        const i = reg.usuarios.indexOf(u), nuevo = !orig.has(u.uid), cambiado = nuevo || orig.get(u.uid) !== JSON.stringify(u);
+        const chips = MODS.filter(m => u.webs[m.permiso]).map(m => `<span class="chip">${esc(m.nombre)} · ${esc(corto(m.permiso, u.webs[m.permiso]))}</span>`).join('');
+        return `<button type="button" class="card pers ${cambiado ? 'cambiado' : ''}" data-i="${i}">
+          <div class="fila"><div class="av">${esc(ini(u.nombre))}</div><div><h3>${esc(u.nombre)}${u.id === yo ? ' <small>(tú)</small>' : ''}</h3><small>${esc([u.tipo, u.rol].filter(Boolean).join(' · '))}</small>${u.sinAcceso ? '<small class="usr sin">Solo ficha: sin acceso al Hub</small>' : u.usuario ? `<small class="usr">Usuario: ${esc(u.usuario)}</small>` : '<small class="usr sin">Sin usuario todavía</small>'}</div></div>
+          <div class="chips">${u.webs.hub === 'admin' ? '<span class="chip fuerte">Administra el Hub</span>' : ''}${nuevo ? '<span class="chip nuevo">Nuevo</span>' : ''}${(u.hojas || []).map(h => `<span class="chip">Hoja de ${esc(HUB_HOJAS[h] || h)}</span>`).join('')}${chips || (u.sinAcceso ? '' : '<span class="chip">Sin módulos</span>')}</div></button>`;
+      }).join('')}</div>
+      ${(reg.historial || []).length ? `<section class="seccion"><h2>Últimos cambios</h2><div class="lista">${reg.historial.slice(-8).reverse().map(h => `<div class="it"><div>${esc(h.que)}</div><span>${esc(h.quien)} · ${esc(h.fecha.split('-').reverse().join('/'))}</span></div>`).join('')}</div></section>` : ''}
+      <footer>Biofy Hub · Accesos</footer>`;
+    app.querySelector('#alta').onclick = () => editor(null);
+    app.querySelectorAll('.pers').forEach(b => { b.onclick = () => editor(+b.dataset.i); const u = reg.usuarios[+b.dataset.i]; Hub.foto(u.nombre).then(f => { if (f) b.querySelector('.av').innerHTML = `<img src="${f}" alt="">`; }); });
+    barra();
+  }
+
+  /* ---------- Bajas: página aparte, para que no se mezclen con las altas (Juan, 20/11) ---------- */
+  function pintaBajas() {
+    const bajas = reg.usuarios.filter(u => u.baja);
+    app.innerHTML = `<div class="ac-cab"><div><a class="volver-bajas" href="#">${icono('atras')}Volver a Accesos</a><h1>Bajas</h1><p>Personas que ya no entran en el Hub. Se guardan para saber quién tuvo acceso y poder volver a darlas de alta.</p></div></div>
+      ${bajas.length ? `<div class="lista">${bajas.map(u => `<div class="it"><div><b>${esc(u.nombre)}</b> <span>· ${esc(u.rol || '')} · baja el ${esc(u.baja.split('-').reverse().join('/'))}</span></div><button class="btn sec chico" type="button" data-re="${reg.usuarios.indexOf(u)}">Volver a dar de alta</button></div>`).join('')}</div>` : '<p class="muted">No hay bajas.</p>'}
+      <footer>Biofy Hub · Accesos</footer>`;
+    app.querySelectorAll('[data-re]').forEach(b => b.onclick = () => realta(+b.dataset.re));
+    barra();
+  }
+  function barra() {
+    const n = cambios();
+    document.getElementById('nCambios').textContent = n === 1 ? '1 cambio sin publicar' : n + ' cambios sin publicar';
+    document.getElementById('barra').classList.toggle('ver', n > 0);
+    document.getElementById('publicar').disabled = !puedePublicar;
+  }
+  const vista = () => location.hash === '#bajas' ? pintaBajas() : pinta();
+  window.addEventListener('hashchange', vista);
+
+  /* ---------- Editor de una persona (o alta) ---------- */
+  function editor(i) {
+    const nuevo = i === null, u = nuevo ? { nombre: '', rol: '', webs: {}, alta: hoy() } : reg.usuarios[i];
+    const soyYo = !nuevo && u.id === yo;
+    const ultimoAdmin = !nuevo && u.webs.hub === 'admin' && admins() <= 1;
+    dlg.innerHTML = `<form class="dc" method="dialog">
+      <h2>${nuevo ? 'Dar de alta' : esc(u.nombre)}</h2>
+      <div><label class="t" for="eNom">Nombre y apellido</label><input class="campo" id="eNom" value="${esc(u.nombre)}" required autocomplete="off"></div>
+      <div class="foto-ed"><div class="av" id="eAv">${esc(u.nombre ? ini(u.nombre) : '?')}</div><div><label class="t">Foto</label>
+        <button class="btn sec chico" type="button" id="eFoto" ${puedePublicar ? '' : 'disabled'}>Poner o cambiar la foto</button>
+        <input type="file" id="eArch" accept="image/*" hidden><p class="nota" style="margin-top:4px">Se recorta en cuadrado y sale en todo el Hub (pizarra, quinielas…). Se guarda al momento.</p></div></div>
+      <div class="dos"><div><label class="t" for="eTipo">Tipo</label><select class="campo" id="eTipo"><option value="">Elige…</option>${HUB_TIPOS.map(t => `<option ${u.tipo === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+        <div><label class="t" for="eUsr">Usuario</label><input class="campo" id="eUsr" value="${esc(u.usuario || '')}" placeholder="Ej.: el mismo del CRM" autocomplete="off" autocapitalize="none" spellcheck="false"></div></div>
+      <div class="dos"><div><label class="t" for="eEq">Equipo</label><select class="campo" id="eEq"><option value="">${esc(HUB_EQUIPO_DE({ ...u, equipo: '' }) ? 'Según su tipo (' + HUB_EQUIPO_DE({ ...u, equipo: '' }) + ')' : 'Ninguno')}</option>${HUB_EQUIPOS.map(t => `<option ${u.equipo === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+        <div><label class="t">Sale en la hoja de producción de</label><div class="seg">${Object.entries(HUB_HOJAS).map(([k, t]) => `<label><input type="checkbox" name="eHoja" value="${k}" ${(u.hojas || []).includes(k) ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div></div></div>
+      <p class="nota" style="margin-top:-4px">El equipo decide qué ve su jefe de equipo y en qué hoja de producción sale.</p>
+      <div><label class="t" for="eRol">Cargo</label><input class="campo" id="eRol" value="${esc(u.rol || '')}" placeholder="Ej.: Jefe de equipo (Sevilla) · para una TV: Dispositivo" autocomplete="off"></div>
+      ${nuevo ? `<div class="pwm"><label class="t">Contraseña</label><div class="seg">
+        <label><input type="radio" name="pwModo" value="azar" checked><span>Generar una al azar</span></label>
+        <label><input type="radio" name="pwModo" value="mia"><span>Escribirla yo (p. ej., la del CRM)</span></label>
+        <label><input type="radio" name="pwModo" value="sin"><span>Sin acceso (solo ficha)</span></label></div>
+        <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 7 caracteres)" autocomplete="new-password" style="display:none">
+        <p class="nota" id="eSinNota" style="display:none">No entra en el Hub: solo queda su ficha, para que su nombre salga en las listas (p. ej., en una hoja de producción). Más adelante se le puede dar contraseña.</p></div>` : ''}
+      <div><label class="t">Qué puede hacer en cada módulo</label><div class="mods">${MODS.map(m => `<div class="m"><div class="nm">${icono(m.icono)}${esc(m.nombre)}</div><div class="seg">
+        ${[{ id: '', nombre: 'Sin acceso' }].concat(HUB_PERFILES[m.permiso]).map(p => `<label><input type="radio" name="p_${m.permiso}" value="${p.id}" ${(u.webs[m.permiso] || '') === p.id ? 'checked' : ''}><span>${esc(p.nombre)}</span></label>`).join('')}
+      </div></div>`).join('')}
+        <div class="m"><div class="nm">${icono('llave')}Administrar el Hub</div><div class="seg">
+          <label><input type="radio" name="p_hub" value="" ${u.webs.hub !== 'admin' ? 'checked' : ''} ${soyYo || ultimoAdmin ? 'disabled' : ''}><span>No</span></label>
+          <label><input type="radio" name="p_hub" value="admin" ${u.webs.hub === 'admin' ? 'checked' : ''}><span>Sí: ve Accesos y los módulos en construcción</span></label></div>
+          ${soyYo ? '<p class="nota" style="margin-top:8px">No puedes quitarte a ti mismo de administrador.</p>' : ultimoAdmin ? '<p class="nota" style="margin-top:8px">Tiene que quedar al menos un administrador.</p>' : ''}</div>
+      </div></div>
+      ${nuevo ? '<p class="nota">Si la contraseña es al azar, al publicar te la enseño una sola vez para el Excel ADMIN GRUPO ENGLOBA. Si la escribes tú, no se enseña ni se guarda en ningún sitio.</p>' : '<p class="nota">Con usuario, esta persona entra con usuario y contraseña (su contraseña no cambia). Las sesiones abiertas siguen funcionando.</p>'}
+      <p class="error" id="eErr"></p>
+      <div class="acciones">
+        ${nuevo || soyYo ? '' : `<button class="btn peligro chico" type="button" id="eBaja" ${ultimoAdmin ? 'disabled' : ''}>Dar de baja</button>`}
+        ${nuevo ? '' : `<button class="btn sec chico" type="button" id="eClave">${u.sinAcceso ? 'Darle acceso (contraseña)' : 'Nueva contraseña'}</button>`}
+        <div class="der"><button class="btn sec chico" type="button" id="eNo">Cancelar</button><button class="btn chico" type="submit" id="eSi">${nuevo ? 'Añadir' : 'Hecho'}</button></div>
+      </div></form>`;
+    const f = dlg.querySelector('form');
+    dlg.querySelector('#eNo').onclick = () => dlg.close();
+    const err = dlg.querySelector('#eErr');
+    // Foto: se sube al momento (no espera a «Publicar»), con el nombre que haya escrito
+    if (u.nombre) Hub.foto(u.nombre).then(fu => { if (fu) dlg.querySelector('#eAv').innerHTML = `<img src="${fu}" alt="">`; });
+    dlg.querySelector('#eFoto').onclick = () => { if (!f.eNom.value.trim()) { err.textContent = 'Escribe primero el nombre.'; return f.eNom.focus(); } dlg.querySelector('#eArch').click(); };
+    dlg.querySelector('#eArch').onchange = async ev => {
+      const a = ev.target.files[0]; ev.target.value = ''; if (!a) return;
+      const b = dlg.querySelector('#eFoto'), t = b.textContent; b.disabled = true; b.textContent = 'Subiendo…';
+      try { const bytes = await Hub.recortaFoto(a); await Hub.subeFoto(f.eNom.value.trim(), bytes); const fu = await Hub.foto(f.eNom.value.trim()); dlg.querySelector('#eAv').innerHTML = `<img src="${fu}" alt="">`; err.textContent = ''; }
+      catch (e) { err.textContent = 'No se ha podido subir la foto: ' + e.message; }
+      b.disabled = false; b.textContent = t;
+    };
+    f.querySelectorAll('input[name="pwModo"]').forEach(x => x.onchange = () => { f.ePw.style.display = f.pwModo.value === 'mia' ? '' : 'none'; dlg.querySelector('#eSinNota').style.display = f.pwModo.value === 'sin' ? '' : 'none'; if (f.pwModo.value === 'mia') f.ePw.focus(); });
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const nombre = f.eNom.value.trim().replace(/\s+/g, ' ');
+      if (!nombre) return f.eNom.focus();
+      const usuario = f.eUsr.value.trim();
+      if (usuario && reg.usuarios.some(x => x !== u && !x.baja && (x.usuario || '').toLowerCase() === usuario.toLowerCase())) { err.textContent = 'Ese usuario ya lo tiene otra persona.'; return f.eUsr.focus(); }
+      if (usuario && !/^[\w.@-]{3,40}$/.test(usuario)) { err.textContent = 'El usuario: de 3 a 40 letras, números, puntos o guiones, sin espacios.'; return f.eUsr.focus(); }
+      const escrita = nuevo && f.pwModo.value === 'mia' ? f.ePw.value : null;
+      if (escrita !== null && escrita.length < 7) { err.textContent = 'La contraseña tiene que tener al menos 7 caracteres.'; return f.ePw.focus(); }
+      if (escrita !== null && !usuario) { err.textContent = 'Si escribes tú la contraseña, ponle también usuario (así no choca con la de otra persona).'; return f.eUsr.focus(); }
+      const webs = {};
+      for (const m of MODS) { const v = f['p_' + m.permiso].value; if (v) webs[m.permiso] = v; }
+      if (f.p_hub.value) webs.hub = 'admin';
+      const hojas = [...f.querySelectorAll('input[name="eHoja"]:checked')].map(x => x.value);
+      const datos = { tipo: f.eTipo.value || undefined, usuario: usuario || undefined, equipo: f.eEq.value || undefined, hojas: hojas.length ? hojas : undefined };
+      if (nuevo && f.pwModo.value === 'sin') {   // solo ficha: sin contraseña ni llavero (Juan, 24/11)
+        reg.usuarios.push({ uid: uid(), nombre, rol: f.eRol.value.trim(), ...JSON.parse(JSON.stringify(datos)), webs: {}, alta: hoy(), sinAcceso: true });
+      } else if (nuevo) {
+        const pw = escrita !== null ? escrita : clavito(), p = await Hub.accesos.nuevaPersona(pw);
+        reg.usuarios.push({ uid: uid(), nombre, rol: f.eRol.value.trim(), ...datos, webs, alta: hoy(), id: p.id, k: p.k });
+        if (escrita === null) claves[p.id] = { nombre, pw, usuario };
+      } else {
+        Object.assign(u, { nombre, rol: f.eRol.value.trim(), webs: ord(webs) === ord(u.webs) ? u.webs : webs });
+        for (const [k, v] of Object.entries(datos)) { if (v) u[k] = v; else delete u[k]; }
+      }
+      dlg.close(); vista();
+    };
+    const baja = dlg.querySelector('#eBaja');
+    if (baja) baja.onclick = () => {
+      if (!confirm(`¿Dar de baja a ${u.nombre}? Al publicar ya no podrá entrar y se le cierra la sesión.`)) return;
+      u.baja = hoy(); delete claves[u.id]; dlg.close(); vista();
+    };
+    const cl = dlg.querySelector('#eClave');
+    if (cl) cl.onclick = () => nuevaClave(u);
+    dlg.showModal();
+    setTimeout(() => (nuevo ? f.eNom : f.eSi).focus(), 30);
+  }
+
+  // Contraseña nueva: al azar (se enseña una vez al publicar) o escrita por el administrador (no se enseña ni se guarda)
+  function nuevaClave(u) {
+    dlg.innerHTML = `<form class="dc" method="dialog"><h2>Contraseña nueva · ${esc(u.nombre)}</h2>
+      <p class="nota">La de ahora dejará de funcionar al publicar.</p>
+      <div class="seg"><label><input type="radio" name="pwModo" value="azar" checked><span>Generar una al azar</span></label><label><input type="radio" name="pwModo" value="mia"><span>Escribirla yo (p. ej., la del CRM)</span></label></div>
+      <input class="campo" id="ePw" type="password" placeholder="Escribe la contraseña (mínimo 7 caracteres)" autocomplete="new-password" style="display:none">
+      ${u.usuario ? '' : '<p class="nota">Si la escribes tú, ponle antes un usuario en su ficha.</p>'}
+      <p class="error" id="eErr"></p>
+      <div class="acciones"><div class="der"><button class="btn sec chico" type="button" id="eNo">Cancelar</button><button class="btn chico" type="submit">Cambiar</button></div></div></form>`;
+    const f = dlg.querySelector('form'), err = dlg.querySelector('#eErr');
+    f.querySelectorAll('input[name="pwModo"]').forEach(x => x.onchange = () => { f.ePw.style.display = f.pwModo.value === 'mia' ? '' : 'none'; });
+    dlg.querySelector('#eNo').onclick = () => dlg.close();
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const escrita = f.pwModo.value === 'mia' ? f.ePw.value : null;
+      if (escrita !== null && escrita.length < 7) { err.textContent = 'Al menos 7 caracteres.'; return; }
+      if (escrita !== null && !u.usuario) { err.textContent = 'Primero ponle un usuario en su ficha.'; return; }
+      const pw = escrita !== null ? escrita : clavito(), p = await Hub.accesos.nuevaPersona(pw);
+      delete claves[u.id]; u.id = p.id; u.k = p.k; delete u.sinAcceso; if (escrita === null) claves[p.id] = { nombre: u.nombre, pw, usuario: u.usuario };
+      dlg.close(); vista();
+    };
+    dlg.showModal();
+  }
+
+  async function realta(i) {
+    const u = reg.usuarios[i];
+    if (!confirm(`¿Volver a dar de alta a ${u.nombre}? Tendrá una contraseña nueva y los mismos permisos que tenía.`)) return;
+    const pw = clavito(), p = await Hub.accesos.nuevaPersona(pw);
+    delete u.baja; u.id = p.id; u.k = p.k; u.alta = hoy(); claves[p.id] = { nombre: u.nombre, pw };
+    vista();
+  }
+
+  /* ---------- Publicar ---------- */
+  function resumen() {
+    const a = new Map(original.usuarios.map(u => [u.uid, u])), lineas = [];
+    for (const u of reg.usuarios) {
+      const o = a.get(u.uid);
+      if (!o) lineas.push('Alta: ' + u.nombre);
+      else if (u.baja && !o.baja) lineas.push('Baja: ' + u.nombre);
+      else if (!u.baja && o.baja) lineas.push('Vuelve a tener acceso: ' + u.nombre);
+      else if (u.id !== o.id) lineas.push('Contraseña nueva: ' + u.nombre);
+      else if (ord(u.webs) !== ord(o.webs)) lineas.push('Permisos cambiados: ' + u.nombre);
+      else if ((u.usuario || '') !== (o.usuario || '')) lineas.push((o.usuario ? 'Usuario cambiado: ' : 'Usuario nuevo: ') + u.nombre);
+      else if (u.nombre !== o.nombre || u.rol !== o.rol || (u.tipo || '') !== (o.tipo || '') || (u.equipo || '') !== (o.equipo || '') || ord(u.hojas || []) !== ord(o.hojas || [])) lineas.push('Datos cambiados: ' + u.nombre);
+    }
+    return lineas;
+  }
+  document.getElementById('deshacer').onclick = () => {
+    if (!confirm('¿Deshacer todos los cambios sin publicar?')) return;
+    reg = JSON.parse(JSON.stringify(original)); claves = {}; vista();
+  };
+  document.getElementById('publicar').onclick = async () => {
+    const lineas = resumen(), bt = document.getElementById('publicar');
+    reg.historial = (reg.historial || []).concat(lineas.map(que => ({ fecha: hoy(), quien: Hub.sesion().nombre, que }))).slice(-100);
+    bt.disabled = true; bt.textContent = 'Publicando…';
+    try {
+      await Hub.accesos.publica(reg);
+      original = JSON.parse(JSON.stringify(reg));
+      const nuevas = Object.values(claves); claves = {};
+      vista();
+      dlg.innerHTML = `<form class="dc" method="dialog"><h2>Publicado</h2>
+        <p>En un minuto los cambios están para todos. Quien esté dentro los verá la próxima vez que abra el Hub o recargue.</p>
+        ${nuevas.length ? `<div class="aviso">${icono('llave')}<div>Apunta ahora ${nuevas.length === 1 ? 'esta contraseña' : 'estas contraseñas'} en el Excel ADMIN GRUPO ENGLOBA. Por seguridad <u>no ${nuevas.length === 1 ? 'se vuelve' : 'se vuelven'} a ver</u>: el Hub no ${nuevas.length === 1 ? 'la' : 'las'} guarda.</div></div>
+          ${nuevas.map(c => `<div class="clave"><span class="quien">${esc(c.nombre)}${c.usuario ? `<br><small>Usuario: ${esc(c.usuario)}</small>` : ''}</span><code>${esc(c.pw)}</code><button class="btn sec chico" type="button" data-c="${esc(c.pw)}">Copiar</button></div>`).join('')}` : ''}
+        <div class="acciones"><div class="der"><button class="btn chico" type="submit">${nuevas.length ? 'Ya las he apuntado' : 'Vale'}</button></div></div></form>`;
+      dlg.querySelectorAll('[data-c]').forEach(b => b.onclick = () => { navigator.clipboard.writeText(b.dataset.c).then(() => b.textContent = 'Copiada'); });
+      dlg.oncancel = e => { if (nuevas.length) e.preventDefault(); };
+      dlg.showModal();
+    } catch (e) {
+      reg.historial = reg.historial.slice(0, reg.historial.length - lineas.length);
+      alert('No se ha podido publicar: ' + e.message);
+    }
+    bt.disabled = !puedePublicar; bt.textContent = 'Publicar';
+  };
+  vista();
+});
+</script>
+</body>
+</html>
