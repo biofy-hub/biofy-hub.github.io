@@ -27,7 +27,9 @@
     // las coordinadoras de teleoperadoras y de mailing solo rellenan su hoja de producción (no ven quinielas).
     quinielas:   [{ id: 'rellenar',  nombre: 'Usuario (solo su quiniela)' }, { id: 'hojatel', nombre: 'Coord. teleoperadoras (rellena su hoja de producción)' },
                   { id: 'hojamail', nombre: 'Coord. mailing (rellena su hoja de producción)' }, { id: 'jefe', nombre: 'Jefe (las de su equipo y su hoja)' },
-                  { id: 'ver', nombre: 'Ver todas (quinielas y hojas de producción)' }, { id: 'todas', nombre: 'Admin (todo)' }]
+                  { id: 'ver', nombre: 'Ver todas (quinielas y hojas de producción)' }, { id: 'todas', nombre: 'Admin (todo)' }],
+    // Comunidad (Juan, 26/11): novedades para el personal. Editar = textos, imágenes, colores y qué pestañas se ven.
+    comunidad:   [{ id: 'ver', nombre: 'Ver' }, { id: 'editar', nombre: 'Editar (contenido y qué pestañas se ven)' }]
   };
 
   // Llaves de cada persona según sus permisos. S = secretos de los módulos (solo los tienen el Mac y los administradores del Hub).
@@ -52,6 +54,8 @@
       if (w.quinielas === 'hojatel' || w.quinielas === 'hojamail') { const h = w.quinielas === 'hojatel' ? 'tel' : 'mail'; Object.assign(L.quinielas, { hk: Q.hk, hojas: { [h]: (Q.hojas || {})[h] || [] }, soloHoja: h }); }
       // Jefe: su equipo se pone en HUB_CONTENIDO (hace falta saber quién es)
     }
+    // Comunidad: su carpeta va en el almacén privado de las quinielas (c/), cifrada con su propia llave
+    if (S.comunidad && S.comunidad.t && ['ver', 'editar'].includes(w.comunidad)) L.comunidad = { t: S.comunidad.t, o: S.comunidad.o, r: S.comunidad.r, k: S.comunidad.k };
     if (w.hub === 'admin') L.hub = { clave: S.hub.clave, gh: S.hub.gh || null };
     return L;
   };
@@ -71,6 +75,7 @@
       Object.assign(llaves.quinielas, { equipoJefe: equipo, privEq: (Q.privEq || {})[equipo] || null,
         equipo: (Q.equipo || []).filter(m => m.equipo === equipo).map(m => ({ uid: m.uid, nombre: m.nombre, rol: m.rol, tipo: m.tipo, equipo: m.equipo })) });
     }
+    if (llaves.comunidad) llaves.comunidad.uid = u.uid;   // para el voto (un voto por persona; no se guarda quién es)
     if (S.fotos) llaves.fotos = { k: S.fotos };   // fotos de las personas (Juan, 23/11): las ve todo el Hub
     return { nombre: dispositivo ? u.nombre : u.nombre.split(' ')[0], nombreCompleto: u.nombre, perfil: u.rol || '', admin: webs.hub === 'admin', permisos: webs, llaves };
   };

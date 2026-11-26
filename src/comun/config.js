@@ -19,6 +19,7 @@ window.HUB_CONFIG = {
    fuera:   SOLO mientras se mete en el Hub: abre la web de siempre.
    estado:  «uso» (funciona) u «obra» (en construcción). etapa: la del cerebro. */
 window.HUB_MODULOS = [
+  { id:'comunidad',   permiso:'comunidad',   ruta:'comunidad/', nombre:'Comunidad', etiqueta:'Comunidad', icono:'comunidad', grupo:'personal', estado:'uso', etapa:'beta', desc:'Novedades para el personal: el concurso de belenes, la lotería y la comida de empresa.' },
   { id:'pizarra',     permiso:'pizarra',     ruta:'pizarra/', nombre:'Pizarra', etiqueta:'Pizarra', icono:'trofeo', grupo:'ventas', estado:'uso', etapa:'estable', desc:'Las ventas del día en la TV de la reunión matinal.' },
   { id:'dashboard',   permiso:'dashboard',   ruta:'dashboard/', nombre:'Dashboard', etiqueta:'Dashboard', icono:'barras', grupo:'ventas', estado:'uso', etapa:'beta', desc:'Métricas de la red comercial y el Informe Comercial.' },
   { id:'quinielas',   permiso:'quinielas',   ruta:'quinielas/', nombre:'Quinielas', etiqueta:'Quinielas', icono:'quiniela', grupo:'ventas', estado:'uso', etapa:'beta', desc:'La quiniela diaria, firmada con el dedo, y la hoja de producción que sale sola.' },
@@ -31,6 +32,7 @@ window.HUB_MODULOS = [
 ];
 
 window.HUB_GRUPOS = [
+  { id:'personal',     nombre:'Comunidad' },
   { id:'ventas',       nombre:'Ventas y equipo' },
   { id:'formacion',    nombre:'Formación y producto' },
   { id:'herramientas', nombre:'Herramientas' },

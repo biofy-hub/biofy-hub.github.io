@@ -59,7 +59,7 @@ const LOGO = '/Users/diseno/formularios/src/logo-horizontal-blue.svg', LOGO_W = 
 /* 1. Copia de src/ */
 rmSync(out, { recursive: true, force: true });
 cpSync(join(raiz, 'src'), out, { recursive: true });
-for (const f of ['index.html', 'modulo.html', 'accesos/index.html', 'productos/index.html', 'quinielas/index.html']) {
+for (const f of ['index.html', 'modulo.html', 'accesos/index.html', 'productos/index.html', 'quinielas/index.html', 'comunidad/index.html']) {
   const p = join(out, f);
   writeFileSync(p, readFileSync(p, 'utf8').replace(/(src|href)="((\.\.\/)?comun\/[^"?]+\.(js|css))"/g, `$1="$2?v=${BUILD}"`));
 }
@@ -225,11 +225,19 @@ if (QN) for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin
   u.webs.quinielas = 'todas';
   historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Quinielas (ver todas), por ser administrador del Hub` });
 }
+// Comunidad (Juan, 26/11): llave propia (se crea una vez y se guarda en los secretos del Hub). Usa el almacén de las quinielas.
+if (!HB.comunidad) { HB.comunidad = randomBytes(32).toString('base64'); writeFileSync(arg('hub'), JSON.stringify(HB, null, 1)); console.log('Comunidad: llave creada y guardada en el archivo de claves'); }
+// Los administradores del Hub la editan.
+for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin' && !u.webs.comunidad) {
+  u.webs.comunidad = 'editar';
+  historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Comunidad (editar), por ser administrador del Hub` });
+}
 const secretos = {
   fotos: HB.fotosClave || null,
   ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv, vapid: QN.vapid ? QN.vapid.pub : null,
     pubEq: Object.fromEntries(Object.entries(QN.equipos).map(([e, k]) => [e, k.pub])), privEq: Object.fromEntries(Object.entries(QN.equipos).map(([e, k]) => [e, k.priv])), hk: QN.hk } } : {}),
   fichas: { ver: HB.fichas.ver, admin: HB.fichas.admin },
+  ...(QN && QN.token ? { comunidad: { o: QN.owner, r: QN.repo, t: QN.token, k: HB.comunidad } } : {}),
   pizarra: { read_token: PZ.read_token, write_token: PZ.write_token },
   dashboard: { read_token: DB.read_token, write_token: DB.write_token },
   formularios: { token: FM.token, priv: FM.claves.priv },
@@ -332,7 +340,7 @@ for (const { u, contenido, kk } of resumen) {
   if (!bueno) ok = false;
   console.log(`${bueno ? 'OK ' : 'MAL'} ${contenido.perfil.padEnd(36)} ${contenido.admin ? '[admin Hub] ' : ''}${pw ? '' : '(contraseña solo en el Excel) '}llaves: ${Object.keys(abreK?.llaves || {}).map(m => m + ' (' + contenido.permisos[m] + ')').join(', ') || 'ninguna'}`);
 }
-const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, HB.fotosClave, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, QN && QN.hk, ...(QN ? Object.values(QN.equipos).map(k => k.priv.d) : []), ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
+const enClaro = [PZ.read_token, PZ.write_token, DB.read_token, DB.write_token, FM.token, FM.claves.priv.d, CURSO, HB.clave, HB.gh, HB.fichas.ver, HB.fichas.admin, HB.fotosClave, HB.comunidad, QN && QN.token, QN && QN.priv.d, QN && QN.vapid && QN.vapid.priv, QN && QN.hk, ...(QN ? Object.values(QN.equipos).map(k => k.priv.d) : []), ...usuarios.map(u => u.k), ...usuarios.map(u => u.qk), ...accesos.map(u => u.pw)].filter(Boolean);
 const archivos = d => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? archivos(p) : [p]; });
 for (const f of archivos(out)) {
   const t = readFileSync(f, 'utf8');
