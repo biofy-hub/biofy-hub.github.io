@@ -87,6 +87,17 @@
       <footer>Biofy Hub · Culligan Biofy</footer>`;
     app.appendChild(main);
     const bi = main.querySelector('#instalar'); if (bi) bi.onclick = Hub.anadirInicio;
+    textoComunidad(main);
+  }
+  // Comunidad (Juan, 26/11): el texto de su tarjeta lo escribe quien edita Comunidad (va cifrado con sus datos)
+  async function textoComunidad(main) {
+    const k = Hub.llave('comunidad'), el = main.querySelector('a.mod[href*="comunidad/"] p'); if (!k || !k.t || !el) return;
+    try {
+      const r = await fetch(`https://api.github.com/repos/${k.o}/${k.r}/contents/c/datos.json?t=${Date.now()}`, { headers: { Authorization: 'Bearer ' + k.t, Accept: 'application/vnd.github.raw' }, cache: 'no-store' });
+      if (!r.ok) return;
+      const t = await Hub.cifra.abre(k.k, await r.json()), d = t && JSON.parse(t);
+      if (d && d.tarjeta) el.textContent = d.tarjeta;
+    } catch (e) {}
   }
 
   Hub.listo.then(() => Hub.sesion() ? inicio() : pantallaEntrada());
