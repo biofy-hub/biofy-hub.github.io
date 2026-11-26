@@ -1,0 +1,16 @@
+{
+  "name": "Biofy Hub",
+  "short_name": "Biofy Hub",
+  "description": "Todas las herramientas de Culligan Biofy en un solo sitio.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2968fe",
+  "icons": [
+    { "src": "comun/marca/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "comun/marca/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "comun/marca/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
