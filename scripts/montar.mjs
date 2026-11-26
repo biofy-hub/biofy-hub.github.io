@@ -232,6 +232,15 @@ for (const u of usuarios) if (!u.baja && u.webs && u.webs.hub === 'admin' && !u.
   u.webs.comunidad = 'editar';
   historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Comunidad (editar), por ser administrador del Hub` });
 }
+// --comunidad-ver-todos (Juan, 26/11): una vez, «Ver» Comunidad para todas las personas con acceso que aún no la tengan.
+// No a los dispositivos (TV de la pizarra) ni a las fichas sin acceso. Las altas nuevas se dan en ACCESOS.
+if (process.argv.includes('--comunidad-ver-todos')) for (const u of usuarios) {
+  if (u.baja || u.sinAcceso || !u.id || /^dispositivo/i.test(u.rol || '')) continue;
+  u.webs = u.webs || {};
+  if (u.webs.comunidad) continue;
+  u.webs.comunidad = 'ver';
+  historial.push({ fecha: new Date().toISOString().slice(0, 10), quien: 'Claude', que: `${u.nombre}: Comunidad (ver), petición de Juan para todo el equipo` });
+}
 const secretos = {
   fotos: HB.fotosClave || null,
   ...(QN ? { quinielas: { owner: QN.owner, repo: QN.repo, token: QN.token || null, pub: QN.pub, priv: QN.priv, vapid: QN.vapid ? QN.vapid.pub : null,
