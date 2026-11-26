@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Productos · Biofy Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/estilo.css?v=mwxnl5ni">
+<script src="../comun/config.js?v=mwxnl5ni"></script>
+<script src="../comun/perfiles.js?v=mwxnl5ni"></script>
+<script src="../comun/nucleo.js?v=mwxnl5ni"></script>
+<script src="../comun/volver.js?v=mwxnl5ni"></script>
+<style>
+/* ---------- Cabecera de la página ---------- */
+#app{padding-bottom:100px}
+.pr-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 16px;animation:entra .5s var(--ease) both}
+.pr-cab h1{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.4px}
+.pr-cab p{color:var(--ink-3);margin-top:2px}
+.vistas{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;box-shadow:var(--shadow)}
+.vistas button{display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:8px 14px;border-radius:10px;font-weight:700;font-size:13.5px;color:var(--ink-2);cursor:pointer;transition:background .2s,color .2s}
+.vistas button svg{width:17px;height:17px}
+.vistas button.on{background:var(--brand);color:#fff}
+.vistas button:not(.on):hover{background:var(--surface-3)}
+/* ---------- Filtros por etiqueta ---------- */
+.filtros{display:flex;flex-wrap:wrap;gap:8px;padding:4px 2px 10px;margin:0 -2px 8px}
+@media (max-width:760px){.filtros{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}}
+.filtros::-webkit-scrollbar{display:none}
+.filtro{flex:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13.5px;color:var(--ink-2);cursor:pointer;transition:all .2s var(--ease);animation:pop .45s var(--ease) both}
+.filtro:hover{border-color:var(--brand);color:var(--brand)}
+.filtro.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.filtro i{font-style:normal;font-size:11.5px;font-weight:700;background:var(--surface-3);color:var(--ink-3);border-radius:999px;padding:1px 7px}
+.filtro.on i{background:rgba(255,255,255,.22);color:#fff}
+.admin-fila{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;font-size:13.5px}
+.admin-fila a,.admin-fila .ojo-info{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+.admin-fila svg{width:16px;height:16px}
+.admin-fila .ojo-info{color:var(--ink-3);font-weight:600}
+/* ---------- Etiquetas de un producto ---------- */
+.etqs{display:flex;flex-wrap:wrap;gap:6px}
+.etq{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--brand-soft);color:var(--brand-ink);letter-spacing:.2px}
+.etq.oculta{background:var(--warn-soft);color:var(--warn)}
+.etq.elim{background:var(--bad-soft);color:var(--bad)}
+/* ---------- Fotos ---------- */
+.foto{position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 58%,color-mix(in srgb,var(--brand) 16%,var(--surface)) 0%,var(--surface-2) 62%)}
+.foto img{position:absolute;left:8%;top:7%;width:84%;height:86%;object-fit:contain;filter:drop-shadow(0 18px 22px rgba(20,30,60,.16));opacity:0;transform:translateY(10px) scale(.97);transition:opacity .5s var(--ease),transform .6s var(--ease)}
+.foto img.lista{opacity:1;transform:none}
+.foto .carga{position:absolute;width:34px;height:34px;border-radius:50%;border:3px solid var(--line-2);border-top-color:var(--brand);animation:gira .8s linear infinite}
+.foto img.lista+.carga{display:none}
+@keyframes gira{to{transform:rotate(360deg)}}
+@keyframes flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+/* ---------- Carrusel ---------- */
+.carrusel{--ancho:min(860px,80vw);position:relative;animation:entra .5s var(--ease) both}
+.pista{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:6px calc((100% - var(--ancho)) / 2) 18px;scrollbar-width:none;cursor:grab;overscroll-behavior-x:contain}
+.pista::-webkit-scrollbar{display:none}
+.pista.arrastra{scroll-snap-type:none;scroll-behavior:auto;cursor:grabbing;user-select:none}
+.diapo{flex:0 0 var(--ancho);scroll-snap-align:center;display:flex;flex-direction:column;overflow:hidden;transform:scale(.92);opacity:.45;transition:transform .5s var(--ease),opacity .5s var(--ease),box-shadow .5s}
+.diapo.activa{transform:none;opacity:1;box-shadow:var(--shadow-up)}
+.diapo .foto{height:clamp(240px,40vh,380px)}
+.diapo.activa .foto img.lista{animation:flota 5s ease-in-out infinite .6s}
+.diapo .txt{padding:22px 26px 24px;display:flex;flex-direction:column;gap:14px}
+.gama{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brand)}
+.diapo h2,.det h1{font-weight:800;letter-spacing:-.4px;line-height:1.1}
+.diapo h2{font-size:clamp(24px,3.4vw,32px)}
+.diapo h2 sup,.det h1 sup,.cuad h3 sup{font-size:.5em;font-weight:700;color:var(--ink-3);margin-left:5px;vertical-align:.9em}
+.sub{color:var(--ink-2);font-weight:600;margin-top:3px}
+.intro{color:var(--ink-2);font-size:15px;line-height:1.6;max-width:700px}
+.intro b{color:var(--ink);font-weight:700}
+.vent{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vent div{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.vent svg{width:26px;height:26px;color:var(--brand);flex:none}
+.vent b{display:block;font-size:13.5px;line-height:1.25}
+.vent span{font-size:12.5px;color:var(--ink-3);line-height:1.3}
+.datos{display:flex;flex-wrap:wrap;gap:8px}
+.datos div{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface)}
+.datos small{display:block;font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px}
+.datos b{font-size:14.5px}
+.dato{display:inline-flex;align-items:center;gap:10px;background:var(--brand);color:#fff;border-radius:14px;padding:10px 14px;align-self:flex-start;box-shadow:0 8px 20px color-mix(in srgb,var(--brand) 30%,transparent)}
+.dato b{font-size:15px}
+.dato span{font-size:12.5px;opacity:.9}
+.botones{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+.btn.chico{width:auto;padding:0 18px;height:44px;margin:0;display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.btn.chico svg{width:17px;height:17px}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line-2)}
+.btn.sec:hover{background:var(--surface-3);filter:none}
+.flecha-c{position:absolute;top:calc(clamp(240px,40vh,380px) / 2 - 22px);width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-up);display:grid;place-items:center;cursor:pointer;z-index:3;color:var(--ink);transition:transform .2s var(--ease),opacity .2s}
+.flecha-c:hover{transform:scale(1.08)}
+.flecha-c:disabled{opacity:0;pointer-events:none}
+.flecha-c svg{width:20px;height:20px}
+.flecha-c.izq{left:max(6px,calc((100% - var(--ancho)) / 2 - 23px))}
+.flecha-c.der{right:max(6px,calc((100% - var(--ancho)) / 2 - 23px))}
+.minis{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.mini{width:54px;height:54px;border-radius:14px;border:2px solid transparent;background:var(--surface);box-shadow:var(--shadow);cursor:pointer;padding:5px;display:block;overflow:hidden;transition:transform .2s var(--ease),border-color .2s}
+.mini img{width:100%;height:100%;object-fit:contain;display:block}
+.mini:hover{transform:translateY(-2px)}
+.mini.on{border-color:var(--brand);transform:translateY(-2px)}
+.contador{text-align:center;color:var(--ink-3);font-size:13px;font-weight:600;margin-top:10px}
+/* ---------- Cuadrícula ---------- */
+.rejilla-p{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.cuad{position:relative;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;color:inherit;text-align:left;border:1px solid var(--line);padding:0;transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s;animation:entra .55s var(--ease) both}
+.cuad:hover{transform:translateY(-4px);box-shadow:var(--shadow-up);border-color:color-mix(in srgb,var(--brand) 35%,var(--line))}
+.cuad .foto{aspect-ratio:1/1}
+.cuad .foto img{transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.cuad:hover .foto img.lista{transform:scale(1.06)}
+.cuad .pie{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
+.cuad h3{font-size:17px;font-weight:800;letter-spacing:-.2px}
+.cuad .gama{font-size:11px}
+.cuad.oculta{opacity:.55}
+.cuad .acc{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.cuad .ojo{position:relative;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);z-index:2;transition:transform .15s}
+.cuad .ojo:hover{transform:scale(1.08)}
+.cuad .ojo svg{width:18px;height:18px}
+.cuad.oculta .ojo[data-ojo]{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.cuad .ojo.quita:hover{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.cuad .ojo.recupera{background:var(--good-soft);color:var(--good);border-color:transparent}
+.pr-cab .vistas{flex-wrap:wrap}
+.cuad.cambiado{box-shadow:0 0 0 3px var(--brand-soft);border-color:var(--brand)}
+.vacio-f{padding:50px 20px;text-align:center;color:var(--ink-3)}
+/* ---------- Página de un producto ---------- */
+.det-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 16px;flex-wrap:wrap}
+.det-nav a,.det-nav button{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;background:none;border:0;color:var(--brand);cursor:pointer;padding:6px 0}
+.det-nav svg{width:17px;height:17px}
+.det-nav .pasos{display:flex;gap:8px}
+.det-nav .pasos button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;color:var(--ink-2);font-size:13px}
+.det-nav .pasos button:hover{border-color:var(--brand);color:var(--brand)}
+.det{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:start;animation:entra .5s var(--ease) both}
+.det .foto{border-radius:var(--r);aspect-ratio:1/1;position:sticky;top:84px;border:1px solid var(--line)}
+.det .foto img.lista{animation:flota 6s ease-in-out infinite .6s}
+.det .info{display:flex;flex-direction:column;gap:16px}
+.det h1{font-size:clamp(28px,4.5vw,40px)}
+.bloque{padding:18px 20px}
+.bloque h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-3);font-weight:700;margin-bottom:12px}
+.tabla{width:100%;border-collapse:collapse;font-size:14.5px}
+.tabla td{padding:10px 0;border-bottom:1px solid var(--line)}
+.tabla tr:last-child td{border-bottom:0}
+.tabla td:first-child{color:var(--ink-3);font-weight:600}
+.tabla td:last-child{text-align:right;font-weight:700}
+.pasos-l{display:grid;gap:10px;counter-reset:p}
+.pasos-l div{display:flex;gap:12px;align-items:flex-start}
+.pasos-l div::before{counter-increment:p;content:counter(p);flex:none;width:28px;height:28px;border-radius:9px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:13px}
+.pasos-l b{display:block;font-size:14px}
+.pasos-l span{font-size:13.5px;color:var(--ink-2)}
+.banda{background:linear-gradient(135deg,var(--brand),color-mix(in srgb,var(--brand) 70%,#000));color:#fff;border-radius:var(--r);padding:18px 20px}
+.banda b{display:block;font-size:17px}
+.banda span{opacity:.9;font-size:14px}
+.ficha-prev{display:block;width:100%;border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:zoom-in;background:var(--surface-2);padding:0;position:relative;aspect-ratio:297/210}
+.ficha-prev img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .5s,transform .5s var(--ease)}
+.ficha-prev img.lista{opacity:1}
+.ficha-prev:hover img.lista{transform:scale(1.02)}
+.ficha-prev .carga{position:absolute;left:50%;top:50%;margin:-17px;width:34px;height:34px;border-radius:50%;border:3px solid var(--line-2);border-top-color:var(--brand);animation:gira .8s linear infinite}
+.ficha-prev img.lista+.carga{display:none}
+.interruptor{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600;font-size:14px}
+.interruptor input{appearance:none;width:46px;height:28px;border-radius:999px;background:var(--line-2);position:relative;cursor:pointer;transition:background .2s;flex:none}
+.interruptor input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .25s var(--ease)}
+.interruptor input:checked{background:var(--good)}
+.interruptor input:checked::after{transform:translateX(18px)}
+.aviso-p{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 16px;font-weight:600;font-size:14px;margin-bottom:16px;background:var(--bad-soft);color:var(--bad);animation:entra .4s var(--ease) both}
+.aviso-p.ama{background:var(--warn-soft);color:var(--warn)}
+.aviso-p svg{width:18px;height:18px;flex:none;margin-top:1px}
+/* ---------- Ficha a pantalla completa ---------- */
+dialog{margin:auto;border:none;border-radius:var(--r);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up);width:min(1200px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:hidden}
+dialog[open]{animation:pop .35s var(--ease) both}
+dialog::backdrop{background:rgba(10,14,25,.6);backdrop-filter:blur(4px)}
+dialog .dc{display:flex;flex-direction:column;max-height:calc(100vh - 24px)}
+dialog .dcab{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+dialog .dcab b{margin-right:auto;font-size:15px}
+dialog .dimg{overflow:auto;background:var(--surface-3)}
+dialog .dimg img{display:block;width:100%;height:auto}
+/* ---------- Compartir (si el aparato no tiene menú propio) ---------- */
+dialog.chico{width:min(480px,calc(100% - 24px))}
+.compartir{padding:18px;display:flex;flex-direction:column;gap:10px;max-width:460px;width:100%;margin:0 auto}
+.compartir p{font-size:13.5px;margin-bottom:4px}
+.op{display:flex;align-items:center;gap:14px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;cursor:pointer;transition:border-color .2s,transform .15s var(--ease)}
+.op:hover{border-color:var(--brand);transform:translateY(-1px)}
+.op svg{width:26px;height:26px;color:var(--brand)}
+.op[data-op="wa"] svg{color:#25a244}
+.op b{display:block;font-size:14.5px}
+.op small{color:var(--ink-3);font-size:12.5px}
+/* ---------- Barra de cambios (administradores) ---------- */
+.barra{position:fixed;left:50%;bottom:18px;transform:translate(-50%,200%);visibility:hidden;transition:transform .35s var(--ease),visibility .35s;z-index:30;display:flex;gap:10px;align-items:center;background:var(--ink);color:var(--bg);padding:10px 10px 10px 20px;border-radius:999px;box-shadow:var(--shadow-up);width:max-content;max-width:calc(100% - 32px)}
+.barra.ver{transform:translate(-50%,0);visibility:visible}
+.barra b{font-weight:700;font-size:14px;white-space:nowrap}
+.barra .btn{width:auto;padding:9px 18px;font-size:14px;height:auto;margin:0}
+.barra .btn.sec{background:transparent;color:inherit;border-color:color-mix(in srgb,var(--bg) 30%,transparent)}
+.cargando{padding:60px 0;text-align:center;color:var(--ink-3)}
+.toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:var(--good);color:#fff;font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-up);z-index:40;animation:pop .35s var(--ease) both;font-size:14px}
+.toast.mal{background:var(--bad)}
+/* ---------- Móvil ---------- */
+@media (max-width:760px){
+  .det{grid-template-columns:1fr}
+  .det .foto{position:relative;top:0;aspect-ratio:4/3}
+  .vent{grid-template-columns:1fr}
+  .diapo .txt{padding:18px 18px 20px}
+  .pista{gap:10px}
+  .flecha-c{display:none}
+  .rejilla-p{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .cuad h3{font-size:15px}
+  .cuad .pie{padding:10px 12px 12px}
+  .vistas button span{display:none}
+  .vistas.adm button span{display:inline}
+  .vistas button{padding:8px 12px}
+  .mini{width:44px;height:44px;border-radius:12px}
+}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="cargando">Abriendo las fichas…</p></main>
+<div class="barra" id="barra" role="status"><b id="nCambios"></b><button class="btn sec" id="deshacer" type="button">Deshacer</button><button class="btn" id="guardar" type="button">Guardar</button></div>
+<dialog id="dlg"></dialog>
+<script>
+/* Módulo PRODUCTOS (Juan, 23/11/2026): todas nuestras máquinas con su foto, sus datos y su ficha.
+   Dos vistas (carrusel y cuadrícula), filtro por etiqueta y una página por producto.
+   Todo va cifrado: las fichas activas con la llave «ver» y las eliminadas con la de administrar,
+   así quien no administra no puede verlas ni escribiendo la dirección.
+   Qué fichas se ven lo eligen los administradores (productos/estado.json, cifrado con la llave «ver»). */
+Hub.listo.then(async function () {
+  if (!Hub.sesion() || !Hub.puede('fichas')) { location.replace('../index.html'); return; }
+  Hub.cabecera('Productos', 'ficha');
+  const app = document.getElementById('app'), dlg = document.getElementById('dlg'), { esc, icono } = Hub;
+  const L = Hub.llave('fichas') || {};
+  const fallo = t => { app.innerHTML = `<div class="card vacio"><div class="ic">${icono('ficha')}</div><h1>No se pueden abrir las fichas</h1><p>${esc(t)}</p></div>`; };
+  if (!L.ver) return fallo('Vuelve a entrar en el Hub. Si sigue pasando, avisa a Claude.');
+  const esAdmin = !!L.admin, puedeGuardar = esAdmin && !!(Hub.llave('accesos') || {}).gh;
+
+  /* ---------- Iconos de la página ---------- */
+  const I = {
+    carrusel: '<rect x="6" y="5" width="12" height="14" rx="2"/><path d="M2.5 8v8M21.5 8v8"/>',
+    cuadricula: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+    izq: '<path d="M15 18l-6-6 6-6"/>', der: '<path d="M9 18l6-6-6-6"/>',
+    ojo: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    ojoNo: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+    ficha: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h4v5H7zM14 9.5h3.5M14 12.5h3.5"/>',
+    pdf: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    ampliar: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+    papelera: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    cerrar: '<path d="M6 6l12 12M18 6L6 18"/>',
+    recuperar: '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/>',
+    compartir: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
+    whatsapp: '<path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4l-4.5 1.1z"/><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2L9 8.5z"/>',
+    correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/>'
+  };
+  const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+  /* ---------- Datos (cifrados) ---------- */
+  let D, CAT, ELIM = [];
+  try {
+    D = await (await fetch('datos.json?v=' + (window.HUB_BUILD || Date.now()), { cache: 'no-store' })).json();
+    CAT = JSON.parse(await Hub.cifra.abre(L.ver, D.ver));
+    if (esAdmin) ELIM = (JSON.parse(await Hub.cifra.abre(L.admin, D.admin) || '{"productos":[]}')).productos;
+  } catch (e) { return fallo('Las fichas no se han podido abrir. Recarga la página.'); }
+  const ICO = CAT.iconos || {};
+  const svgIco = k => `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k] || ICO.gota || ''}</svg>`;
+
+  // Qué fichas se ven. Los administradores lo leen directamente de GitHub (siempre al día); el resto, de la web.
+  const RUTA_ESTADO = 'productos/estado.json';
+  let ocultos = [], eliminados = [], shaEstado;
+  async function leeEstado() {
+    let t = null;
+    try {
+      if (puedeGuardar) {
+        shaEstado = await Hub.shaDe(RUTA_ESTADO);
+        const P = Hub.config.acceso.publicar, k = Hub.llave('accesos');
+        const r = await fetch(`https://api.github.com/repos/${P.owner}/${P.repo}/contents/${RUTA_ESTADO}?ref=${P.rama}&t=${Date.now()}`, { headers: { Authorization: 'Bearer ' + k.gh, Accept: 'application/vnd.github.raw' }, cache: 'no-store' });
+        if (r.ok) t = await r.text();
+      } else {
+        const r = await fetch('estado.json?t=' + Date.now(), { cache: 'no-store' });
+        if (r.ok) t = await r.text();
+      }
+      if (t) { const e = JSON.parse(await Hub.cifra.abre(L.ver, JSON.parse(t)) || '{}'); ocultos = e.ocultos || []; eliminados = e.eliminados || []; }
+    } catch (e) { ocultos = []; eliminados = []; }
+  }
+  await leeEstado();
+  let cambios = new Set(ocultos), cambiosE = new Set(eliminados);   // lo que se va a guardar
+
+  const todos = () => CAT.productos.concat(ELIM);
+  const porId = id => todos().find(p => p.id === id);
+  const oculto = p => (esAdmin ? cambios : new Set(ocultos)).has(p.id);
+  // Eliminar (Juan, 24/11): la ficha sale de la vista de todos y pasa a «Eliminadas» (se puede recuperar).
+  // Ocultar es para algo temporal: los administradores la siguen viendo en la principal y en «Ocultas».
+  const elim = p => p.estado === 'eliminado' || (esAdmin ? cambiosE : new Set(eliminados)).has(p.id);
+  const borradaAqui = p => p.estado === 'activo' && elim(p);   // eliminada desde esta página (se puede recuperar)
+  const activos = () => CAT.productos.filter(p => !elim(p) && (esAdmin || !oculto(p)));
+  const listaElim = () => CAT.productos.filter(borradaAqui).concat(ELIM);
+  const listaOcultas = () => CAT.productos.filter(p => !elim(p) && oculto(p));
+
+  /* ---------- Archivos: se descifran al pedirlos y se guardan en memoria ---------- */
+  const cache = {}, BLOBS = {}, TIPO = { foto: 'image/png', ficha: 'image/jpeg', pdf: 'application/pdf' };
+  function archivo(p, campo) {
+    const n = p.archivos[campo];
+    if (!n) return Promise.resolve(null);
+    if (!cache[n]) cache[n] = (async () => {
+      const buf = await (await fetch('a/' + n)).arrayBuffer();
+      const plano = await Hub.cifra.abreBinario(p.estado === 'activo' ? L.ver : L.admin, buf);
+      BLOBS[n] = new Blob([plano], { type: TIPO[campo] });
+      return URL.createObjectURL(BLOBS[n]);
+    })().catch(() => { delete cache[n]; return null; });
+    return cache[n];
+  }
+  // Pone las fotos en su sitio cuando están listas (con su animación de entrada).
+  function pintaFotos(raiz) {
+    raiz.querySelectorAll('img[data-p]').forEach(img => {
+      const p = porId(img.dataset.p);
+      archivo(p, img.dataset.c || 'foto').then(u => { if (!u) return; img.onload = () => img.classList.add('lista'); img.src = u; });
+    });
+  }
+
+  /* ---------- Piezas ---------- */
+  const conB = s => esc(s).replace(/&lt;(\/?)b&gt;/g, '<$1b>');   // el texto de la ficha solo lleva negritas
+  const titulo = p => `${esc(p.nombre)}${p.sup ? `<sup>${esc(p.sup)}</sup>` : ''}`;
+  const etiquetas = p => `<div class="etqs">${elim(p) ? '<span class="etq elim">Eliminada</span>' : ''}${esAdmin && !elim(p) && oculto(p) ? '<span class="etq oculta">Oculta</span>' : ''}${p.etiquetas.map(e => `<span class="etq">${esc(e)}</span>`).join('')}</div>`;
+  const foto = (p, extra = '') => `<div class="foto ${extra}"><img data-p="${esc(p.id)}" alt="${esc(p.nombre)}"><span class="carga"></span></div>`;
+  const ventajas = p => `<div class="vent">${p.ventajas.map(v => `<div>${svgIco(v.icono)}<p><b>${esc(v.titulo)}</b><span>${esc(v.texto)}</span></p></div>`).join('')}</div>`;
+  const datos = p => `<div class="datos">${p.datos.map(d => `<div><small>${esc(d.etiqueta)}</small><b>${esc(d.valor)}</b></div>`).join('')}</div>`;
+  const dato = p => p.dato ? `<div class="dato"><b>${esc(p.dato.titulo)}</b><span>${esc(p.dato.texto)}</span></div>` : '';
+
+  /* ---------- Rutas: #/carrusel · #/cuadricula · #/p/<id> · #/eliminadas · #/ocultas ---------- */
+  let vista = Hub.lee('prod_vista') === 'cuadricula' ? 'cuadricula' : 'carrusel', filtro = 'Todas', ultimaLista = '#/' + vista, posCarrusel = 0;
+  function ruta() {
+    const h = location.hash.replace(/^#\/?/, '');
+    if (h.startsWith('p/')) { const p = porId(decodeURIComponent(h.slice(2))); if (p && (esAdmin || (!oculto(p) && !elim(p)))) return detalle(p); }
+    if (h === 'eliminadas' && esAdmin) { ultimaLista = '#/eliminadas'; return eliminadas(); }
+    if (h === 'ocultas' && esAdmin) { ultimaLista = '#/ocultas'; return ocultas(); }
+    if (h === 'cuadricula' || h === 'carrusel') { vista = h; Hub.guarda('prod_vista', h); }
+    ultimaLista = '#/' + vista;
+    lista();
+  }
+  window.addEventListener('hashchange', () => { ruta(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+
+  /* ---------- Lista (carrusel o cuadrícula) ---------- */
+  function lista() {
+    const ps = activos(), etq = CAT.etiquetas.filter(e => ps.some(p => p.etiquetas.includes(e)));
+    if (filtro !== 'Todas' && !etq.includes(filtro)) filtro = 'Todas';
+    const vis = ps.filter(p => filtro === 'Todas' || p.etiquetas.includes(filtro));
+    const nOcultas = listaOcultas().length;
+    app.innerHTML = `<div class="pr-cab"><div><h1>Fichas de producto</h1><p>${ps.length} máquinas · ${vista === 'carrusel' ? 'desliza para verlas todas' : 'toca una para ver su ficha'}</p></div>
+      <div class="vistas" role="group" aria-label="Cómo ver las fichas">
+        <button type="button" data-v="carrusel" class="${vista === 'carrusel' ? 'on' : ''}" aria-pressed="${vista === 'carrusel'}">${ic('carrusel')}<span>Carrusel</span></button>
+        <button type="button" data-v="cuadricula" class="${vista === 'cuadricula' ? 'on' : ''}" aria-pressed="${vista === 'cuadricula'}">${ic('cuadricula')}<span>Cuadrícula</span></button></div></div>
+      <div class="filtros" role="group" aria-label="Filtrar por tipo">${['Todas'].concat(etq).map((e, i) => `<button type="button" class="filtro ${e === filtro ? 'on' : ''}" data-f="${esc(e)}" style="animation-delay:${i * 40}ms">${esc(e)}<i>${e === 'Todas' ? ps.length : ps.filter(p => p.etiquetas.includes(e)).length}</i></button>`).join('')}</div>
+      ${esAdmin ? `<div class="admin-fila"><a href="#/eliminadas">${ic('papelera')}Eliminadas (${listaElim().length})</a><a href="#/ocultas">${ic('ojoNo')}Ocultas (${nOcultas})</a><span class="ojo-info">${ic('ojo')}${nOcultas ? `${nOcultas} oculta${nOcultas > 1 ? 's' : ''} para los demás` : 'Todas visibles para los demás'}${vista === 'carrusel' ? ' · para ocultar o eliminar, usa la cuadrícula' : ''}</span></div>` : ''}
+      <div id="vista"></div>`;
+    app.querySelectorAll('.vistas button').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.v; });
+    app.querySelectorAll('.filtro').forEach(b => b.onclick = () => { filtro = b.dataset.f; posCarrusel = 0; lista(); });
+    const v = app.querySelector('#vista');
+    if (!vis.length) { v.innerHTML = '<p class="vacio-f">No hay fichas con esta etiqueta.</p>'; return; }
+    vista === 'carrusel' ? carrusel(v, vis) : cuadricula(v, vis);
+  }
+
+  function cuadricula(v, ps) {
+    v.innerHTML = `<div class="rejilla-p">${ps.map((p, i) => tarjeta(p, i)).join('')}</div>`;
+    enlazaTarjetas(v);
+    pintaFotos(v);
+  }
+  function tarjeta(p, i) {
+    const cambiada = esAdmin && (oculto(p) !== ocultos.includes(p.id) || (p.estado === 'activo' && elim(p) !== eliminados.includes(p.id)));
+    return `<div class="card cuad ${oculto(p) && !elim(p) ? 'oculta' : ''} ${cambiada ? 'cambiado' : ''}" role="link" tabindex="0" data-id="${esc(p.id)}" style="animation-delay:${i * 50}ms">
+      ${esAdmin && p.estado === 'activo' ? `<div class="acc">${!elim(p) ? `<button class="ojo" type="button" data-ojo="${esc(p.id)}" title="${oculto(p) ? 'Oculta para los demás: tócalo para que se vea' : 'Visible para todos: tócalo para ocultarla'}" aria-label="${oculto(p) ? 'Mostrar' : 'Ocultar'} ${esc(p.nombre)}">${ic(oculto(p) ? 'ojoNo' : 'ojo')}</button>
+        <button class="ojo quita" type="button" data-elim="${esc(p.id)}" title="Eliminar: deja de verse y pasa a «Eliminadas»" aria-label="Eliminar ${esc(p.nombre)}">${ic('papelera')}</button>`
+        : `<button class="ojo recupera" type="button" data-recu="${esc(p.id)}" title="Recuperar: vuelve a las fichas" aria-label="Recuperar ${esc(p.nombre)}">${ic('recuperar')}</button>`}</div>` : ''}
+      ${foto(p)}<div class="pie"><span class="gama">${esc(p.gama)}</span><h3>${titulo(p)}</h3>${etiquetas(p)}</div></div>`;
+  }
+  function enlazaTarjetas(v) {
+    v.querySelectorAll('.cuad').forEach(c => {
+      const ir = () => { location.hash = '#/p/' + encodeURIComponent(c.dataset.id); };
+      c.onclick = e => { if (!e.target.closest('.acc')) ir(); };
+      c.onkeydown = e => { if (e.key === 'Enter') ir(); };
+    });
+    v.querySelectorAll('[data-ojo]').forEach(b => b.onclick = e => { e.stopPropagation(); cambia(b.dataset.ojo); });
+    v.querySelectorAll('[data-elim]').forEach(b => b.onclick = e => { e.stopPropagation(); elimina(b.dataset.elim, true); });
+    v.querySelectorAll('[data-recu]').forEach(b => b.onclick = e => { e.stopPropagation(); elimina(b.dataset.recu, false); });
+  }
+
+  function carrusel(v, ps) {
+    posCarrusel = Math.min(posCarrusel, ps.length - 1);
+    v.innerHTML = `<div class="carrusel">
+      <button class="flecha-c izq" type="button" aria-label="Anterior">${ic('izq')}</button>
+      <button class="flecha-c der" type="button" aria-label="Siguiente">${ic('der')}</button>
+      <div class="pista" tabindex="0" aria-label="Fichas de producto, desliza para ver más">${ps.map((p, i) => `
+        <article class="card diapo" data-i="${i}" aria-roledescription="ficha" aria-label="${esc(p.nombre)}, ${i + 1} de ${ps.length}">
+          ${foto(p)}
+          <div class="txt">
+            <div><span class="gama">${esc(p.gama)}</span><h2>${titulo(p)}</h2><p class="sub">${esc(p.sub)}</p></div>
+            ${etiquetas(p)}
+            <p class="intro">${conB(p.intro)}</p>
+            ${ventajas(p)}
+            ${datos(p)}
+            ${dato(p)}
+            <div class="botones"><a class="btn chico" href="#/p/${encodeURIComponent(p.id)}">${ic('ficha')}Ver ficha completa</a>
+              ${p.archivos.pdf ? `<button class="btn chico sec" type="button" data-pdf="${esc(p.id)}">${ic('pdf')}Descargar PDF</button>` : ''}
+              <button class="btn chico sec" type="button" data-comp="${esc(p.id)}">${ic('compartir')}Compartir</button></div>
+          </div></article>`).join('')}</div>
+      <div class="minis">${ps.map((p, i) => `<button class="mini" type="button" data-i="${i}" aria-label="${esc(p.nombre)}"><img data-p="${esc(p.id)}" alt=""></button>`).join('')}</div>
+      <p class="contador" aria-live="polite"></p></div>`;
+    const pista = v.querySelector('.pista'), diapos = [...v.querySelectorAll('.diapo')], minis = [...v.querySelectorAll('.mini')];
+    const izq = v.querySelector('.izq'), der = v.querySelector('.der'), cont = v.querySelector('.contador');
+    // Ancho de cada ficha en píxeles (con porcentajes, el hueco de los lados no casa y la ficha no queda centrada).
+    const mide = () => { const w = v.clientWidth; v.querySelector('.carrusel').style.setProperty('--ancho', Math.round(Math.min(860, w * (w < 760 ? .88 : .8))) + 'px'); };
+    mide();
+    new ResizeObserver(() => { mide(); ir(posCarrusel, false); }).observe(v);
+    const ir = (i, suave = true) => { i = Math.max(0, Math.min(ps.length - 1, i)); const d = diapos[i]; pista.scrollTo({ left: d.offsetLeft - (pista.clientWidth - d.clientWidth) / 2, behavior: suave ? 'smooth' : 'instant' }); };
+    function marca(i) {
+      posCarrusel = i;
+      diapos.forEach((d, k) => d.classList.toggle('activa', k === i));
+      minis.forEach((m, k) => m.classList.toggle('on', k === i));
+      izq.disabled = i === 0; der.disabled = i === ps.length - 1;
+      cont.textContent = `${i + 1} de ${ps.length} · ${ps[i].nombre}`;
+      archivoCompartir(ps[i]);   // se prepara antes, para que «Compartir» abra al momento
+    }
+    // La ficha activa es la que está en el centro.
+    let t; pista.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => {
+      const c = pista.scrollLeft + pista.clientWidth / 2;
+      let mejor = 0, dist = 1e9; diapos.forEach((d, k) => { const x = Math.abs(d.offsetLeft + d.clientWidth / 2 - c); if (x < dist) { dist = x; mejor = k; } });
+      if (mejor !== posCarrusel || !diapos[mejor].classList.contains('activa')) marca(mejor);
+    }, 60); }, { passive: true });
+    izq.onclick = () => ir(posCarrusel - 1); der.onclick = () => ir(posCarrusel + 1);
+    minis.forEach(m => m.onclick = () => ir(+m.dataset.i));
+    diapos.forEach(d => d.addEventListener('click', e => { const i = +d.dataset.i; if (i !== posCarrusel && !e.target.closest('a,button')) { e.preventDefault(); ir(i); } }));
+    pista.onkeydown = e => { if (e.key === 'ArrowRight') { e.preventDefault(); ir(posCarrusel + 1); } if (e.key === 'ArrowLeft') { e.preventDefault(); ir(posCarrusel - 1); } };
+    // Arrastrar con el ratón (en móvil ya se desliza con el dedo).
+    let x0 = null, s0 = 0, movido = false;
+    pista.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.target.closest('a,button')) return; x0 = e.clientX; s0 = pista.scrollLeft; movido = false; });
+    window.addEventListener('pointermove', e => { if (x0 === null) return; const dx = e.clientX - x0; if (Math.abs(dx) > 5) { movido = true; pista.classList.add('arrastra'); pista.scrollLeft = s0 - dx; } });
+    window.addEventListener('pointerup', e => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (!movido) return; pista.classList.remove('arrastra'); ir(posCarrusel + (dx < -60 ? 1 : dx > 60 ? -1 : 0)); });
+    pista.addEventListener('click', e => { if (movido) { e.stopPropagation(); e.preventDefault(); movido = false; } }, true);
+    v.querySelectorAll('[data-pdf]').forEach(b => b.onclick = () => descargaPdf(porId(b.dataset.pdf), b));
+    v.querySelectorAll('[data-comp]').forEach(b => b.onclick = () => comparte(porId(b.dataset.comp)));
+    pintaFotos(v);
+    requestAnimationFrame(() => { ir(posCarrusel, false); marca(posCarrusel); });
+  }
+
+  /* ---------- Página de un producto ---------- */
+  function detalle(p) {
+    const lista = elim(p) ? listaElim() : activos();
+    const i = lista.indexOf(p), ant = lista[i - 1], sig = lista[i + 1];
+    const volverA = elim(p) ? '#/eliminadas' : (ultimaLista.includes('eliminadas') ? '#/' + vista : ultimaLista);
+    if (!elim(p)) posCarrusel = Math.max(0, activos().filter(x => filtro === 'Todas' || x.etiquetas.includes(filtro)).indexOf(p));
+    app.innerHTML = `<div class="det-nav"><a href="${volverA}">${ic('izq')}${elim(p) ? 'Volver a las eliminadas' : ultimaLista === '#/ocultas' ? 'Volver a las ocultas' : 'Volver a las fichas'}</a>
+        <div class="pasos">${ant ? `<button type="button" data-ir="${esc(ant.id)}">${ic('izq')}${esc(ant.nombre)}</button>` : ''}${sig ? `<button type="button" data-ir="${esc(sig.id)}">${esc(sig.nombre)}${ic('der')}</button>` : ''}</div></div>
+      ${p.estado === 'eliminado' ? `<div class="aviso-p">${ic('papelera')}<span>Producto eliminado del catálogo (20/11/2026). Solo lo ven los administradores.</span></div>` : ''}
+      ${borradaAqui(p) ? `<div class="aviso-p">${ic('papelera')}<span>Ficha eliminada: nadie la ve en las fichas. Solo la ven los administradores, aquí en «Eliminadas».</span></div>` : ''}
+      ${esAdmin && !elim(p) && oculto(p) ? `<div class="aviso-p ama">${ic('ojoNo')}<span>Esta ficha está oculta: los demás no la ven.</span></div>` : ''}
+      <div class="det">${foto(p)}
+        <div class="info">
+          <div><span class="gama">${esc(p.gama)}</span><h1>${titulo(p)}</h1><p class="sub">${esc(p.sub)}</p></div>
+          ${etiquetas(p)}
+          <p class="intro">${conB(p.intro)}</p>
+          ${dato(p)}
+          ${ventajas(p)}
+          <div class="card bloque"><h2>Datos técnicos</h2><table class="tabla">${p.datos.map(d => `<tr><td>${esc(d.etiqueta)}</td><td>${esc(d.valor)}</td></tr>`).join('')}</table></div>
+          ${p.proceso && p.proceso.pasos.length ? `<div class="card bloque"><h2>${esc(p.proceso.titulo)}${p.proceso.subtitulo ? ' · ' + esc(p.proceso.subtitulo) : ''}</h2><div class="pasos-l">${p.proceso.pasos.map(s => `<div><p><b>${esc(s.titulo)}</b><span>${esc(s.texto)}</span></p></div>`).join('')}</div></div>` : ''}
+          ${p.banda ? `<div class="banda"><b>${esc(p.banda.titulo)}</b><span>${esc(p.banda.texto)}</span></div>` : ''}
+          <div class="card bloque"><h2>La ficha</h2>
+            <button class="ficha-prev" type="button" aria-label="Ver la ficha en grande"><img data-p="${esc(p.id)}" data-c="ficha" alt="Ficha de ${esc(p.nombre)}"><span class="carga"></span></button>
+            <div class="botones" style="margin-top:12px"><button class="btn chico" type="button" id="ampliar">${ic('ampliar')}Ver en grande</button>
+              ${p.archivos.pdf ? `<button class="btn chico sec" type="button" id="pdf">${ic('pdf')}Descargar PDF</button>` : ''}
+              <button class="btn chico sec" type="button" id="img">${ic('pdf')}Descargar imagen</button>
+              <button class="btn chico sec" type="button" id="comp">${ic('compartir')}Compartir</button></div></div>
+          ${esAdmin && p.estado === 'activo' ? `<div class="card bloque">${!elim(p) ? `<label class="interruptor"><span>Visible para todos</span><input type="checkbox" id="visible" ${oculto(p) ? '' : 'checked'}></label>
+            <p class="muted" style="font-size:13px;margin-top:6px">${puedeGuardar ? 'Si la apagas, solo la verán los administradores (es para algo temporal). Se guarda con el botón de abajo.' : 'Para guardarlo hace falta ser administrador del Hub.'}</p>
+            <div class="botones" style="margin-top:12px"><button class="btn chico sec" type="button" id="eliminar">${ic('papelera')}Eliminar ficha</button></div>`
+            : `<div class="botones"><button class="btn chico" type="button" id="recuperar">${ic('recuperar')}Recuperar ficha</button></div>`}</div>` : ''}
+        </div></div>`;
+    app.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { location.hash = '#/p/' + encodeURIComponent(b.dataset.ir); });
+    app.querySelector('.ficha-prev').onclick = app.querySelector('#ampliar').onclick = () => verFicha(p);
+    const bp = app.querySelector('#pdf'); if (bp) bp.onclick = () => descargaPdf(p, bp);
+    app.querySelector('#img').onclick = async () => baja(await archivo(p, 'ficha'), `Ficha ${p.archivos.nombre}.jpg`);
+    const vi = app.querySelector('#visible'); if (vi) vi.onchange = () => cambia(p.id, !vi.checked);
+    const be = app.querySelector('#eliminar'); if (be) be.onclick = () => { elimina(p.id, true); location.hash = '#/' + vista; };
+    const br = app.querySelector('#recuperar'); if (br) br.onclick = () => elimina(p.id, false);
+    app.querySelector('#comp').onclick = () => comparte(p);
+    archivoCompartir(p);
+    pintaFotos(app);
+    document.onkeydown = e => { if (dlg.open || !location.hash.includes('/p/')) return; if (e.key === 'ArrowLeft' && ant) location.hash = '#/p/' + encodeURIComponent(ant.id); if (e.key === 'ArrowRight' && sig) location.hash = '#/p/' + encodeURIComponent(sig.id); if (e.key === 'Escape') location.hash = volverA; };
+  }
+
+  /* ---------- Eliminadas (solo administradores) ---------- */
+  const pestanasAdmin = actual => `<div class="vistas adm" role="group" aria-label="Fichas eliminadas u ocultas">
+      <button type="button" data-h="eliminadas" class="${actual === 'eliminadas' ? 'on' : ''}">${ic('papelera')}<span>Eliminadas (${listaElim().length})</span></button>
+      <button type="button" data-h="ocultas" class="${actual === 'ocultas' ? 'on' : ''}">${ic('ojoNo')}<span>Ocultas (${listaOcultas().length})</span></button></div>`;
+  function rejillaAdmin(titulo, texto, ps, actual, vacio) {
+    app.innerHTML = `<div class="det-nav"><a href="#/${vista}">${ic('izq')}Volver a las fichas</a></div>
+      <div class="pr-cab"><div><h1>${titulo}</h1><p>${texto}</p></div>${pestanasAdmin(actual)}</div>
+      <div id="vista"></div>`;
+    app.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.h; });
+    const v = app.querySelector('#vista');
+    v.innerHTML = ps.length ? `<div class="rejilla-p">${ps.map((p, i) => tarjeta(p, i)).join('')}</div>` : `<p class="vacio-f">${vacio}</p>`;
+    enlazaTarjetas(v); pintaFotos(v);
+  }
+  function eliminadas() {
+    const n = CAT.productos.filter(borradaAqui).length;
+    rejillaAdmin('Eliminadas', `Ya no se ven en las fichas. Solo las ven los administradores.${n ? ' Las que se eliminaron desde aquí se pueden recuperar con el botón de arriba a la derecha.' : ''}${ELIM.length ? ` ${ELIM.length} se quitaron del catálogo el 20/11/2026.` : ''}`, listaElim(), 'eliminadas', 'No hay fichas eliminadas.');
+  }
+  function ocultas() {
+    rejillaAdmin('Ocultas', 'Los demás no las ven; tú las sigues viendo también en la pantalla principal. Toca el ojo para que vuelvan a verse.', listaOcultas(), 'ocultas', 'No hay fichas ocultas: todas se ven.');
+  }
+
+  /* ---------- Ver y descargar ---------- */
+  async function verFicha(p) {
+    dlg.innerHTML = `<div class="dc"><div class="dcab"><b>Ficha · ${esc(p.nombre)}</b><button class="btn chico sec" type="button" id="dcomp">${ic('compartir')}Compartir</button>${p.archivos.pdf ? `<button class="btn chico sec" type="button" id="dpdf">${ic('pdf')}PDF</button>` : ''}<button class="btn-ic" type="button" id="dcer" aria-label="Cerrar">${ic('cerrar')}</button></div>
+      <div class="dimg"><img alt="Ficha de ${esc(p.nombre)}"></div></div>`;
+    dlg.classList.remove('chico');
+    dlg.showModal();
+    dlg.querySelector('#dcer').onclick = () => dlg.close();
+    const b = dlg.querySelector('#dpdf'); if (b) b.onclick = () => descargaPdf(p, b);
+    dlg.querySelector('#dcomp').onclick = () => { dlg.close(); comparte(p); };
+    dlg.onclick = e => { if (e.target === dlg) dlg.close(); };
+    const u = await archivo(p, 'ficha'); if (u) dlg.querySelector('.dimg img').src = u;
+  }
+  async function descargaPdf(p, boton) {
+    const t = boton.innerHTML; boton.disabled = true; boton.innerHTML = 'Preparando…';
+    const u = await archivo(p, 'pdf'); boton.disabled = false; boton.innerHTML = t;
+    baja(u, `Ficha ${p.archivos.nombre}.pdf`);
+  }
+  function baja(u, nombre) {
+    if (!u) return aviso('No se ha podido descargar. Prueba otra vez.', true);
+    const a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  }
+  /* ---------- Compartir (Juan, 23/11) ----------
+     En el móvil (y en los ordenadores que lo admiten) se abre el menú de compartir del propio aparato,
+     con WhatsApp, correo y demás, y la ficha va adjunta en PDF. Donde no se puede adjuntar,
+     se descarga la ficha y se abre WhatsApp o el correo con el texto listo para adjuntarla. */
+  const campoCompartir = p => p.archivos.pdf ? 'pdf' : 'ficha';
+  const archivoCompartir = p => archivo(p, campoCompartir(p));
+  const nombreCompartir = p => `Ficha ${p.nombre}${p.sup ? ' ' + p.sup : ''} - Culligan Biofy.${campoCompartir(p) === 'pdf' ? 'pdf' : 'jpg'}`;
+  const textoCompartir = p => `Te paso la ficha de ${p.nombre}${p.sup ? ' ' + p.sup : ''} de Culligan Biofy: ${p.sub.charAt(0).toLowerCase() + p.sub.slice(1)}.`;
+  async function comparte(p) {
+    const blob = BLOBS[p.archivos[campoCompartir(p)]];
+    const f = blob ? new File([blob], nombreCompartir(p), { type: blob.type }) : null;
+    if (f && navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], title: 'Ficha de ' + p.nombre, text: textoCompartir(p) }); return; }
+      catch (e) { if (e.name === 'AbortError') return; }   // cancelado por la persona: no se hace nada más
+    }
+    menuCompartir(p);
+  }
+  function menuCompartir(p) {
+    const t = textoCompartir(p);
+    dlg.innerHTML = `<div class="dc"><div class="dcab"><b>Compartir · ${esc(p.nombre)}</b><button class="btn-ic" type="button" id="dcer" aria-label="Cerrar">${ic('cerrar')}</button></div>
+      <div class="compartir">
+        <p class="muted">Desde aquí se descarga la ficha y se abre la aplicación con el texto listo: solo tienes que adjuntar el archivo descargado.</p>
+        <button class="op" type="button" data-op="wa">${ic('whatsapp')}<span><b>WhatsApp</b><small>Descarga la ficha y abre WhatsApp</small></span></button>
+        <button class="op" type="button" data-op="mail">${ic('correo')}<span><b>Correo</b><small>Descarga la ficha y abre tu correo</small></span></button>
+        <button class="op" type="button" data-op="baja">${ic('pdf')}<span><b>Solo descargar</b><small>${campoCompartir(p) === 'pdf' ? 'En PDF' : 'En imagen'}</small></span></button>
+      </div></div>`;
+    dlg.classList.add('chico');
+    if (!dlg.open) dlg.showModal();
+    dlg.querySelector('#dcer').onclick = () => dlg.close();
+    dlg.onclick = e => { if (e.target === dlg) dlg.close(); };
+    dlg.querySelectorAll('.op').forEach(b => b.onclick = async () => {
+      const op = b.dataset.op;
+      // la ventana se abre ya (si se espera al archivo, el navegador la bloquea)
+      if (op === 'wa') window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener');
+      if (op === 'mail') location.href = `mailto:?subject=${encodeURIComponent('Ficha de ' + p.nombre + ' · Culligan Biofy')}&body=${encodeURIComponent(t + '\n\n(La ficha va adjunta.)')}`;
+      baja(await archivoCompartir(p), nombreCompartir(p));
+      dlg.close();
+    });
+  }
+
+  function aviso(t, mal) { const d = document.createElement('div'); d.className = 'toast' + (mal ? ' mal' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2800); }
+
+  /* ---------- Ocultar y mostrar (administradores) ---------- */
+  const barra = document.getElementById('barra');
+  function cambia(id, ocultar) {
+    if (ocultar === undefined) ocultar = !cambios.has(id);
+    ocultar ? cambios.add(id) : cambios.delete(id);
+    pintaBarra();
+    if (!location.hash.includes('/p/')) ruta(); else { const p = porId(id); const sc = scrollY; detalle(p); scrollTo(0, sc); }
+  }
+  function elimina(id, quitar) {
+    quitar ? cambiosE.add(id) : cambiosE.delete(id);
+    pintaBarra();
+    if (!location.hash.includes('/p/')) ruta(); else { const sc = scrollY; detalle(porId(id)); scrollTo(0, sc); }
+    if (quitar) aviso('Eliminada. Pulsa «Guardar» abajo para que sea definitivo.');
+  }
+  const diferencias = () => [...new Set([...cambios, ...ocultos])].filter(id => cambios.has(id) !== ocultos.includes(id))
+    .concat([...new Set([...cambiosE, ...eliminados])].filter(id => cambiosE.has(id) !== eliminados.includes(id)).map(id => 'e:' + id));
+  function pintaBarra() {
+    const n = diferencias().length;
+    barra.classList.toggle('ver', n > 0);
+    document.getElementById('nCambios').textContent = `${n} cambio${n === 1 ? '' : 's'} sin guardar`;
+    document.getElementById('guardar').style.display = puedeGuardar ? '' : 'none';
+  }
+  document.getElementById('deshacer').onclick = () => { cambios = new Set(ocultos); cambiosE = new Set(eliminados); pintaBarra(); ruta(); };
+  document.getElementById('guardar').onclick = async function () {
+    this.disabled = true; this.textContent = 'Guardando…';
+    try {
+      const nuevo = [...cambios].filter(id => CAT.productos.some(p => p.id === id));
+      const nuevoE = [...cambiosE].filter(id => CAT.productos.some(p => p.id === id));
+      const cuerpo = await Hub.cifra.cierra(L.ver, JSON.stringify({ ocultos: nuevo, eliminados: nuevoE, fecha: new Date().toISOString(), quien: Hub.sesion().nombre }));
+      shaEstado = await Hub.publicaArchivo(RUTA_ESTADO, JSON.stringify(cuerpo), `Productos: qué fichas se ven (${Hub.sesion().nombre})`, shaEstado ?? null);
+      ocultos = nuevo; cambios = new Set(nuevo); eliminados = nuevoE; cambiosE = new Set(nuevoE);
+      aviso('Guardado. Los demás lo verán en unos minutos.');
+    } catch (e) { aviso(e.message, true); }
+    this.disabled = false; this.textContent = 'Guardar';
+    pintaBarra(); ruta();
+  };
+  window.addEventListener('beforeunload', e => { if (diferencias().length) { e.preventDefault(); e.returnValue = ''; } });
+
+  ruta();
+});
+</script>
+</body>
+</html>
