@@ -171,6 +171,12 @@ table.t td.bl{border-left:1px solid var(--line)}
 .num-h{width:44px;height:32px;border:1px solid var(--line-2);border-radius:8px;text-align:center;font:inherit;font-weight:700;background:var(--surface);color:var(--ink)}
 .num-h:focus{outline:2px solid var(--brand);outline-offset:1px}
 table.hoja-t td.n{padding:4px 6px}
+/* Hojas a mano (Juan, 26/11): cada origen con su color para distinguir Registros móviles y MKT */
+table.t th.og-reg{background:color-mix(in srgb,#2968fe 15%,var(--surface));color:var(--brand-ink)}
+table.t td.og-reg{background:color-mix(in srgb,#2968fe 6%,var(--surface))}
+table.t th.og-mkt{background:color-mix(in srgb,#8b5cf6 17%,var(--surface));color:#7c3aed}
+table.t td.og-mkt{background:color-mix(in srgb,#8b5cf6 7%,var(--surface))}
+:root[data-theme="dark"] table.t th.og-mkt{color:#c4b5fd}
 .atajos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .filtro-f{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px;color:var(--ink-2);cursor:pointer;transition:all .15s}
 .filtro-f:hover{border-color:var(--brand);color:var(--brand)}
@@ -998,8 +1004,9 @@ Hub.listo.then(async function () {
 
     const editable = puedeEditar(hojaSel) && modoHoja === 'semana';
     const vacio = cols.map(() => null);
-    const celda = (c, x, k, ed, p, d) => ed && c.m ? `<td class="n ${c.s === cols[0].s || (k && cols[k - 1].g !== c.g) ? 'bl' : ''}"><input class="num-h" inputmode="numeric" data-u="${esc(p.uid)}" data-d="${d}" data-k="${k}" value="${x == null || x === 0 && !((datosHoja.dato.datos[p.uid] || {})[d]) ? '' : x}" aria-label="${esc(p.nombre + ' ' + c.g + ' ' + c.s)}"></td>`
-      : `<td class="n ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''} ${x ? '' : 'cero'}">${x == null ? '' : c.pct ? x + ' %' : x}</td>`;
+    const OG = { 'Registros móviles': 'og-reg', 'MKT': 'og-mkt' }, og = c => D.manual ? (OG[c.g] || '') : '';
+    const celda = (c, x, k, ed, p, d) => ed && c.m ? `<td class="n ${og(c)} ${c.s === cols[0].s || (k && cols[k - 1].g !== c.g) ? 'bl' : ''}"><input class="num-h" inputmode="numeric" data-u="${esc(p.uid)}" data-d="${d}" data-k="${k}" value="${x == null || x === 0 && !((datosHoja.dato.datos[p.uid] || {})[d]) ? '' : x}" aria-label="${esc(p.nombre + ' ' + c.g + ' ' + c.s)}"></td>`
+      : `<td class="n ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''} ${x ? '' : 'cero'}">${x == null ? '' : c.pct ? x + ' %' : x}</td>`;
     const fila = (p, vals, i, d, ed) => `<tr><td class="n">${i + 1}º</td><td>${esc(p.nombre)}</td>${(vals || vacio).map((x, k) => celda(cols[k], x, k, ed, p, d)).join('')}</tr>`;
     const totFila = (t, filas) => `<tr class="tot"><td></td><td>${t}</td>${sumaFilas(cols, filas).map((x, k) => celda(cols[k], x, k, false)).join('')}</tr>`;
     let cuerpo = '';
@@ -1023,8 +1030,8 @@ Hub.listo.then(async function () {
     const periodo = modoHoja === 'semana' ? 'Semana del ' + fechaLarga(semana) : 'Resumen de ' + new Date(mesHoja + '-15T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     c.innerHTML = `<div class="q-cab" style="margin-top:4px"><div><h1 style="font-size:20px">${esc(titulo)}</h1><p>${esc(periodo)} · ${personas.length ? personas.length + ' personas' : D.manual ? 'todavía no hay nadie en esta hoja (se pone en ACCESOS: «Sale en la hoja de producción de»)' : 'todavía no hay quinielas'}</p></div>
         <div class="no-imprimir" style="display:flex;gap:8px;align-items:center"><span class="estado-g" id="estadoH"></span><button class="btn chico sec" type="button" id="csv">${ic('excel')}Descargar Excel</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
-      <div class="tabla-c"><table class="t hoja-t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${grupos.map(g => g.n === 1 && !g.s ? `<th class="g" rowspan="2">${esc(g.g)}</th>` : `<th class="g" colspan="${g.n}">${esc(g.g)}</th>`).join('')}</tr>
-        <tr>${cols.map((x, k) => (grupos.find(g => g.g === x.g).n === 1 && !x.s) ? '' : `<th class="n ${k === 0 || cols[k - 1].g !== x.g ? 'bl' : ''}">${esc(x.s)}</th>`).join('')}</tr></thead>
+      <div class="tabla-c"><table class="t hoja-t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${grupos.map(g => g.n === 1 && !g.s ? `<th class="g" rowspan="2">${esc(g.g)}</th>` : `<th class="g ${og(g)}" colspan="${g.n}">${esc(g.g)}</th>`).join('')}</tr>
+        <tr>${cols.map((x, k) => (grupos.find(g => g.g === x.g).n === 1 && !x.s) ? '' : `<th class="n ${og(x)} ${k === 0 || cols[k - 1].g !== x.g ? 'bl' : ''}">${esc(x.s)}</th>`).join('')}</tr></thead>
         <tbody>${cuerpo}${modoHoja === 'semana' ? `<tr class="dia"><td colspan="${2 + cols.length}">Total semanal</td></tr>` : ''}${totFila(modoHoja === 'semana' ? 'Total' : 'Total del mes', totalesDia)}</tbody></table></div>`;
     c.querySelector('#csv').onclick = e => excelHoja({ D, cols, personas, dias, valor, titulo, periodo }, e.currentTarget);
     if (editable) enlazaEdicion(c, datosHoja, cols);
