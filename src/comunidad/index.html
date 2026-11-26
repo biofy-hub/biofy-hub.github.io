@@ -52,8 +52,10 @@
 .decor.confeti i{width:8px;height:12px;border-radius:2px;opacity:.85}
 @keyframes cae{to{transform:translateY(420px) rotate(260deg)}}
 .brillo{position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.12);z-index:1}
-.nums{display:flex;gap:8px;margin:14px 0 14px;flex-wrap:wrap}
-.nums span{width:clamp(46px,11vw,62px);height:clamp(58px,13vw,76px);border-radius:14px;background:#fff;color:var(--c2);font-weight:900;font-size:clamp(32px,8vw,44px);display:grid;place-items:center;box-shadow:0 5px 0 #ffd66b;animation:pop .5s var(--ease) both}
+.nums{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}
+.nums span{width:clamp(50px,12vw,66px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff 0%,#fbf6ea 35%,#e8dcc0 75%,#c9b48a 100%);color:#3b2a0e;font-weight:900;font-size:clamp(24px,6vw,32px);display:grid;place-items:center;box-shadow:inset -4px -6px 10px rgba(120,90,30,.25),0 8px 18px rgba(0,0,0,.28);animation:cae-bola .9s cubic-bezier(.3,1.4,.5,1) var(--d,0ms) both,balancea 4.5s ease-in-out calc(var(--d,0ms) + 1.2s) infinite}
+@keyframes cae-bola{0%{opacity:0;transform:translateY(-60px) rotate(-220deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes balancea{0%,100%{transform:rotate(0)}50%{transform:rotate(9deg)}}
 .cd{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
 .cd div{background:rgba(255,255,255,.17);border-radius:14px;padding:8px 12px;text-align:center;min-width:64px}
 .cd b{display:block;font-size:22px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -153,35 +155,18 @@ dialog.dl::backdrop{background:rgba(10,14,25,.5)}
 dialog.zoom{margin:auto;border:0;background:none;padding:0;max-width:96vw;max-height:94vh}
 dialog.zoom::backdrop{background:rgba(5,8,15,.85)}
 dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
-/* ---------- Pasos visuales (26/11, Juan: «que sea visual, con animaciones») ---------- */
-.ruta{position:relative;display:grid;gap:12px;margin-bottom:16px}
-.ruta:before{content:'';position:absolute;left:33px;top:26px;bottom:26px;width:3px;border-radius:3px;background:linear-gradient(var(--c1),color-mix(in srgb,var(--c1) 20%,transparent));transform-origin:top;animation:crece-v 1.2s var(--ease) both .2s}
-@keyframes crece-v{from{transform:scaleY(0)}to{transform:none}}
-.paso{position:relative;display:flex;gap:14px;align-items:center;padding:14px 16px;animation:entra .5s var(--ease) both}
-.paso .bola{width:40px;height:40px;border-radius:14px;flex:none;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--c1),var(--c2));box-shadow:0 6px 16px color-mix(in srgb,var(--c1) 35%,transparent);animation:bota 2.6s ease-in-out infinite}
-.paso .bola svg{width:21px;height:21px}
-.paso b{display:block;font-size:15px;font-weight:800}
-.paso small{display:block;color:var(--ink-2);font-size:13.5px;line-height:1.4;margin-top:1px}
-@keyframes bota{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-.claves{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px}
-.clave{padding:16px;display:flex;flex-direction:column;gap:10px;animation:entra .5s var(--ease) both;position:relative;overflow:hidden}
-.clave:after{content:'';position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:color-mix(in srgb,var(--c1) 9%,transparent)}
-.clave .bola{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--c1),var(--c2));animation:bota 2.8s ease-in-out infinite}
-.clave .bola svg{width:23px;height:23px}
-.clave b{font-size:15.5px;font-weight:800}
-.clave small{color:var(--ink-2);font-size:13.5px;line-height:1.45}
-.jurado{padding:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--c1) 12%,var(--surface)),var(--surface));animation:entra .5s var(--ease) both}
-.jurado .caras{display:flex}
-.jurado .cara{width:58px;height:58px;border-radius:50%;border:3px solid var(--surface);background:linear-gradient(150deg,var(--c1),var(--c2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.15);animation:pop .5s var(--ease) both}
-.jurado .cara+.cara{margin-left:-14px}
-.jurado .cara img{width:100%;height:100%;object-fit:cover}
-.jurado .tx{flex:1;min-width:200px}
-.jurado .tx span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;letter-spacing:.18em;font-weight:800;color:var(--c1);text-transform:uppercase}
-.jurado .tx span svg{width:15px;height:15px}
-.jurado .tx b{display:block;font-size:18px;font-weight:800;margin:2px 0}
-.jurado .tx small{color:var(--ink-2);font-size:13.5px}
+/* ---------- Tarjeta de texto con viñetas (Juan, 26/11: en vez de bloques, «una tarjeta de texto con lo importante») ---------- */
+.texto-card{padding:20px 22px;margin-bottom:18px;border-top:5px solid var(--c1);animation:entra .5s var(--ease) both .1s}
+.texto-card h3{display:flex;gap:9px;align-items:center;font-size:18px;font-weight:800;margin-bottom:8px}
+.texto-card h3 svg{width:20px;height:20px;color:var(--c1)}
+.texto-card .intro{color:var(--ink-2);font-size:15px;line-height:1.55;margin-bottom:14px}
+.puntos{list-style:none;display:grid;gap:11px}
+.puntos li{position:relative;padding-left:26px;font-size:15px;line-height:1.5;color:var(--ink-2);animation:entra .45s var(--ease) both}
+.puntos li:before{content:'';position:absolute;left:3px;top:.45em;width:10px;height:10px;border-radius:50%;background:var(--c1);box-shadow:0 0 0 4px color-mix(in srgb,var(--c1) 18%,transparent)}
+.puntos b{color:var(--ink);font-weight:800}
+.dec-sec{padding:10px 0 30px}
 /* Décimo animado */
-.decimo{position:relative;margin:4px auto 18px;max-width:520px;border-radius:20px;padding:20px 22px 20px 34px;background:linear-gradient(135deg,#fff8e1,#ffe7a3);color:#5a3d00;box-shadow:0 18px 40px rgba(150,100,0,.22);overflow:hidden;animation:flota-d 5s ease-in-out infinite}
+.decimo{position:relative;margin:0 auto;max-width:520px;border-radius:20px;padding:20px 22px 20px 34px;background:linear-gradient(135deg,#fff8e1,#ffe7a3);color:#5a3d00;box-shadow:0 18px 40px rgba(150,100,0,.22);overflow:hidden;animation:flota-d 5s ease-in-out infinite}
 .decimo:before{content:'';position:absolute;left:12px;top:10px;bottom:10px;border-left:3px dashed rgba(120,80,0,.3)}
 .decimo:after{content:'';position:absolute;top:0;bottom:0;width:60%;left:-70%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);animation:brilla 3.6s ease-in-out infinite 1s}
 @keyframes brilla{to{left:130%}}
@@ -191,16 +176,13 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
 .decimo .fila{display:flex;gap:18px;flex-wrap:wrap;font-weight:800;font-size:14px}
 .decimo .fila small{display:block;font-size:10.5px;letter-spacing:.15em;opacity:.7;font-weight:700}
 .decimo .sello{position:absolute;right:18px;top:18px;width:64px;height:64px;border-radius:50%;border:3px solid rgba(160,110,0,.45);display:grid;place-items:center;font-size:12px;font-weight:900;color:rgba(130,85,0,.8);transform:rotate(-14deg);text-align:center;line-height:1.05}
-.bolas-l{position:absolute;inset:0;pointer-events:none;z-index:1}
-.bolas-l i{position:absolute;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffd66b 45%,#c98a00);color:#6b4500;font-style:normal;font-size:11px;font-weight:900;display:grid;place-items:center;opacity:.9;animation:rueda 9s linear infinite}
-@keyframes rueda{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(-30px,14px) rotate(180deg)}100%{transform:translate(0,0) rotate(360deg)}}
 .cd-et{font-size:13px;font-weight:700;opacity:.9;margin:4px 0 8px;display:flex;align-items:center;gap:6px}
 .cd-et svg{width:16px;height:16px}
 .recuerda{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;border:2px dashed var(--warn);background:var(--warn-soft);color:var(--ink);margin-bottom:14px;font-size:14px}
 .recuerda svg{width:20px;height:20px;color:var(--warn);flex:none;margin-top:1px}
 .recuerda b{display:block}
 .recuerda q{display:block;color:var(--ink-2);font-style:italic;margin:3px 0 8px}
-@media (prefers-reduced-motion:reduce){.decor,.bolas-l{display:none}*{animation-duration:.01ms!important}}
+@media (prefers-reduced-motion:reduce){.decor{display:none}*{animation-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -238,8 +220,6 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
     regalo:'<rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 13h18M12 9v12"/><path d="M12 9C10 5 6.5 5 7 7.5 7.4 9 12 9 12 9zM12 9c2-4 5.5-4 5-1.5-.4 1.5-5 1.5-5 1.5z"/>',
     jurado:'<path d="M14 4l6 6M12 6l6 6M9 9l6 6"/><path d="M11 13l-7 7"/><path d="M3 21h8"/>'
   };
-  // Iconos de los pasos de cada tipo de pestaña (por orden; si hay más pasos, se repiten)
-  const ICONOS_PASOS = { loteria: ['persona', 'cal', 'euro', 'estrella'], concurso: ['casa', 'foto', 'corazon', 'regalo', 'comida', 'estrellas'], libre: ['info', 'estrellas'], evento: ['estrellas'] };
   const s = (n, c = '') => `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n] || ''}</svg>`;
   const ICONO_TIPO = { concurso:'casa', loteria:'ticket', evento:'comida', libre:'mega' };
 
@@ -249,25 +229,23 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
   const cv = c => { const x = COLORES[c] || COLORES.azul; return `--c1:${x[0]};--c2:${x[1]}`; };
 
   /* ---------- Contenido de partida (si aún no hay nada guardado) ---------- */
-  // Juan, 26/11 (2.1): sin imágenes en Belenes y Lotería, pasos más explicados y visuales, cuenta atrás de la lotería hasta el 4/12, comida oculta
+  // Juan, 26/11 (2.1 y 2.2): sin imágenes, tarjeta de texto con lo importante, cuenta atrás de la lotería hasta el 4/12, comida oculta
   const TARJETA = 'Novedades para el personal: el concurso de belenes y la lotería de Navidad.';
   const PARTIDA = () => ({ v: 1, destacada: 'loteria', tarjeta: TARJETA, pestanas: [
     { id: 'belenes', tipo: 'concurso', titulo: 'Belenes', color: 'rojo', decor: 'nieve', oculta: false, k: 'Navidad 2026',
-      cab: 'Concurso de belenes', sub: 'Córdoba contra Alicante · el mejor belén se lleva el premio', imagen: null,
+      cab: 'Concurso de belenes', sub: 'Córdoba y Alicante se juegan el mejor belén de la casa', imagen: null,
       participantes: [{ id: 'cordoba', nombre: 'Córdoba', foto: null }, { id: 'alicante', nombre: 'Alicante', foto: null }],
-      votacion: 'cerrada', premio: '', jurado: ['Javier Ibáñez', 'José Luis Ibáñez'],
-      pasos: ['Cada delegación monta su belén | Córdoba y Alicante, cada una el suyo, con todo el cariño',
-        'Subimos aquí las fotos | En esta misma pestaña, para que todos podamos verlos',
-        'Tú eliges tu favorito | Todos podemos votar el belén que más nos guste: un voto por persona',
-        'El premio es por delegación | No es individual: si gana tu belén, gana toda tu delegación',
-        'El ganador, en la comida de empresa | Allí se anunciarán el belén ganador y el premio'] },
-    { id: 'loteria', tipo: 'loteria', titulo: 'Lotería', color: 'azul', decor: 'nieve', oculta: false, k: 'Lotería de Navidad',
-      cab: 'Nuestro número', numero: '29480', sorteo: '2026-12-22', precio: '20', reservas: 'Inmaculada, de Administración', texto: '¿Ya tienes el tuyo?', imagen: null,
-      cuenta: '2026-12-04', cuentaTexto: 'Quedan para reservar tu décimo',
-      pasos: ['Resérvalo con Inmaculada | De Administración: díselo y te lo guarda',
-        'Hasta el 4 de diciembre | Corre, que la cuenta atrás ya ha empezado',
-        '20 € el décimo | El mismo número para todos: el 29480',
-        '22 de diciembre, el sorteo | ¡Crucemos los dedos!'] },
+      votacion: 'cerrada', premio: '', puntosTitulo: 'Así funciona',
+      intro: 'Cada delegación monta su belén y lo enseñamos aquí. Un jurado elige el ganador y, además, todos podemos votar a nuestro favorito.',
+      puntos: ['Participan | Córdoba y Alicante, con un belén por delegación', 'Jurado | Javier y José Luis eligen el belén ganador',
+        'Tu voto | elige aquí el que más te guste (un voto por persona): así sale el favorito del público',
+        'Premio | es para la delegación ganadora, no individual', 'Cuándo se sabe | el ganador y el premio se anuncian en la comida de empresa'] },
+    { id: 'loteria', tipo: 'loteria', titulo: 'Lotería', color: 'azul', decor: 'nieve', oculta: false, k: 'Lotería de Navidad 2026',
+      cab: '¡Este año jugamos juntos!', numero: '29480', sorteo: '2026-12-22', precio: '20', reservas: 'Inmaculada, de Administración', texto: 'Un número para todo el equipo. ¿Ya tienes tu décimo?', imagen: null,
+      cuenta: '2026-12-04', cuentaTexto: 'Quedan para reservar tu décimo', puntosTitulo: 'Lo que tienes que saber',
+      intro: 'Toda la empresa juega al mismo número. Reserva tu décimo a tiempo y, el 22 de diciembre, a cruzar los dedos.',
+      puntos: ['Nuestro número | 29480', 'Precio | 20 € el décimo', 'Cómo reservarlo | díselo a Inmaculada, de Administración',
+        'Fecha límite | viernes 4 de diciembre', 'Sorteo | martes 22 de diciembre'] },
     { id: 'comida', tipo: 'evento', titulo: 'Comida', color: 'verde', decor: 'confeti', oculta: true, k: 'Navidad 2026',
       cab: 'Comida de empresa', sub: 'Vídeos, actividades y todo lo que estamos preparando', fecha: '', hora: '', lugar: '', texto: '', actividades: [], videos: [], imagen: null }
   ] });
@@ -397,7 +375,6 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
     main.onclick = clic;
     // imágenes
     main.querySelectorAll('img[data-src]').forEach(async im => { const u = await imagen(im.dataset.src); if (u) { im.src = u; im.closest('.foto')?.classList.add('lista'); } else im.remove(); });
-    main.querySelectorAll('[data-foto]').forEach(async c => { const u = await Hub.foto(c.dataset.foto); if (u) c.innerHTML = `<img src="${u}" alt="">`; });
     // cuentas atrás
     const cds = main.querySelectorAll('[data-cd]');
     if (cds.length) { const t = () => cds.forEach(pintaCuenta); t(); reloj = setInterval(t, 1000); }
@@ -415,14 +392,11 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
   const metaLot = p => p.cuenta && diasHasta(p.cuenta, '23:59') > 0 ? { f: p.cuenta, h: '23:59', et: p.cuentaTexto || 'Quedan para reservar tu décimo', corto: 'para reservar' }
     : { f: p.sorteo, h: '09:00', et: 'Quedan para el sorteo', corto: 'para el sorteo' };
   const cuentaLot = (p, extra = '') => { const m = metaLot(p); return `<div class="cd-et">${s('reloj')}${esc(m.et)}</div><div class="cd" data-cd="${esc(m.f)}" data-h="${m.h}" data-fin="¡Hoy es el sorteo!" data-extra="${esc(extra)}"></div>`; };
-  const paso = t => { const [a, ...b] = String(t).split('|'); return { t: a.trim(), d: b.join('|').trim() }; };
-  const icPaso = (p, i) => { const l = ICONOS_PASOS[p.tipo] || ICONOS_PASOS.libre; return l[i % l.length]; };
-  const rutaPasos = p => !(p.pasos || []).length ? '' : `<div class="ruta">${p.pasos.map(paso).map((x, i) => `<div class="card paso" style="animation-delay:${150 + i * 120}ms"><span class="bola" style="animation-delay:${i * .3}s">${s(icPaso(p, i))}</span><div><b>${esc(x.t)}</b>${x.d ? `<small>${esc(x.d)}</small>` : ''}</div></div>`).join('')}</div>`;
-  const clavesPasos = p => !(p.pasos || []).length ? '' : `<div class="claves">${p.pasos.map(paso).map((x, i) => `<div class="card clave" style="animation-delay:${120 + i * 90}ms"><span class="bola" style="animation-delay:${i * .35}s">${s(icPaso(p, i))}</span><b>${esc(x.t)}</b>${x.d ? `<small>${esc(x.d)}</small>` : ''}</div>`).join('')}</div>`;
-  const iniciales = n => String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
-  const nombresY = l => l.length < 2 ? (l[0] || '') : l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1];
-  const juradoCaja = p => !(p.jurado || []).length ? '' : `<div class="card jurado"><div class="caras">${p.jurado.map((n, i) => `<span class="cara" data-foto="${esc(n)}" style="animation-delay:${200 + i * 120}ms">${esc(iniciales(n))}</span>`).join('')}</div>
-    <div class="tx"><span>${s('jurado')}El jurado</span><b>${esc(nombresY(p.jurado.map(n => { const w = n.trim().split(/\s+/); return w.length > 1 ? w.slice(0, -1).join(' ') : n; })))}</b><small>Ellos eligen el belén ganador. El voto de todos elige el favorito del público.</small></div></div>`;
+  // Tarjeta de texto: título, una introducción y viñetas «Etiqueta | texto» (Juan, 26/11)
+  const punto = t => { const [a, ...b] = String(t).split('|'); return b.length ? { e: a.trim(), t: b.join('|').trim() } : { e: '', t: a.trim() }; };
+  const tarjetaTexto = p => !(p.intro || (p.puntos || []).length) ? '' : `<section class="card texto-card"><h3>${s('info')}${esc(p.puntosTitulo || 'Lo importante')}</h3>${p.intro ? `<p class="intro">${esc(p.intro)}</p>` : ''}`
+    + `<ul class="puntos">${(p.puntos || []).map(punto).map((x, i) => `<li style="animation-delay:${200 + i * 90}ms">${x.e ? `<b>${esc(x.e)}:</b> ` : ''}${esc(x.t)}</li>`).join('')}</ul></section>`;
+  const bolas = p => `<div class="nums" aria-label="Número ${esc(p.numero || '')}">${String(p.numero || '').split('').map((d, i) => `<span style="--d:${i * 120}ms">${esc(d)}</span>`).join('')}</div>`;
   const decimo = p => `<div class="decimo">
     <span class="sello">22<br>DIC</span><div class="t1">SORTEO DE NAVIDAD · 2026</div><div class="num">${esc(p.numero || '')}</div>
     <div class="fila">${p.precio ? `<div><small>EL DÉCIMO</small>${esc(p.precio)} €</div>` : ''}${p.sorteo ? `<div><small>SORTEO</small>${esc(fechaLarga(p.sorteo))}</div>` : ''}</div></div>`;
@@ -449,7 +423,7 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
   }
   function destacado(p) {
     const cuerpo = p.tipo === 'loteria'
-      ? `<div class="nums">${String(p.numero || '').split('').map((d, i) => `<span style="animation-delay:${i * 70}ms">${esc(d)}</span>`).join('')}</div>
+      ? `${bolas(p)}
          ${cuentaLot(p, p.precio ? `<div><b>${esc(p.precio)} €</b><small>el décimo</small></div>` : '')}`
       : p.tipo === 'evento' && p.fecha ? `<div class="cd" data-cd="${esc(p.fecha)}" data-h="${esc(p.hora || '14:00')}" data-fin="¡Es hoy!"></div>` : '';
     return `<section class="banda" style="${cv(p.color)}">${decor(p.decor)}
@@ -465,19 +439,14 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
     let h = cabEd(ed) + oc;
     if (p.tipo === 'loteria') {
       h += `<section class="banda">${decor(p.decor)}<div class="k">${esc(p.k || 'Lotería de Navidad')}</div><h2>${esc(p.cab || 'Nuestro número')}</h2>
-        <div class="nums">${String(p.numero || '').split('').map((d, i) => `<span style="animation-delay:${i * 70}ms">${esc(d)}</span>`).join('')}</div>
+        ${bolas(p)}
         ${cuentaLot(p)}
         ${p.texto ? `<p class="s" style="margin-top:14px">${esc(p.texto)}</p>` : ''}</section>
-        ${decimo(p)}
-        <div class="datos" style="margin-bottom:16px">
-          ${p.reservas ? `<div class="card dato"><span class="di">${s('persona')}</span><div><small>Resérvalo con</small><b>${esc(p.reservas)}</b></div></div>` : ''}
-          ${p.cuenta ? `<div class="card dato"><span class="di">${s('reloj')}</span><div><small>Hasta</small><b>${esc(fechaLarga(p.cuenta))}</b></div></div>` : ''}
-          ${p.precio ? `<div class="card dato"><span class="di">${s('euro')}</span><div><small>El décimo</small><b>${esc(p.precio)} €</b></div></div>` : ''}
-        </div>${(p.pasos || []).length ? `<div class="sec-h"><b>Cómo conseguir tu décimo</b></div>${rutaPasos(p)}` : ''}${pieza}`;
+        ${tarjetaTexto(p)}
+        <div class="sec-h"><b>Nuestro décimo</b></div><div class="dec-sec">${decimo(p)}</div>${pieza}`;
     } else if (p.tipo === 'concurso') {
-      h += banda() + pieza + `<div id="votos"><div class="carga"><i></i></div></div>`
-        + (p.premio ? `<div class="aviso">${s('corona')}<span>${esc(p.premio)}</span></div>` : '')
-        + ((p.pasos || []).length || (p.jurado || []).length ? `<div class="sec-h"><b>Cómo funciona</b></div>${juradoCaja(p)}${clavesPasos(p)}` : '');
+      h += banda() + tarjetaTexto(p) + pieza + (p.premio ? `<div class="aviso">${s('corona')}<span>${esc(p.premio)}</span></div>` : '')
+        + `<div class="sec-h"><b>Los belenes</b></div><div id="votos"><div class="carga"><i></i></div></div>`;
     } else if (p.tipo === 'evento') {
       h += banda(p.fecha ? `<div class="cd" style="margin-top:14px" data-cd="${esc(p.fecha)}" data-h="${esc(p.hora || '14:00')}" data-fin="¡Es hoy!"></div>` : '')
         + `<div class="datos" style="margin-bottom:16px">
@@ -499,7 +468,7 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
     const yo = await miCodigo(), mio = (votos.find(v => v.quien === yo) || {}).a, total = votos.length;
     const n = id => votos.filter(v => v.a === id).length, max = Math.max(0, ...p.participantes.map(x => n(x.id)));
     const abierta = p.votacion === 'abierta', res = p.votacion === 'resultados';
-    caja.innerHTML = (p.votacion === 'cerrada' ? `<div class="aviso">${s('reloj')}<span>La votación se abrirá cuando estén las fotos de los belenes.</span></div>` : '')
+    caja.innerHTML = (p.votacion === 'cerrada' ? `<div class="aviso">${s('reloj')}<span>La votación se abrirá cuando estén las fotos de los dos belenes.</span></div>` : '')
       + `<div class="dos" style="margin-bottom:6px">${p.participantes.map((x, i) => {
         const v = n(x.id), pc = total ? Math.round(v * 100 / total) : 0, gana = res && v === max && max > 0;
         return `<div class="card part ${mio === x.id ? 'mio' : ''}" style="animation-delay:${i * 80}ms">${gana ? `<span class="corona">${s('corona')} Favorito del público</span>` : ''}
@@ -578,14 +547,18 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
       + campo('Precio del décimo (€)', txt('precio', p.precio)) + campo('Resérvalo con', txt('reservas', p.reservas)) + campo('Frase', txt('texto', p.texto))
       + campo('Cuenta atrás hasta', `<input type="date" name="cuenta" value="${esc(p.cuenta || '')}">`, 'Último día para reservar. Pasado ese día, la cuenta atrás va hasta el sorteo. Vacío: hasta el sorteo')
       + campo('Texto de la cuenta atrás', txt('cuentaTexto', p.cuentaTexto, 'Quedan para reservar tu décimo'))
-      + campo('Cómo conseguir tu décimo (un paso por línea)', `<textarea name="pasos" rows="5">${esc((p.pasos || []).join('\n'))}</textarea>`, 'Título | explicación. Ej.: «20 € el décimo | El mismo número para todos»')
+      + campo('Título de la tarjeta de texto', txt('puntosTitulo', p.puntosTitulo, 'Lo importante'))
+      + campo('Introducción', `<textarea name="intro" rows="3">${esc(p.intro || '')}</textarea>`)
+      + campo('Lo importante (una viñeta por línea)', `<textarea name="puntos" rows="6">${esc((p.puntos || []).join('\n'))}</textarea>`, 'Etiqueta | texto. Ej.: «Fecha límite | viernes 4 de diciembre». La etiqueta sale en negrita')
       + imgEd('imagen', p.imagen, 'Imagen (opcional)');
     if (p.tipo === 'concurso') {
       cuerpo += campo('Subtítulo', txt('sub', p.sub)) + imgEd('imagen', p.imagen, 'Imagen del concurso')
         + campo('Votación', `<select name="votacion">${[['cerrada', 'Cerrada (aún no se vota)'], ['abierta', 'Abierta (todos pueden votar)'], ['resultados', 'Terminada (se ve el ganador)']].map(([v, t]) => `<option value="${v}" ${p.votacion === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`)
         + `<div class="fld"><span>Participantes y su foto</span><div id="parts">${p.participantes.map(x => filaPart(x)).join('')}</div><button class="b2" type="button" data-addp="1" style="margin-top:8px">${s('mas')}Añadir participante</button></div>`
-        + campo('Premio', txt('premio', p.premio, 'Ej.: Una cena para el equipo ganador')) + campo('Jurado (un nombre por línea)', `<textarea name="jurado" rows="2">${esc((p.jurado || []).join('\n'))}</textarea>`, 'Con el nombre completo, como en ACCESOS, sale su foto')
-        + campo('Cómo funciona (un paso por línea)', `<textarea name="pasos" rows="6">${esc((p.pasos || []).join('\n'))}</textarea>`, 'Título | explicación. Ej.: «El premio es por delegación | No es individual»');
+        + campo('Premio', txt('premio', p.premio, 'Ej.: Una cena para el equipo ganador')) 
+        + campo('Título de la tarjeta de texto', txt('puntosTitulo', p.puntosTitulo, 'Lo importante'))
+      + campo('Introducción', `<textarea name="intro" rows="3">${esc(p.intro || '')}</textarea>`)
+      + campo('Lo importante (una viñeta por línea)', `<textarea name="puntos" rows="6">${esc((p.puntos || []).join('\n'))}</textarea>`, 'Etiqueta | texto. Ej.: «Fecha límite | viernes 4 de diciembre». La etiqueta sale en negrita');
     }
     if (p.tipo === 'evento') cuerpo += campo('Subtítulo', txt('sub', p.sub)) + campo('Día', `<input type="date" name="fecha" value="${esc(p.fecha || '')}">`, 'Si se deja vacío, sale «Fecha por confirmar»')
       + campo('Hora', `<input type="time" name="hora" value="${esc(p.hora || '')}">`) + campo('Lugar', txt('lugar', p.lugar)) + campo('Texto', `<textarea name="texto">${esc(p.texto || '')}</textarea>`)
@@ -598,9 +571,9 @@ dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
       if (val(d, 'tarjeta')) n.tarjeta = val(d, 'tarjeta');
       Object.assign(q, { titulo: val(d, 'titulo') || q.titulo, color: (d.querySelector('[name=color]:checked') || {}).value || q.color, decor: val(d, 'decor'), oculta: d.querySelector('[name=oculta]').checked, k: val(d, 'k'), cab: val(d, 'cab') });
       if ('imagen' in q || d.querySelector('[data-img=imagen]')) q.imagen = imgVal(d, 'imagen');
-      if (q.tipo === 'loteria') Object.assign(q, { numero: val(d, 'numero').replace(/\D/g, ''), sorteo: val(d, 'sorteo'), precio: val(d, 'precio'), reservas: val(d, 'reservas'), texto: val(d, 'texto'), cuenta: val(d, 'cuenta'), cuentaTexto: val(d, 'cuentaTexto'), pasos: lineas(val(d, 'pasos')) });
+      if (q.tipo === 'loteria') Object.assign(q, { numero: val(d, 'numero').replace(/\D/g, ''), sorteo: val(d, 'sorteo'), precio: val(d, 'precio'), reservas: val(d, 'reservas'), texto: val(d, 'texto'), cuenta: val(d, 'cuenta'), cuentaTexto: val(d, 'cuentaTexto'), puntosTitulo: val(d, 'puntosTitulo'), intro: val(d, 'intro'), puntos: lineas(val(d, 'puntos')) });
       if (q.tipo === 'concurso') {
-        q.sub = val(d, 'sub'); q.votacion = val(d, 'votacion'); q.premio = val(d, 'premio'); q.pasos = lineas(val(d, 'pasos')); q.jurado = lineas(val(d, 'jurado'));
+        q.sub = val(d, 'sub'); q.votacion = val(d, 'votacion'); q.premio = val(d, 'premio'); Object.assign(q, { puntosTitulo: val(d, 'puntosTitulo'), intro: val(d, 'intro'), puntos: lineas(val(d, 'puntos')) });
         q.participantes = [...d.querySelectorAll('#parts .fila-ed')].map(f => ({ id: f.dataset.id, nombre: f.querySelector('input[type=text]').value.trim(), foto: f.querySelector('.img-ed').dataset.v || null })).filter(x => x.nombre);
         if (q.participantes.length < 2) throw new Error('Un concurso necesita al menos dos participantes.');
       }
