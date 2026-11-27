@@ -130,6 +130,11 @@
 .bombo svg{width:min(250px,72vw);height:auto;overflow:visible}
 .bombo .bolas{transform-origin:110px 96px;animation:gira 7s linear infinite}
 .bombo.rapido .bolas{animation-duration:.45s}
+.bombo .bola{transform-origin:110px 96px;animation:gira var(--d) linear infinite}
+.bombo .bola.rev{animation-direction:reverse}
+.bombo .bola g{animation:bote var(--b) ease-in-out infinite alternate}
+@keyframes bote{from{transform:translate(0,-3px)}to{transform:translate(0,4px)}}
+.bombo.rapido .bola{animation-duration:calc(var(--d) / 6)}
 .bombo.rapido .tambor{animation:tiembla .12s linear infinite}
 @keyframes tiembla{0%,100%{transform:translate(0,0)}25%{transform:translate(1.5px,-1px)}75%{transform:translate(-1.5px,1px)}}
 .bombo .manivela{transform-origin:182px 96px;animation:gira 7s linear infinite}
@@ -654,14 +659,17 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
   }
   function soMio(so, yo) {
     if (Hub.lee(vistoKey()) === '1' || yaSacado(yo.uid)) return soResultado(yo, false);
-    const bolas = [[78,70,'#ff5a7a'],[120,58,'#ffd23f'],[150,90,'#3fa7ff'],[96,112,'#7ee08a'],[132,124,'#ff9f43'],[70,104,'#b388ff'],[112,90,'#ffd23f'],[146,62,'#ff5a7a'],[86,136,'#3fa7ff'],[126,100,'#7ee08a'],[60,84,'#ff9f43'],[104,140,'#ff5a7a']];
+    const bolas = [[46,0,3.2,'#ff5a7a'],[30,50,2.6,'#ffd23f',1],[54,100,4.1,'#3fa7ff'],[20,150,2.2,'#7ee08a'],[40,200,3.6,'#ff9f43',1],[50,250,3.9,'#b388ff'],[26,300,2.9,'#ffd23f'],[36,340,3.3,'#ff5a7a',1],[52,30,4.4,'#3fa7ff',1],[14,120,2,'#7ee08a'],[44,170,3.8,'#ff9f43'],[32,220,2.8,'#ff5a7a',1]];
     return `<div class="bombo" id="bombo"><div style="position:relative">
       <svg viewBox="0 0 220 240" aria-hidden="true">
         <path d="M70 160 L50 228 M150 160 L170 228" stroke="var(--c2)" stroke-width="8" stroke-linecap="round"/>
+        <ellipse cx="110" cy="236" rx="84" ry="5" fill="#000" opacity=".1"/>
         <rect x="34" y="224" width="152" height="10" rx="5" fill="var(--c2)"/>
         <g class="tambor">
           <circle cx="110" cy="96" r="72" fill="color-mix(in srgb,var(--c1) 10%,#ffffff)" fill-opacity=".85" stroke="var(--c1)" stroke-width="7"/>
-          <g class="bolas">${bolas.map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="11" fill="${c}" stroke="rgba(0,0,0,.12)" stroke-width="1"/>`).join('')}
+          <defs><clipPath id="soDentro"><circle cx="110" cy="96" r="68"/></clipPath></defs>
+          <g clip-path="url(#soDentro)">${bolas.map(([r, a, d, c, rev], i) => `<g class="bola ${rev ? 'rev' : ''}" style="--d:${d}s;--b:${(0.5 + (i % 4) * 0.15).toFixed(2)}s;animation-delay:-${(a / 360 * d).toFixed(2)}s"><g><circle cx="${110 + r}" cy="96" r="11" fill="${c}" stroke="rgba(0,0,0,.12)" stroke-width="1"/><circle cx="${106 + r}" cy="92" r="3.3" fill="#fff" opacity=".8"/></g></g>`).join('')}</g>
+          <g class="bolas">
             <path d="M110 24 V168 M38 96 H182" stroke="var(--c1)" stroke-opacity=".25" stroke-width="3"/></g>
           <path d="M62 50 A64 64 0 0 1 104 30" stroke="#fff" stroke-width="7" stroke-linecap="round" fill="none" opacity=".7"/>
           <rect x="98" y="164" width="24" height="22" rx="5" fill="var(--c1)"/>
