@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Biofy Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun/estilo.css?v=mwz058dd">
+<script src="comun/config.js?v=mwz058dd"></script>
+<script src="comun/nucleo.js?v=mwz058dd"></script>
+</head>
+<body>
+<!-- Página de los módulos que todavía no viven en el Hub (en construcción).
+     Cada módulo terminado vive en su carpeta (pizarra/, …) con la misma cabecera. -->
+<main class="wrap" id="app"></main>
+<script>
+Hub.listo.then(function () {
+  const id = new URLSearchParams(location.search).get('m');
+  const m = HUB_MODULOS.find(x => x.id === id);
+  if (!Hub.sesion()) { location.href = 'index.html'; return; }
+  if (!m || !Hub.puede(m.id)) { location.href = 'index.html'; return; }
+  Hub.cabecera(m.etiqueta, m.icono);
+  const uso = m.estado === 'uso', solo = Hub.misModulos().length === 1;
+  document.getElementById('app').innerHTML = `<div class="card vacio">
+    <div class="ic">${Hub.icono(uso ? m.icono : 'obra')}</div>
+    <h1>${Hub.esc(m.nombre)}</h1>
+    <p>${Hub.esc(m.desc)}</p>
+    <p class="muted" style="margin-top:14px">${uso
+      ? 'Aquí se abrirá el módulo tal y como funciona hoy, ya dentro del Hub.'
+      : 'Módulo en construcción. Su sitio en el Hub ya está reservado.'}</p>
+    ${solo ? '' : `<a class="volver" href="index.html">${Hub.icono('atras')}Volver al Hub</a>`}
+  </div>`;
+});
+</script>
+</body>
+</html>
