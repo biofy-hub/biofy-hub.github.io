@@ -119,6 +119,55 @@
 .carga{display:grid;place-items:center;padding:60px}
 .carga i{width:34px;height:34px;border-radius:50%;border:3px solid var(--line-2);border-top-color:var(--brand);animation:gira .8s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
+/* Sorteo de personajes (Juan, 27/11) */
+.so{position:relative;overflow:hidden;border-radius:26px;padding:20px 18px 22px;margin-bottom:16px;background:radial-gradient(ellipse at 50% -10%,color-mix(in srgb,var(--c1) 22%,var(--surface)) 0%,var(--surface) 70%);border:1px solid color-mix(in srgb,var(--c1) 25%,var(--line));animation:entra .55s var(--ease) both}
+.so .k{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--c1)}
+.so h3{font-size:22px;font-weight:800;margin:4px 0 12px;letter-spacing:-.3px}
+.so-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface-3);margin-bottom:16px}
+.so-tabs button{height:36px;padding:0 14px;border-radius:11px;border:0;background:none;font:inherit;font-weight:700;font-size:13.5px;color:var(--ink-2);cursor:pointer}
+.so-tabs button.on{background:var(--surface);color:var(--c1);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.bombo{display:grid;justify-items:center;gap:14px;padding:4px 0 2px}
+.bombo svg{width:min(250px,72vw);height:auto;overflow:visible}
+.bombo .bolas{transform-origin:110px 96px;animation:gira 7s linear infinite}
+.bombo.rapido .bolas{animation-duration:.45s}
+.bombo.rapido .tambor{animation:tiembla .12s linear infinite}
+@keyframes tiembla{0%,100%{transform:translate(0,0)}25%{transform:translate(1.5px,-1px)}75%{transform:translate(-1.5px,1px)}}
+.bombo .manivela{transform-origin:182px 96px;animation:gira 7s linear infinite}
+.bombo.rapido .manivela{animation-duration:.45s}
+.bola-sale{position:absolute;left:50%;top:205px;width:54px;height:54px;margin-left:-27px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c9,#ffc93c 45%,#e19a00);box-shadow:0 8px 20px rgba(225,154,0,.45);display:grid;place-items:center;font-weight:900;color:#7a4b00;font-size:20px;opacity:0;pointer-events:none}
+.bombo.sale .bola-sale{animation:bola-sale 1.3s var(--ease) forwards}
+@keyframes bola-sale{0%{opacity:0;transform:translateY(-40px) scale(.4)}25%{opacity:1;transform:translateY(0) scale(.7)}60%{transform:translateY(-30px) scale(1.35)}80%{transform:translateY(-18px) scale(1.2)}100%{opacity:1;transform:translateY(-24px) scale(1.6)}}
+.so .tirar{height:52px;padding:0 26px;border-radius:16px;border:0;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;font:inherit;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 12px 26px color-mix(in srgb,var(--c1) 40%,transparent);display:inline-flex;align-items:center;gap:9px;animation:late 1.8s ease-in-out infinite}
+.so .tirar svg{width:20px;height:20px;flex:none}
+.so .tirar:disabled{animation:none;opacity:.6;cursor:default}
+@keyframes late{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+.so .pista{font-size:13px;color:var(--ink-3);font-weight:600}
+.toca-te{position:relative;text-align:center;padding:10px 6px 4px}
+.toca-te .emo{font-size:96px;line-height:1;display:inline-grid;place-items:center;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c1) 18%,var(--surface)) 0%,transparent 70%)}
+.toca-te.nuevo .emo{animation:pop .9s cubic-bezier(.2,1.6,.4,1) both}
+.toca-te.nuevo .txt{animation:entra .6s .45s var(--ease) both}
+@keyframes pop{0%{transform:scale(0) rotate(-25deg)}100%{transform:scale(1) rotate(0)}}
+.toca-te small{display:block;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3);margin-top:8px}
+.toca-te b{display:block;font-size:34px;font-weight:900;letter-spacing:-.5px;color:var(--c1);margin:2px 0 4px;line-height:1.1}
+.toca-te .quien{font-size:15px;font-weight:700;color:var(--ink-2)}
+.toca-te .nota{font-size:13px;color:var(--ink-3);margin-top:10px;font-weight:600}
+.estallido{position:absolute;left:50%;top:80px;width:0;height:0;pointer-events:none}
+.estallido i{position:absolute;width:9px;height:14px;border-radius:2px;opacity:0;animation:estalla 1.4s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes estalla{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r))}}
+.so-grupo{margin-bottom:14px}
+.so-grupo h4{font-size:14px;font-weight:800;margin:4px 0 8px;display:flex;align-items:center;gap:8px}
+.so-grupo h4 span{font-size:12px;font-weight:700;color:var(--ink-3)}
+.so-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.so-fila{display:flex;align-items:center;gap:8px;padding:8px 9px;flex-wrap:wrap;border-radius:14px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.so-fila .e{font-size:22px;width:28px;text-align:center;flex:none}
+.so-fila .t{min-width:0;flex:1}
+.so-fila .t b{display:block;font-size:14px;font-weight:800}
+.so-fila .t span{display:block;font-size:12.5px;color:var(--ink-2);line-height:1.3;overflow-wrap:anywhere}
+.so-fila.mio{border-color:var(--c1);background:color-mix(in srgb,var(--c1) 8%,var(--surface))}
+.so-fila.libre .t span{color:var(--ink-3);font-style:italic}
+.so-fila .ib{height:30px;padding:0 9px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--bad);flex:none}
+.so-fila .ib.vuelve{color:var(--c1)}
+.so-fuera{font-size:13px;color:var(--ink-3);font-weight:600;margin:4px 0 0}
 .etq-o{display:inline-flex;align-items:center;gap:5px;background:var(--warn-soft);color:var(--warn);font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;margin-bottom:10px}
 /* ---------- Ventanas de edición ---------- */
 dialog.dl{margin:auto;border:0;border-radius:22px;padding:0;width:min(560px,calc(100% - 20px));max-height:calc(100% - 30px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up)}
@@ -421,7 +470,7 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
     const cds = main.querySelectorAll('[data-cd]');
     const hs = main.querySelectorAll('.hielo');
     if (cds.length || hs.length) { const t = () => { cds.forEach(pintaCuenta); hs.forEach(pintaHielo); }; t(); reloj = setInterval(t, 1000); }
-    if (p && p.tipo === 'concurso') pintaVotos(p, main);
+    if (p && p.tipo === 'concurso') { pintaVotos(p, main); activaSorteo(p, main); }
     window.scrollTo({ top: 0 });
   }
   function pintaCuenta(el) {
@@ -514,7 +563,7 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
         ${tarjetaTexto(p)}
         <div class="sec-h"><b>Nuestro décimo</b></div><div class="dec-sec">${decimo(p)}${enlaceWA(p) ? `<a class="toca" href="${esc(enlaceWA(p))}" target="_blank" rel="noopener">${ic('chat')}${esc(p.tocaTexto || 'Toca el décimo para reservar el tuyo por WhatsApp')}</a>` : ''}</div>${pieza}`;
     } else if (p.tipo === 'concurso') {
-      h += banda() + fechasConcurso(p) + tarjetaTexto(p) + hielo(p) + pieza + (p.premio ? `<div class="aviso">${s('corona')}<span>${esc(p.premio)}</span></div>` : '')
+      h += banda() + sorteoSec(p) + fechasConcurso(p) + tarjetaTexto(p) + hielo(p) + pieza + (p.premio ? `<div class="aviso">${s('corona')}<span>${esc(p.premio)}</span></div>` : '')
         + `<div class="sec-h"><b>Los belenes</b></div><div id="votos"><div class="carga"><i></i></div></div>`;
     } else if (p.tipo === 'evento') {
       h += banda(p.fecha ? `<div class="cd" style="margin-top:14px" data-cd="${esc(p.fecha)}" data-h="${esc(p.hora || '14:00')}" data-fin="¡Es hoy!"></div>` : '')
@@ -554,6 +603,102 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
     };
   }
 
+
+  /* ---------- Sorteo de personajes del belén (Juan, 27/11) ----------
+     El reparto ya está hecho y guardado (cifrado) en la pestaña; aquí solo se enseña, a partir de la hora fijada.
+     Quien edita puede quitar a una persona: desaparece de la lista, su personaje queda libre y no ve el bombo. */
+  const EMO = { 'Virgen María': '👩‍🍼', 'San José': '🧔', 'Niño Jesús': '👶', 'Paloma': '🕊️', 'Ángel': '👼', 'Estrella': '🌟', 'Melchor': '👑', 'Gaspar': '👑', 'Baltasar': '👑',
+    'Paje': '🎁', 'Pastor': '🐏', 'Pastora': '🧺', 'Buey': '🐂', 'Mula': '🐴', 'Oveja': '🐑', 'Burro': '🫏', 'Caganer': '💩', 'Gallina': '🐔', 'Campesino': '🧑‍🌾' };
+  const emo = n => EMO[n] || '🎄';
+  const BOMBOS = { cordoba: 'Belén de Córdoba', alicante: 'Belén de Alicante' };
+  const sorteoListo = so => !!so && Date.now() >= new Date(so.desde).getTime();
+  const quitado = (so, uid) => (so.quitados || []).includes(uid);
+  function miPersonaje(so) { for (const [b, l] of Object.entries(so.bombos || {})) { const x = l.find(y => y.uid === K.uid); if (x) return { ...x, bombo: b }; } return null; }
+  let vistaSo = 'mio', sorteoTimer = null;
+  function sorteoSec(p) {
+    const so = p.sorteo; if (!so) return '';
+    const listo = sorteoListo(so);
+    if (!listo && !modoEd) return '';
+    const yo = miPersonaje(so), dentro = yo && !quitado(so, yo.uid);
+    if (!dentro) vistaSo = 'lista';
+    const hora = new Date(so.desde).toLocaleString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    return `<section class="so" id="sorteo">
+      ${!listo ? `<div class="etq-o">${s('reloj')} Programado: se activa el ${esc(hora)} · hasta entonces solo lo ven quienes editan</div>` : ''}
+      <div class="k">Sorteo de personajes</div><h3>${esc(so.titulo || '¿Qué personaje te toca en el belén?')}</h3>
+      ${dentro ? `<div class="so-tabs" role="tablist"><button data-so="mio" class="${vistaSo === 'mio' ? 'on' : ''}">Mi personaje</button><button data-so="lista" class="${vistaSo === 'lista' ? 'on' : ''}">Quién es quién</button></div>` : ''}
+      <div class="so-cuerpo">${vistaSo === 'mio' && dentro ? soMio(so, yo) : soLista(so)}</div></section>`;
+  }
+  const vistoKey = () => 'cm_so_' + (K.uid || '');
+  function soResultado(yo, nuevo) {
+    return `<div class="toca-te ${nuevo ? 'nuevo' : ''}">${nuevo ? '<div class="estallido"></div>' : ''}<span class="emo">${emo(yo.personaje)}</span>
+      <div class="txt"><small>¡Te ha tocado!</small><b>${esc(yo.personaje)}</b><div class="quien">${esc(yo.nombre)} · ${esc(BOMBOS[yo.bombo] || '')}</div>
+      <div class="nota">Este será tu papel en la foto del belén. ¡Ve pensando el disfraz!</div></div></div>`;
+  }
+  function soMio(so, yo) {
+    if (Hub.lee(vistoKey()) === '1') return soResultado(yo, false);
+    const bolas = [[78,70,'#ff5a7a'],[120,58,'#ffd23f'],[150,90,'#3fa7ff'],[96,112,'#7ee08a'],[132,124,'#ff9f43'],[70,104,'#b388ff'],[112,90,'#ffd23f'],[146,62,'#ff5a7a'],[86,136,'#3fa7ff'],[126,100,'#7ee08a'],[60,84,'#ff9f43'],[104,140,'#ff5a7a']];
+    return `<div class="bombo" id="bombo"><div style="position:relative">
+      <svg viewBox="0 0 220 240" aria-hidden="true">
+        <path d="M70 160 L50 228 M150 160 L170 228" stroke="var(--c2)" stroke-width="8" stroke-linecap="round"/>
+        <rect x="34" y="224" width="152" height="10" rx="5" fill="var(--c2)"/>
+        <g class="tambor">
+          <circle cx="110" cy="96" r="72" fill="color-mix(in srgb,var(--c1) 10%,#ffffff)" fill-opacity=".85" stroke="var(--c1)" stroke-width="7"/>
+          <g class="bolas">${bolas.map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="11" fill="${c}" stroke="rgba(0,0,0,.12)" stroke-width="1"/>`).join('')}
+            <path d="M110 24 V168 M38 96 H182" stroke="var(--c1)" stroke-opacity=".25" stroke-width="3"/></g>
+          <path d="M62 50 A64 64 0 0 1 104 30" stroke="#fff" stroke-width="7" stroke-linecap="round" fill="none" opacity=".7"/>
+          <rect x="98" y="164" width="24" height="22" rx="5" fill="var(--c1)"/>
+        </g>
+        <g class="manivela"><path d="M182 96 L200 96 L200 118" stroke="var(--c2)" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="200" cy="120" r="7" fill="var(--c2)"/></g>
+        <circle cx="182" cy="96" r="6" fill="var(--c2)"/>
+      </svg><div class="bola-sale">?</div></div>
+      <button class="tirar" data-a="tirar">${s('estrellas')}Sacar mi bola</button>
+      <div class="pista">Pulsa el botón y descubre tu personaje</div></div>`;
+  }
+  function soLista(so) {
+    const yo = miPersonaje(so);
+    const fila = (x, b) => {
+      const fuera = quitado(so, x.uid);
+      if (fuera && !modoEd) return `<div class="so-fila libre"><span class="e">${emo(x.personaje)}</span><div class="t"><b>${esc(x.personaje)}</b><span>Libre</span></div></div>`;
+      return `<div class="so-fila ${yo && yo.uid === x.uid && !fuera ? 'mio' : ''} ${fuera ? 'libre' : ''}"><span class="e">${emo(x.personaje)}</span><div class="t"><b>${esc(x.personaje)}</b><span>${fuera ? 'Libre · quitado: ' + esc(x.nombre) : esc(x.nombre)}</span></div>
+        ${modoEd ? `<button class="ib ${fuera ? 'vuelve' : ''}" data-a="${fuera ? 'so-vuelve' : 'so-quita'}" data-u="${esc(x.uid)}">${fuera ? 'Volver a poner' : 'Quitar'}</button>` : ''}</div>`;
+    };
+    const fuera = yo && quitado(so, yo.uid);
+    return (yo && !fuera ? '' : `<p class="so-fuera" style="margin-bottom:12px">${yo ? 'No participas en el sorteo.' : 'No estás en este sorteo.'} Aquí puedes ver a quién le ha tocado cada personaje.</p>`)
+      + Object.entries(so.bombos || {}).map(([b, l]) => `<div class="so-grupo"><h4>${esc(BOMBOS[b] || b)} <span>${l.filter(x => !quitado(so, x.uid)).length} personas</span></h4><div class="so-lista">${l.map(x => fila(x, b)).join('')}</div></div>`).join('');
+  }
+  function activaSorteo(p, main) {
+    clearTimeout(sorteoTimer);
+    const so = p.sorteo; if (!so) return;
+    const falta = new Date(so.desde).getTime() - Date.now();
+    if (falta > 0 && falta < 864e5) sorteoTimer = setTimeout(() => { if (actual === p.id) pinta(); }, falta + 500);   // aparece sola a la hora, sin recargar
+    const sec = main.querySelector('#sorteo'); if (!sec) return;
+    sec.querySelectorAll('[data-so]').forEach(b => b.onclick = () => { vistaSo = b.dataset.so; pinta(); requestAnimationFrame(() => document.getElementById('sorteo')?.scrollIntoView({ block: 'start' })); });
+  }
+  function tirar() {
+    const p = deId(actual), so = p && p.sorteo, yo = so && miPersonaje(so), bo = document.getElementById('bombo'); if (!yo || !bo) return;
+    const bt = bo.querySelector('.tirar'); bt.disabled = true; bt.innerHTML = 'Girando…'; bo.querySelector('.pista').textContent = '¡Mucha suerte!';
+    bo.classList.add('rapido');
+    setTimeout(() => { bo.classList.remove('rapido'); bo.classList.add('sale'); }, 2200);
+    setTimeout(() => {
+      Hub.guarda(vistoKey(), '1');
+      const c = bo.closest('.so-cuerpo'); c.innerHTML = soResultado(yo, true);
+      const e = c.querySelector('.estallido'), cols = ['#ffd23f', '#ff5a7a', '#3fa7ff', '#7ee08a', '#b388ff', '#ff9f43'];
+      for (let i = 0; i < 60; i++) { const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 170; e.insertAdjacentHTML('beforeend', `<i style="background:${cols[i % cols.length]};--x:${Math.cos(a) * d}px;--y:${Math.sin(a) * d + 60}px;--r:${Math.random() * 720 - 360}deg;animation-delay:${Math.random() * .15}s"></i>`); }
+    }, 3600);
+  }
+  async function cambiaQuitado(uid, quitar) {
+    const p = deId(actual), so = p && p.sorteo; if (!so) return;
+    const x = Object.values(so.bombos).flat().find(y => y.uid === uid); if (!x) return;
+    if (quitar && !confirm(`¿Quitar a ${x.nombre} del sorteo? Desaparece de la lista, su personaje (${x.personaje}) queda libre y no verá el bombo.`)) return;
+    try {
+      await leeDatos();
+      const n = copia(D), q = n.pestanas.find(y => y.id === p.id), l = new Set(q.sorteo.quitados || []);
+      quitar ? l.add(uid) : l.delete(uid); q.sorteo.quitados = [...l];
+      await guardaDatos(n, (quitar ? 'quitar del sorteo a ' : 'volver a poner en el sorteo a ') + x.nombre);
+      toast(quitar ? 'Quitado del sorteo' : 'De vuelta en el sorteo'); vistaSo = 'lista'; desdeHash();
+    } catch (e) { toast(e.message, true); }
+  }
+
   /* ---------- Clics ---------- */
   function clic(e) {
     const t = e.target.closest('[data-t]'); if (t && !t.closest('.cm-tabs')) { ir(t.dataset.t); return; }
@@ -563,6 +708,8 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
     if (a === 'nueva') nuevaPestana();
     if (a === 'tarjeta') cambiaTarjeta();
     if (a === 'visible') cambiaVisible(deId(actual));
+    if (a === 'tirar') tirar();
+    if (a === 'so-quita' || a === 'so-vuelve') cambiaQuitado(e.target.closest('[data-u]').dataset.u, a === 'so-quita');
     const im = e.target.closest('img.pieza, .part .foto img');
     if (im && im.src) { const d = document.createElement('dialog'); d.className = 'zoom'; d.innerHTML = `<img src="${im.src}" alt="">`; d.onclick = () => { d.close(); d.remove(); }; document.body.appendChild(d); d.showModal(); }
   }
