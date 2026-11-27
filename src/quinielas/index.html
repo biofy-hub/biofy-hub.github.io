@@ -171,12 +171,17 @@ table.t td.bl{border-left:1px solid var(--line)}
 .num-h{width:44px;height:32px;border:1px solid var(--line-2);border-radius:8px;text-align:center;font:inherit;font-weight:700;background:var(--surface);color:var(--ink)}
 .num-h:focus{outline:2px solid var(--brand);outline-offset:1px}
 table.hoja-t td.n{padding:4px 6px}
+table.t tr.dia{display:table-row}
+table.t tr.dia td.dl{text-align:center;font-size:10px;letter-spacing:.2px;padding:4px 3px;white-space:nowrap}
 /* Hojas a mano (Juan, 26/11): cada origen con su color para distinguir Registros móviles y MKT */
 table.t th.og-reg{background:color-mix(in srgb,#2968fe 15%,var(--surface));color:var(--brand-ink)}
 table.t td.og-reg{background:color-mix(in srgb,#2968fe 6%,var(--surface))}
 table.t th.og-mkt{background:color-mix(in srgb,#8b5cf6 17%,var(--surface));color:#7c3aed}
 table.t td.og-mkt{background:color-mix(in srgb,#8b5cf6 7%,var(--surface))}
 :root[data-theme="dark"] table.t th.og-mkt{color:#c4b5fd}
+table.t tr.dia td.dl.og-reg{background:color-mix(in srgb,#2968fe 15%,var(--surface))}
+table.t tr.dia td.dl.og-mkt{background:color-mix(in srgb,#8b5cf6 17%,var(--surface));color:#7c3aed}
+:root[data-theme="dark"] table.t tr.dia td.dl.og-mkt{color:#c4b5fd}
 .atajos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .filtro-f{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px;color:var(--ink-2);cursor:pointer;transition:all .15s}
 .filtro-f:hover{border-color:var(--brand);color:var(--brand)}
@@ -1009,13 +1014,18 @@ Hub.listo.then(async function () {
       : `<td class="n ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''} ${x ? '' : 'cero'}">${x == null ? '' : c.pct ? x + ' %' : x}</td>`;
     const fila = (p, vals, i, d, ed) => `<tr><td class="n">${i + 1}º</td><td>${esc(p.nombre)}</td>${(vals || vacio).map((x, k) => celda(cols[k], x, k, ed, p, d)).join('')}</tr>`;
     const totFila = (t, filas) => `<tr class="tot"><td></td><td>${t}</td>${sumaFilas(cols, filas).map((x, k) => celda(cols[k], x, k, false)).join('')}</tr>`;
+    // Cabecera de dos filas: grupos y subcolumnas
+    const grupos = []; cols.forEach(c => { const u = grupos[grupos.length - 1]; if (u && u.g === c.g) u.n++; else grupos.push({ g: c.g, n: 1, s: c.s }); });
+    // Juan, 27/11: en la fila de cada día, los nombres de las columnas (CED, NUL…) encima de cada casilla, para rellenar más fácil
+    const etiqueta = c => grupos.find(g => g.g === c.g).n === 1 && !c.s ? c.g : c.s;
+    const filaDia = d => `<tr class="dia"><td colspan="2">${esc(fechaLarga(d))}</td>${cols.map((c, k) => `<td class="dl ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''}">${esc(etiqueta(c))}</td>`).join('')}</tr>`;
     let cuerpo = '';
     const totalesDia = [];
     if (modoHoja === 'semana') {
       for (const d of dias) {
         const vals = personas.map(p => valor(p, d) || (editable ? cols.map(() => 0) : null));
         totalesDia.push(sumaFilas(cols, vals.map(v => v || vacio)));
-        cuerpo += `<tr class="dia"><td colspan="${2 + cols.length}">${esc(fechaLarga(d))}</td></tr>` + personas.map((p, i) => fila(p, vals[i], i, d, editable)).join('') + totFila('Totales', vals.map(v => v || vacio));
+        cuerpo += filaDia(d) + personas.map((p, i) => fila(p, vals[i], i, d, editable)).join('') + totFila('Totales', vals.map(v => v || vacio));
       }
     } else {   // mes: una fila por persona con todo el mes
       const vals = personas.map(p => sumaFilas(cols, dias.map(d => valor(p, d) || vacio)));
@@ -1023,8 +1033,6 @@ Hub.listo.then(async function () {
       totalesDia.push(sumaFilas(cols, vals));
     }
     const totGeneral = sumaFilas(cols, totalesDia);
-    // Cabecera de dos filas: grupos y subcolumnas
-    const grupos = []; cols.forEach(c => { const u = grupos[grupos.length - 1]; if (u && u.g === c.g) u.n++; else grupos.push({ g: c.g, n: 1, s: c.s }); });
     const c = app.querySelector('#cuerpo');
     const titulo = `Hoja de producción · ${D.nombre}${D.deleg ? ' · ' + (delegFiltro === 'Todas' ? 'todas las delegaciones' : delegFiltro) : ''}`;
     const periodo = modoHoja === 'semana' ? 'Semana del ' + fechaLarga(semana) : 'Resumen de ' + new Date(mesHoja + '-15T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
