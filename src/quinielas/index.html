@@ -409,7 +409,11 @@ Hub.listo.then(async function () {
   const esInst = q => /Instalador/i.test((q && q.tipo) || '');
   // A las 24 horas de firmarla, ya no la cambian ni el usuario ni el jefe; solo un administrador (Juan, 25/11)
   const BLOQUEO_H = 24;
-  const bloqueada = q => !ADMIN && !!(q && q.firmada) && Date.now() - new Date(q.firmada).getTime() > BLOQUEO_H * 3600e3;
+  // Los VIP pueden cambiarla también pasadas las 24 horas (Juan, 27/11: venden de otra forma); queda apuntado en la quiniela
+  const esVip = q => !!q && (q.equipo === 'VIP' || /VIP/i.test(q.tipo || ''));
+  const bloqueada = q => !ADMIN && !esVip(q) && !!(q && q.firmada) && Date.now() - new Date(q.firmada).getTime() > BLOQUEO_H * 3600e3;
+  const fh = f => new Date(f).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const notaTarde = q => q && q.cambiadaTarde ? ` Cambiada y firmada de nuevo el ${fh(q.cambiadaTarde)}, más de 24 horas después de la primera firma (${fh(q.primeraFirma)}).` : '';
   const resumen = q => {
     const v = q.visitas, ven = v.filter(x => tiene(x, 'venta'));
     if (esInst(q)) {   // instaladores: realizadas, nulas, pendientes, demos y ventas de mantenimiento
@@ -500,7 +504,7 @@ Hub.listo.then(async function () {
     cambios = true;
     // Un administrador que corrige la quiniela de otra persona no le quita la firma (Juan, 26/11): queda apuntado quién la cambió y cuándo
     if (quitaFirma && Q.firma && ADMIN && PARA) { Q.corregida = new Date().toISOString(); Q.corregidaPor = K.nombreCompleto || Hub.sesion().nombre; }
-    else if (quitaFirma && Q.firma) { Q.firma = null; Q.firmada = null; Q.firmadaPor = null; Q.corregida = null; Q.corregidaPor = null; }
+    else if (quitaFirma && Q.firma) { if (!Q.primeraFirma) Q.primeraFirma = Q.firmada; Q.firma = null; Q.firmada = null; Q.firmadaPor = null; Q.corregida = null; Q.corregidaPor = null; }
     Q.guardada = new Date().toISOString();
     Hub.guarda(borradorClave(), JSON.stringify(Q));
     programaGuardado(); pintaEstado();
@@ -521,7 +525,7 @@ Hub.listo.then(async function () {
     app.querySelector('#deleg').disabled = app.querySelector('#ruta').disabled = cerrada;
     const r = resumen(Q), c = app.querySelector('#cuerpo');
     c.innerHTML = `${PARA ? `<div class="aviso-q info">${ic('info')}<span>Estás rellenando la quiniela de <b>${esc(PARA.nombre)}</b>. Se guarda en la suya y quedará firmada por ti en su nombre.</span></div>` : ''}
-      ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}.${Q.corregida ? ` Corregida después por ${esc(Q.corregidaPor || 'un administrador')} el ${new Date(Q.corregida).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.` : ''} ${cerrada ? 'Han pasado más de 24 horas, así que ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.' : ADMIN && PARA ? 'Puedes corregirla: la firma se mantiene y queda apuntado que la has cambiado tú.' : 'Si cambias algo, habrá que volver a firmarla.' + (ADMIN ? '' : ' Se puede cambiar hasta 24 horas después de firmarla.')}</span></div>` : ''}
+      ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}.${Q.corregida ? ` Corregida después por ${esc(Q.corregidaPor || 'un administrador')} el ${new Date(Q.corregida).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.` : ''} ${esc(notaTarde(Q))} ${cerrada ? 'Han pasado más de 24 horas, así que ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.' : ADMIN && PARA ? 'Puedes corregirla: la firma se mantiene y queda apuntado que la has cambiado tú.' : 'Si cambias algo, habrá que volver a firmarla.' + (ADMIN ? '' : esVip(Q) ? ' Como VIP, puedes cambiarla también pasadas 24 horas (queda apuntado).' : ' Se puede cambiar hasta 24 horas después de firmarla.')}</span></div>` : ''}
       <div class="card bloque" style="animation-delay:80ms"><h2>${ic('hoja')}Resumen</h2><div class="resumen">
         <div><small>Visitas</small><b>${Q.visitas.length}</b></div>${esInst(Q) ? `<div class="ven"><small>Realizadas</small><b>${r.hechas}</b></div><div><small>Nulas</small><b>${r.nulos}</b></div><div><small>Pendientes</small><b>${r.pte}</b></div>
         <div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>` : `${conConf(Q) || r.confirmados ? `<div class="cnf"><small>Confirmados</small><b>${r.confirmados}</b></div>` : ''}<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
@@ -757,7 +761,7 @@ Hub.listo.then(async function () {
     ok.onclick = async () => {
       ok.disabled = true; ok.textContent = 'Enviando…';
       // la firma, recortada a lo dibujado y en PNG
-      Q.firma = cv.toDataURL('image/png'); Q.firmada = new Date().toISOString(); Q.firmadaPor = PARA ? (K.nombreCompleto || Hub.sesion().nombre) : null; Q.corregida = null; Q.corregidaPor = null; cambios = true;
+      Q.firma = cv.toDataURL('image/png'); Q.firmada = new Date().toISOString(); if (!Q.primeraFirma) Q.primeraFirma = Q.firmada; else if (esVip(Q) && new Date(Q.firmada) - new Date(Q.primeraFirma) > BLOQUEO_H * 3600e3) Q.cambiadaTarde = Q.firmada; Q.firmadaPor = PARA ? (K.nombreCompleto || Hub.sesion().nombre) : null; Q.corregida = null; Q.corregidaPor = null; cambios = true;
       if (await guarda(true)) dlg.close(); else { ok.disabled = false; ok.innerHTML = ic('ok') + 'Firmar y enviar'; Q.firma = null; Q.firmada = null; }
     };
   }
@@ -900,7 +904,7 @@ Hub.listo.then(async function () {
       <tr class="tot"><td colspan="6">Total</td><td>${euros(r.importe)}</td><td>${euros(r.cuota)}</td><td colspan="3"></td></tr></tbody></table></div>
       <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen">${esInst(q) ? `<div><small>Nulos</small><b>${r.nulos}</b></div><div><small>Realizadas</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>`
         : `${conConf(q) || r.confirmados ? `<div class="cnf"><small>Confirmados</small><b>${r.confirmados}</b></div>` : ''}<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Ventas cerradas</small><b>${r.conf}</b></div>`}</div></div>
-      <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}${q.firmadaPor ? ' por ' + esc(q.firmadaPor) + ', en nombre del comercial' : ''}${q.corregida ? `. Corregida después por ${esc(q.corregidaPor || 'un administrador')} el ${new Date(q.corregida).toLocaleString('es-ES')}` : ''}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
+      <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}${q.firmadaPor ? ' por ' + esc(q.firmadaPor) + ', en nombre del comercial' : ''}${q.corregida ? `. Corregida después por ${esc(q.corregidaPor || 'un administrador')} el ${new Date(q.corregida).toLocaleString('es-ES')}` : ''}${q.cambiadaTarde ? '. ' + esc(notaTarde(q).trim()) : ''}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
     app.querySelector('#volver').onclick = () => vistaDia();
     app.querySelector('#pdfq').onclick = e => pdfQuiniela(q, e.currentTarget);
     app.querySelector('#impq').onclick = e => imprimeQuinielas([q], e.currentTarget);
@@ -1177,6 +1181,7 @@ Hub.listo.then(async function () {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('Fdo.:', 210, y + 13); doc.line(219, y + 13.5, 287, y + 13.5);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(110);
       doc.text(q.firmada ? 'Firmada con el dedo en el Biofy Hub el ' + new Date(q.firmada).toLocaleString('es-ES') + (q.firmadaPor ? ' por ' + q.firmadaPor + ', en nombre del comercial' : '') : 'Sin firmar', 219, y + 17);
+      if (q.firmada && q.cambiadaTarde) doc.text('VIP: cambiada pasadas 24 h de la primera firma; firmada de nuevo el ' + new Date(q.cambiadaTarde).toLocaleString('es-ES'), 219, y + (q.corregida ? 25 : 20.5));
       if (q.firmada && q.corregida) doc.text('Corregida después por ' + (q.corregidaPor || 'un administrador') + ' el ' + new Date(q.corregida).toLocaleString('es-ES'), 219, y + 20.5);
       doc.text('Biofy Hub · Quiniela diaria · ' + pie + ' el ' + new Date().toLocaleString('es-ES'), 10, 203);
       doc.setTextColor(0);
