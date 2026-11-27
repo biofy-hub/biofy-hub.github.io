@@ -1018,14 +1018,15 @@ Hub.listo.then(async function () {
     const grupos = []; cols.forEach(c => { const u = grupos[grupos.length - 1]; if (u && u.g === c.g) u.n++; else grupos.push({ g: c.g, n: 1, s: c.s }); });
     // Juan, 27/11: en la fila de cada día, los nombres de las columnas (CED, NUL…) encima de cada casilla, para rellenar más fácil
     const etiqueta = c => grupos.find(g => g.g === c.g).n === 1 && !c.s ? c.g : c.s;
-    const filaDia = d => `<tr class="dia"><td colspan="2">${esc(fechaLarga(d))}</td>${cols.map((c, k) => `<td class="dl ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''}">${esc(etiqueta(c))}</td>`).join('')}</tr>`;
+    // El primer día va justo debajo de la cabecera: sin repetirlos (Juan, 27/11)
+    const filaDia = (d, primero) => primero ? `<tr class="dia"><td colspan="${2 + cols.length}">${esc(fechaLarga(d))}</td></tr>` : `<tr class="dia"><td colspan="2">${esc(fechaLarga(d))}</td>${cols.map((c, k) => `<td class="dl ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''}">${esc(etiqueta(c))}</td>`).join('')}</tr>`;
     let cuerpo = '';
     const totalesDia = [];
     if (modoHoja === 'semana') {
       for (const d of dias) {
         const vals = personas.map(p => valor(p, d) || (editable ? cols.map(() => 0) : null));
         totalesDia.push(sumaFilas(cols, vals.map(v => v || vacio)));
-        cuerpo += filaDia(d) + personas.map((p, i) => fila(p, vals[i], i, d, editable)).join('') + totFila('Totales', vals.map(v => v || vacio));
+        cuerpo += filaDia(d, d === dias[0]) + personas.map((p, i) => fila(p, vals[i], i, d, editable)).join('') + totFila('Totales', vals.map(v => v || vacio));
       }
     } else {   // mes: una fila por persona con todo el mes
       const vals = personas.map(p => sumaFilas(cols, dias.map(d => valor(p, d) || vacio)));
