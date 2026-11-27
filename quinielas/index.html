@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../comun/marca/icono-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Biofy Hub">
+<meta name="theme-color" content="#2968fe">
+<title>Quinielas · Biofy Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/estilo.css?v=mwyyngrw">
+<script src="../comun/config.js?v=mwyyngrw"></script>
+<script src="../comun/perfiles.js?v=mwyyngrw"></script>
+<script src="../comun/nucleo.js?v=mwyyngrw"></script>
+<script src="../comun/volver.js?v=mwyyngrw"></script>
+<script src="articulos.js"></script>
+<style>
+#app{padding-bottom:40px}
+.q-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:6px 0 14px;animation:entra .5s var(--ease) both}
+.q-cab h1{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.4px}
+.q-cab p{color:var(--ink-3);margin-top:2px}
+.pestanas{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px;box-shadow:var(--shadow);flex-wrap:wrap}
+.pestanas button{display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:8px 14px;border-radius:10px;font-weight:700;font-size:13.5px;color:var(--ink-2);cursor:pointer;transition:background .2s,color .2s}
+.pestanas button svg{width:17px;height:17px}
+.pestanas button.on{background:var(--brand);color:#fff}
+.pestanas button:not(.on):hover{background:var(--surface-3)}
+.bloque{padding:16px 18px;margin-bottom:14px;animation:entra .45s var(--ease) both}
+.bloque h2 svg{width:16px;height:16px;color:var(--brand)}
+.bloque h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-3);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.fila{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px}
+.fila>*,.art>*,.c{min-width:0}
+@media (max-width:600px){.fila.dr{grid-template-columns:1fr}}
+.c .campo{width:100%;min-width:0}
+.c{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.campo{height:44px;font-size:15px}
+.campo.mayus{text-transform:uppercase}
+select.campo{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+.dia{display:flex;align-items:center;gap:8px}
+.dia .campo{flex:1;min-width:0}
+.btn.chico{width:auto;height:44px;margin:0;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px}
+.btn.chico svg{width:17px;height:17px}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line-2)}
+.btn.sec:hover{background:var(--surface-3);filter:none}
+.btn.ic{width:44px;padding:0}
+.btn.peligro{background:var(--bad-soft);color:var(--bad)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line-2);font-size:14px;font-weight:600;color:var(--ink-2);background:var(--surface);transition:all .15s}
+.seg input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.seg.res input[value="conf"]:checked+span{background:var(--brand);border-color:var(--brand)}
+.seg.res input[value="nulo"]:checked+span{background:var(--ink-3);border-color:var(--ink-3)}
+.seg.res input[value="demo"]:checked+span{background:var(--warn);border-color:var(--warn)}
+.seg.res input[value="venta"]:checked+span{background:var(--good);border-color:var(--good)}
+/* «¿Es tu coche?» (Juan, 26/11): obligatoria, con un cochecito que va andando */
+.coche-q{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.coche-q .preg{font-size:16px;font-weight:700;color:var(--ink)}
+.coche-q .preg small{display:block;font-size:12.5px;font-weight:500;color:var(--ink-3)}
+.coche-q.falta .preg{color:var(--bad)}
+.coche-anim{position:relative;width:120px;height:58px;overflow:hidden;flex:none}
+.coche-anim svg{position:absolute;left:12px;bottom:9px;width:92px;animation:coche-bote .45s ease-in-out infinite alternate}
+.coche-anim .rueda{transform-box:fill-box;transform-origin:center;animation:coche-rueda .5s linear infinite}
+.coche-anim .carretera{position:absolute;left:0;right:0;bottom:3px;height:3px;background:repeating-linear-gradient(90deg,var(--line-2) 0 14px,transparent 14px 24px);animation:coche-suelo .5s linear infinite}
+.coche-anim .viento{position:absolute;left:2px;height:2px;border-radius:2px;background:var(--brand);opacity:.35;animation:coche-viento .9s linear infinite}
+@keyframes coche-bote{to{transform:translateY(-2px)}}
+@keyframes coche-rueda{to{transform:rotate(360deg)}}
+@keyframes coche-suelo{to{background-position:-24px 0}}
+@keyframes coche-viento{0%{transform:translateX(14px);opacity:0}40%{opacity:.45}100%{transform:translateX(-10px);opacity:0}}
+.seg.coche input[value="si"]:checked+span{background:var(--good);border-color:var(--good)}
+.seg.coche input[value="no"]:checked+span{background:var(--ink-3);border-color:var(--ink-3)}
+/* Resumen */
+.resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.resumen div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;animation:pop .45s var(--ease) both}
+.resumen small{display:block;font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px}
+.resumen b{font-size:22px;font-weight:800}
+.resumen .ven b{color:var(--good)}
+.resumen .dem b{color:var(--warn)}
+.resumen .cnf b{color:var(--brand)}
+/* Visitas */
+.visitas{display:flex;flex-direction:column;gap:10px}
+.visita{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);cursor:pointer;text-align:left;width:100%;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;animation:entra .45s var(--ease) both}
+.visita:hover{transform:translateY(-2px);box-shadow:var(--shadow-up);border-color:var(--line-2)}
+.visita .n{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--surface-3);color:var(--ink-2)}
+.visita.venta .n{background:var(--good-soft);color:var(--good)}
+.visita.demo .n{background:var(--warn-soft);color:var(--warn)}
+.visita.conf .n{background:var(--brand-soft);color:var(--brand-ink)}
+.visita .t{flex:1;min-width:0}
+.visita b{display:block;font-size:15px}
+.visita small{color:var(--ink-3);font-size:12.5px;display:block;margin-top:2px}
+.visita .imp{font-weight:800;font-size:15px;white-space:nowrap}
+.estado{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-block;margin-top:6px}
+.estado.nulo{background:var(--surface-3);color:var(--ink-2)}
+.estado.demo{background:var(--warn-soft);color:var(--warn)}
+.estado.conf{background:var(--brand-soft);color:var(--brand-ink)}
+.estado.venta{background:var(--good-soft);color:var(--good)}
+.estado.pte{background:var(--brand-soft);color:var(--brand-ink)}
+.vacio-q{padding:26px 10px;text-align:center;color:var(--ink-3);font-size:14px}
+.anadir{border:2px dashed var(--line-2);background:none;border-radius:16px;padding:14px;font-weight:700;color:var(--brand);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;width:100%;transition:border-color .2s,background .2s}
+.anadir:hover{border-color:var(--brand);background:var(--brand-soft)}
+.anadir svg{width:18px;height:18px}
+/* Firma */
+.firma-caja{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.botones-q{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.estado-g{font-size:12.5px;color:var(--ink-3);margin-top:10px;display:flex;align-items:center;gap:6px;min-height:18px}
+.estado-g svg{width:15px;height:15px;color:var(--good)}
+.estado-g.mal{color:var(--warn)}
+.firma-img{background:#fff;border:1px solid var(--line);border-radius:12px;height:90px;padding:6px;max-width:260px}
+.lienzo{width:100%;height:220px;background:#fff;border:2px dashed var(--line-2);border-radius:14px;touch-action:none;display:block;cursor:crosshair}
+.aviso-q{display:flex;gap:10px;align-items:flex-start;border-radius:14px;padding:12px 16px;font-weight:600;font-size:14px;margin-bottom:14px;background:var(--warn-soft);color:var(--warn);animation:entra .4s var(--ease) both}
+.aviso-q.bien{background:var(--good-soft);color:var(--good)}
+.aviso-q.info{background:var(--brand-soft);color:var(--brand-ink)}
+.aviso-q svg{width:18px;height:18px;flex:none;margin-top:1px}
+/* Barra inferior (guardar / firmar) */
+.barra-q{position:fixed;left:0;right:0;bottom:0;z-index:25;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;align-items:center}
+.barra-q .estado-g{font-size:12.5px;color:var(--ink-3);margin-right:auto;max-width:1200px}
+.barra-q .der{display:flex;gap:10px}
+/* Jefes: lista del día */
+.tarjetas-q{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tq{padding:16px;cursor:pointer;text-align:left;border:1px solid var(--line);display:flex;flex-direction:column;gap:10px;transition:transform .2s var(--ease),box-shadow .2s;animation:entra .5s var(--ease) both}
+.tq:hover{transform:translateY(-3px);box-shadow:var(--shadow-up)}
+.tq .cab{display:flex;align-items:center;gap:10px}
+.tq .av{width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none}
+.tq h3{font-size:15px;font-weight:700;line-height:1.25}
+.tq small{color:var(--ink-3);font-size:12.5px}
+.mini-res{display:flex;gap:6px;flex-wrap:wrap}
+.mini-res span{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--surface-3);color:var(--ink-2)}
+.mini-res span.v{background:var(--good-soft);color:var(--good)}
+.mini-res span.d{background:var(--warn-soft);color:var(--warn)}
+.mini-res span.c{background:var(--brand-soft);color:var(--brand-ink)}
+/* Lista de comerciales del día, con una luz: verde firmada, ámbar sin firmar, roja sin enviar */
+.lista-c{padding:6px;display:flex;flex-direction:column}
+.fila-c{display:flex;align-items:center;gap:12px;padding:12px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%;cursor:pointer;border-radius:12px;animation:entra .4s var(--ease) both;transition:background .15s}
+.fila-c:last-child{border-bottom:0}
+.fila-c:hover:not(:disabled){background:var(--surface-3)}
+.fila-c:disabled{cursor:default}
+.fila-c>svg{width:18px;height:18px;color:var(--ink-3);flex:none}
+.fila-c .t{flex:1;min-width:0}
+.fila-c b{display:block;font-size:15px}
+.fila-c small{color:var(--ink-3);font-size:12.5px}
+.fila-c .mini-res{justify-content:flex-end}
+.avq{width:36px;height:36px;border-radius:11px;background:var(--brand-soft);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;flex:none;overflow:hidden}
+.avq img{width:100%;height:100%;object-fit:cover}
+.luz{width:12px;height:12px;border-radius:50%;flex:none}
+.luz.si{background:#22a559;box-shadow:0 0 0 4px rgba(34,165,89,.18),0 0 10px rgba(34,165,89,.55)}
+.luz.medio{background:#e8a21d;box-shadow:0 0 0 4px rgba(232,162,29,.18)}
+.luz.antes{background:var(--line-2)}
+.est.antes{background:var(--surface-3);color:var(--ink-3)}
+.luz.no{background:#d93f3f;box-shadow:0 0 0 4px rgba(217,63,63,.15);animation:late 2s ease-in-out infinite}
+@keyframes late{50%{box-shadow:0 0 0 7px rgba(217,63,63,.05)}}
+.est{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px}
+.est.si{background:var(--good-soft);color:var(--good)}
+.est.medio{background:var(--warn-soft);color:var(--warn)}
+.est.no{background:var(--bad-soft);color:var(--bad)}
+@media (max-width:600px){.fila-c>svg{display:none}.fila-c{flex-wrap:wrap}.fila-c .mini-res{width:100%;justify-content:flex-start;padding-left:24px}}
+/* Tabla de detalle y hoja de producción */
+.tabla-c{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table.t{border-collapse:collapse;width:100%;font-size:13px;min-width:720px}
+table.t th,table.t td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+table.t th{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3)}
+table.t td.n,table.t th.n{text-align:center}
+table.t tr.tot td{font-weight:800;background:var(--surface-2)}
+table.t tr.dia td{background:var(--brand-soft);color:var(--brand-ink);font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.6px}
+table.t th.g{text-align:center;border-left:1px solid var(--line)}
+table.t td.bl{border-left:1px solid var(--line)}
+.cero{color:var(--ink-3)}
+.num-h{width:44px;height:32px;border:1px solid var(--line-2);border-radius:8px;text-align:center;font:inherit;font-weight:700;background:var(--surface);color:var(--ink)}
+.num-h:focus{outline:2px solid var(--brand);outline-offset:1px}
+table.hoja-t td.n{padding:4px 6px}
+table.t tr.dia{display:table-row}
+table.t tr.dia td.dl{text-align:center;font-size:10px;letter-spacing:.2px;padding:4px 3px;white-space:nowrap}
+/* Hojas a mano (Juan, 26/11): cada origen con su color para distinguir Registros móviles y MKT */
+table.t th.og-reg{background:color-mix(in srgb,#2968fe 15%,var(--surface));color:var(--brand-ink)}
+table.t td.og-reg{background:color-mix(in srgb,#2968fe 6%,var(--surface))}
+table.t th.og-mkt{background:color-mix(in srgb,#8b5cf6 17%,var(--surface));color:#7c3aed}
+table.t td.og-mkt{background:color-mix(in srgb,#8b5cf6 7%,var(--surface))}
+:root[data-theme="dark"] table.t th.og-mkt{color:#c4b5fd}
+table.t tr.dia td.dl.og-reg{background:color-mix(in srgb,#2968fe 15%,var(--surface))}
+table.t tr.dia td.dl.og-mkt{background:color-mix(in srgb,#8b5cf6 17%,var(--surface));color:#7c3aed}
+:root[data-theme="dark"] table.t tr.dia td.dl.og-mkt{color:#c4b5fd}
+.atajos{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filtro-f{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:7px 13px;font-weight:600;font-size:13px;color:var(--ink-2);cursor:pointer;transition:all .15s}
+.filtro-f:hover{border-color:var(--brand);color:var(--brand)}
+.filtro-f.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.avq.fecha-q{background:var(--surface-3);color:var(--ink-2);font-size:14px}
+.volver-q{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;margin-bottom:12px;background:none;border:0;color:var(--brand);cursor:pointer;padding:6px 0}
+.volver-q svg{width:17px;height:17px}
+dialog{margin:auto;border:none;border-radius:var(--r);padding:0;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up);width:min(640px,calc(100% - 20px));max-height:calc(100dvh - 20px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+dialog[open]{animation:pop .3s var(--ease) both}
+dialog::backdrop{background:rgba(10,14,25,.5);backdrop-filter:blur(3px)}
+dialog .dc{padding:20px;display:flex;flex-direction:column;gap:14px}
+dialog h2{font-size:19px;font-weight:800}
+.art{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.art .ent{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.art .ent input{width:20px;height:20px;accent-color:var(--brand)}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px}
+.acciones .der{display:flex;gap:10px;margin-left:auto}
+.solo-venta{display:none;flex-direction:column;gap:12px}
+.solo-inst{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.extra-inst summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--brand)}
+.otro-art{margin-top:6px}
+.estado.pte{background:var(--brand-soft);color:var(--brand-ink)}
+.es-venta .solo-venta{display:flex}
+.error-q{color:var(--bad);font-size:13px;font-weight:600;min-height:16px}
+.toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:var(--good);color:#fff;font-weight:700;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-up);z-index:40;animation:pop .35s var(--ease) both;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+.toast.mal{background:var(--bad)}
+.cargando{padding:60px 0;text-align:center;color:var(--ink-3)}
+.pestanas .s{display:none}
+@media (max-width:600px){.pestanas{display:flex;width:100%}.pestanas button{flex:1;justify-content:center;padding:8px 6px;font-size:13px}.pestanas .l{display:none}.pestanas .s{display:inline}.barra-q .estado-g{display:none}.barra-q .der{width:100%;min-width:0}.barra-q .der .btn{flex:1 1 0;min-width:0;padding:0 8px;font-size:13.5px;white-space:nowrap}}
+/* Imprimir: la quiniela como en papel */
+@media print{
+  header.top,#hub-volver,.pestanas,.barra-q,.volver-q,.no-imprimir,.toast{display:none!important}
+  body{background:#fff;color:#000}
+  .bloque,.tabla-c{box-shadow:none;border-color:#999;animation:none}
+  table.t{min-width:0;font-size:10px}
+  @page{size:A4 landscape;margin:10mm}
+}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="cargando">Abriendo las quinielas…</p></main>
+<dialog id="dlg"></dialog>
+<script>
+/* Módulo QUINIELAS (Juan, 23/11/2026): la quiniela diaria de cada comercial, firmada con el dedo,
+   y la hoja de producción, que sale sola sumando las quinielas.
+   Cada quiniela va CIFRADA en el repositorio privado: con la clave pública de los jefes (solo «Ver todas»
+   tiene la privada) y con la llave propia del comercial (para que pueda releer la suya). Quien solo rellena
+   no puede leer las de los demás. En GitHub solo se ve un nombre de archivo sin datos. */
+Hub.listo.then(async function () {
+  if (!Hub.sesion() || !Hub.puede('quinielas')) { location.replace('../index.html'); return; }
+  Hub.cabecera('Quinielas', 'quiniela');
+  const app = document.getElementById('app'), dlg = document.getElementById('dlg'), { esc } = Hub;
+  const K = Hub.llave('quinielas');
+  const sinLlave = t => { app.innerHTML = `<div class="card vacio"><div class="ic">${Hub.icono('quiniela')}</div><h1>Quinielas</h1><p>${t}</p></div>`; };
+  if (!K || !K.t) return sinLlave('El módulo está en construcción: todavía no está conectado a su almacén de datos. Avisa a Claude.');
+  // Perfiles (24/11): Usuario (su quiniela) · Coord. teleoperadoras/mailing (solo su hoja) · Jefe (su equipo) · Ver todas (administración y dirección) · Admin (todo)
+  const PERM = Hub.permiso('quinielas'), ADMIN = PERM === 'todas', JEFE = PERM === 'jefe', VER = PERM === 'ver', COORD = K.soloHoja || null;
+  const TODAS = !!(K.priv || K.privEq);   // ve quinielas de otros (admin, ver todas o jefe)
+  const GLOBAL = !!K.priv;                // ve las de todos los equipos
+  let PARA = null;   // admins: la persona a la que se le rellena la quiniela (null = la propia)
+  const propiaActual = () => PARA ? (PARA.qk || null) : K.propia;
+
+  /* ---------- Listas (Juan, 23/11) ---------- */
+  // Orígenes según el tipo de persona en ACCESOS (Juan, 24/11): los VIP tienen los suyos.
+  const ORIGENES_COM = ['Registros móviles', 'MKT', 'Autocaptado', 'Guía'];
+  const ORIGENES_VIP = ['VIP', 'VIP Biofy', 'MKT', 'Registros móviles'];
+  const ORIGENES = ORIGENES_COM.concat(ORIGENES_VIP.filter(o => !ORIGENES_COM.includes(o)));   // todos, en orden (hoja de producción)
+  const tipoDe = () => (PARA ? PARA.tipo : K.tipo) || '';
+  const equipoDueno = () => (PARA ? PARA.equipo : K.equipoPropio) || '';
+  const instalador = () => /Instalador/i.test(tipoDe());
+  const origenesDe = () => /VIP/i.test(tipoDe()) || (!PARA && /VIP/i.test((Hub.sesion() || {}).perfil || '')) ? ORIGENES_VIP : ORIGENES_COM;
+  const OFERTAS = ['Ultra', 'Plus', 'Bio', 'Minibio', 'Oferta recu'];
+  const COBROS = ['Efectivo', 'TPV', 'Transferencia', 'Pago a instalador'];   // «Pago a instalador»: Juan, 25/11
+  // Artículos: lista cerrada y por categorías, vinculada a las FICHAS DE PRODUCTO (Juan, 24/11): mismos nombres y categorías.
+  // Sale de articulos.js, que el montaje del Hub hace con las fichas activas. Si quien rellena puede ver las fichas,
+  // además se quitan las que un administrador haya eliminado desde PRODUCTOS.
+  let CATEGORIAS = (window.QN_ARTICULOS || []).map(([c, ps]) => [c, ps.map(p => p.n)]);
+  try {
+    const LF = Hub.llave('fichas');
+    if (LF && LF.ver) {
+      const r = await fetch('../productos/estado.json?t=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) {
+        const fuera = new Set((JSON.parse(await Hub.cifra.abre(LF.ver, await r.json()) || '{}').eliminados) || []);
+        CATEGORIAS = (window.QN_ARTICULOS || []).map(([c, ps]) => [c, ps.filter(p => !fuera.has(p.id)).map(p => p.n)]).filter(c => c[1].length);
+      }
+    }
+  } catch (e) {}
+  const ARTICULOS = CATEGORIAS.flatMap(c => c[1]);
+  const DELEGACIONES = ['Córdoba', 'Alicante'];
+  // Textos escritos: en mayúsculas y sin signos de puntuación (Juan, 24/11).
+  const limpia = s => String(s || '').toLocaleUpperCase('es-ES').replace(/[^\p{L}\p{N} ]+/gu, '').replace(/ {2,}/g, ' ');
+  const limpiaRuta = s => String(s || '').toLocaleUpperCase('es-ES').replace(/[^\p{L}\p{N} -]+/gu, '').replace(/ {2,}/g, ' ').replace(/-{2,}/g, '-');   // la ruta admite el guion (Juan, 24/11)
+  // Importes: los puntos de los miles se ponen solos (1500 → 1.500; 1500,5 → 1.500,5) (Juan, 24/11).
+  const conPuntos = s => {
+    let t = String(s || '').replace(/\.$/, ',').replace(/[^\d,]/g, '');
+    const i = t.indexOf(','); let ent = i < 0 ? t : t.slice(0, i), dec = i < 0 ? null : t.slice(i + 1).replace(/,/g, '').slice(0, 2);
+    ent = ent.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return dec === null ? ent : (ent || '0') + ',' + dec;
+  };
+  // Aplica el formato mientras se escribe, sin que el cursor salte.
+  function formatoVivo(input, fn) {
+    input.addEventListener('input', () => {
+      const v = input.value, pos = input.selectionStart ?? v.length, esImp = fn === conPuntos;
+      const nuevo = fn(v);
+      if (nuevo === v) return;
+      // cuántos caracteres «de verdad» hay antes del cursor (en importes, los puntos no cuentan: se ponen solos)
+      const pre = v.slice(0, pos), antes = esImp ? pre.replace(/[^\d,]/g, '').length + (pos === v.length && v.endsWith('.') ? 1 : 0) : fn(pre).length;
+      input.value = nuevo;
+      let k = 0, n = 0; while (k < nuevo.length && n < antes) { if (!esImp || nuevo[k] !== '.') n++; k++; }
+      try { input.setSelectionRange(k, k); } catch (e) {}
+    });
+  }
+  // «Confirmado» (Juan, 25/11): entra y entrega el economizador, pero no llega a hacer la demo. Orden: Confirmado · Nulo · Demo · Venta
+  const RES = { conf: 'Confirmado', nulo: 'Nulo', demo: 'Demo', venta: 'Venta' };
+  // Hasta dos resultados por visita (Juan, 26/11; p. ej. Confirmado y Demo): «resultado» es el más avanzado y «resultado2» el otro. Cuentan los dos.
+  const ORDEN_RES = Object.keys(RES);
+  const DOBLE = ['conf', 'demo'];   // la única pareja que se puede marcar a la vez
+  const tiene = (v, r) => v.resultado === r || v.resultado2 === r;
+  const resultadosDe = v => [v.resultado, v.resultado2].filter(Boolean).sort((a, b) => ORDEN_RES.indexOf(a) - ORDEN_RES.indexOf(b));
+  // Por ahora, «Confirmado» solo para los comerciales de Córdoba y Alicante (Juan, 25/11); VIP y consultores técnicos, como antes
+  const conConf = q => { const e = (q && q.equipo) || '', t = (q && q.tipo) || ''; return !(['VIP', 'Instaladores', 'Consultores técnicos'].includes(e) || /VIP|Instalador|Consultor/i.test(t)); };
+
+  /* ---------- Iconos ---------- */
+  const I = {
+    mia: '<path d="M9 4h6v3H9zM8 5.5H6v15h12v-15h-2M9 12h6M9 15.5h4"/>', dia: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+    hoja: '<rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M3.5 9h17M3.5 14h17M9 4v16M15 4v16"/>', mas: '<path d="M12 5v14M5 12h14"/>',
+    izq: '<path d="M15 18l-6-6 6-6"/>', der: '<path d="M9 18l6-6-6-6"/>', firma: '<path d="M3 17c3-1 4-8 6-8s0 8 3 8 3-4 5-4 2 3 4 3"/><path d="M3 21h18"/>',
+    guardar: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>', ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    imprimir: '<path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="6"/>',
+    excel: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', borrar: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'
+  };
+  const ic = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+  /* ---------- Fechas ---------- */
+  const hoyISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+  const sumaDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); const w = (d.getDay() + 6) % 7; return sumaDias(iso, -w); };
+  const fechaLarga = iso => { const t = new Date(iso + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+  // Siempre con punto de miles, también en 4 cifras (1.500,00 €): el navegador no lo pone solo
+  const euros = n => { const [e, d] = Math.abs(Number(n) || 0).toFixed(2).split('.'); return ((Number(n) || 0) < 0 ? '-' : '') + e.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + d + ' €'; };
+  const num = s => { const n = parseFloat(String(s || '').replace(/\./g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+
+  /* ---------- Cifrado ---------- */
+  const u8 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const b64 = b => { let t = ''; const a = new Uint8Array(b); for (let i = 0; i < a.length; i += 8192) t += String.fromCharCode(...a.subarray(i, i + 8192)); return btoa(t); };
+  const aes = (raw, uso) => crypto.subtle.importKey('raw', raw, 'AES-GCM', false, [uso]);
+  async function cierra(obj) {
+    const k = crypto.getRandomValues(new Uint8Array(32)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aes(k, 'encrypt'), new TextEncoder().encode(JSON.stringify(obj)));
+    // para los jefes: clave efímera ECDH + su clave pública
+    const pub = await crypto.subtle.importKey('jwk', K.pub, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+    const eph = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+    const kj = await crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, eph.privateKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    const ij = crypto.getRandomValues(new Uint8Array(12));
+    const out = { v: 1, i: b64(iv), c: b64(c), j: { epk: await crypto.subtle.exportKey('jwk', eph.publicKey), i: b64(ij), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ij }, kj, k)) } };
+    const eqp = (K.pubEq || {})[obj.equipo];   // y para el jefe de su equipo (24/11)
+    if (eqp) {
+      const pe = await crypto.subtle.importKey('jwk', eqp, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+      const e2 = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+      const ke = await crypto.subtle.deriveKey({ name: 'ECDH', public: pe }, e2.privateKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+      const ie = crypto.getRandomValues(new Uint8Array(12));
+      out.e = { epk: await crypto.subtle.exportKey('jwk', e2.publicKey), i: b64(ie), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ie }, ke, k)) };
+    }
+    const pr = propiaActual();   // la llave del dueño de la quiniela, para que él pueda releerla
+    if (pr) { const ip = crypto.getRandomValues(new Uint8Array(12)); out.p = { i: b64(ip), c: b64(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ip }, await aes(u8(pr), 'encrypt'), k)) }; }
+    return out;
+  }
+  async function abre(env) {
+    let k = null;
+    try {
+      if (K.priv) {
+        const priv = await crypto.subtle.importKey('jwk', K.priv, { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveKey']);
+        const epk = await crypto.subtle.importKey('jwk', env.j.epk, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+        const kj = await crypto.subtle.deriveKey({ name: 'ECDH', public: epk }, priv, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+        k = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.j.i) }, kj, u8(env.j.c));
+      } else if (K.privEq && env.e) {   // jefe: con la llave de su equipo
+        const priv = await crypto.subtle.importKey('jwk', K.privEq, { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveKey']);
+        const epk = await crypto.subtle.importKey('jwk', env.e.epk, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+        const ke = await crypto.subtle.deriveKey({ name: 'ECDH', public: epk }, priv, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+        k = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.e.i) }, ke, u8(env.e.c));
+      } else if (K.propia && env.p) k = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.p.i) }, await aes(u8(K.propia), 'decrypt'), u8(env.p.c));
+      if (!k) return null;
+      return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.i) }, await aes(k, 'decrypt'), u8(env.c))));
+    } catch (e) { return null; }
+  }
+  // Carpeta de cada comercial: un código sacado de su identificador (no dice quién es).
+  const carpeta = async uid => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-quinielas/' + uid)))].slice(0, 8).map(x => x.toString(16).padStart(2, '0')).join('');
+  const MIA = await carpeta(K.uid);
+  let CARP = MIA;   // carpeta de la quiniela que se está rellenando
+
+  /* ---------- Almacén (repositorio privado) ---------- */
+  const API = `https://api.github.com/repos/${K.o}/${K.r}`, H = { Authorization: 'Bearer ' + K.t, Accept: 'application/vnd.github+json' };
+  async function lee(ruta) {
+    const r = await fetch(`${API}/contents/${ruta}?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (r.status === 404) return { sha: null, dato: null };
+    if (!r.ok) throw new Error('No se puede leer (' + r.status + ')');
+    const j = await r.json();
+    return { sha: j.sha, dato: await abre(JSON.parse(new TextDecoder().decode(u8(j.content.replace(/\n/g, ''))))) };
+  }
+  // Marca de esta pestaña: sirve para reconocer los guardados propios (si el almacén tarda en dar la última versión)
+  const DISP = (() => { let d = null; try { d = sessionStorage.getItem('qn_disp'); if (!d) { d = Math.random().toString(36).slice(2, 10); sessionStorage.setItem('qn_disp', d); } } catch (e) { d = Math.random().toString(36).slice(2, 10); } return d; })();
+  const CONFLICTO = 'Esta quiniela se ha cambiado desde otro dispositivo o por otra persona (por ejemplo, un administrador). Recarga la página para ver la última versión.';
+  async function escribe(ruta, obj, sha, msg) {
+    const r = await fetch(`${API}/contents/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: msg, content: b64(new TextEncoder().encode(JSON.stringify({ ...(await cierra(obj)), f: obj.firmada ? 1 : 0 }))), ...(sha ? { sha } : {}) }) });
+    if (r.status === 409 || r.status === 422) { const e = new Error(CONFLICTO); e.conflicto = true; throw e; }
+    if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + '). Revisa la conexión.');
+    return (await r.json()).content.sha;
+  }
+  async function lista() {   // todas las rutas de quinielas (solo nombres)
+    const r = await fetch(`${API}/git/trees/HEAD?recursive=1&t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (!r.ok) return [];
+    const t = (await r.json()).tree.filter(x => x.type === 'blob' && /^q\/[0-9a-f]+\/\d{4}-\d{2}-\d{2}\.json$/.test(x.path));
+    for (const x of t) SHAS[x.path] = x.sha;
+    return t.map(x => x.path);
+  }
+
+  /* ---------- Estado de la página ---------- */
+  const pestanaValida = h => { if (COORD) return 'hoja'; if (!TODAS) return 'mia'; if (!ADMIN && !JEFE && (h === 'mia' || !h)) return 'dia'; return ['mia', 'dia', 'hoja'].includes(h) ? h : (ADMIN || JEFE ? 'mia' : 'dia'); };   // los jefes también rellenan la suya (Juan, 25/11)
+  let pestana = pestanaValida(location.hash.replace(/^#\/?/, ''));
+  let fecha = hoyISO(), Q = null, shaQ = null, cambios = false, semana = lunesDe(hoyISO()), delegFiltro = 'Todas';
+  let guardando = false, tAuto = null, ultimoGuardado = null, sinRed = false;
+  // Cada quiniela guarda el tipo y el equipo de su dueño (24/11): sirve para la hoja de producción por equipo y para el jefe.
+  const nueva = () => ({ v: 1, uid: PARA ? PARA.uid : K.uid, comercial: PARA ? PARA.nombre : (K.nombreCompleto || Hub.sesion().nombre), tipo: tipoDe(), equipo: equipoDueno(),
+    delegacion: PARA ? '' : (Hub.lee('qn_deleg') || ''), fecha, ruta: '', visitas: [], firma: null, firmada: null, guardada: null });
+  const esInst = q => /Instalador/i.test((q && q.tipo) || '');
+  // A las 24 horas de firmarla, ya no la cambian ni el usuario ni el jefe; solo un administrador (Juan, 25/11)
+  const BLOQUEO_H = 24;
+  const bloqueada = q => !ADMIN && !!(q && q.firmada) && Date.now() - new Date(q.firmada).getTime() > BLOQUEO_H * 3600e3;
+  const resumen = q => {
+    const v = q.visitas, ven = v.filter(x => tiene(x, 'venta'));
+    if (esInst(q)) {   // instaladores: realizadas, nulas, pendientes, demos y ventas de mantenimiento
+      const ok = v.filter(x => x.resultado === 'hecha'), vm = v.filter(x => x.ventaMant);
+      return { nulos: v.filter(x => x.resultado === 'nulo').length, demos: v.filter(x => x.demo).length, ventas: vm.length, conf: ok.length, pte: v.filter(x => x.resultado === 'pte').length,
+        hechas: ok.length, importe: v.reduce((s, x) => s + num(x.importe), 0), cuota: v.reduce((s, x) => s + num(x.cuota1), 0) };
+    }
+    return { confirmados: v.filter(x => tiene(x, 'conf')).length, nulos: v.filter(x => tiene(x, 'nulo')).length, demos: v.filter(x => tiene(x, 'demo')).length, ventas: ven.length,
+      conf: ven.filter(x => x.estado !== 'pte').length, pte: ven.filter(x => x.estado === 'pte').length,
+      importe: ven.reduce((s, x) => s + num(x.importe), 0), cuota: ven.reduce((s, x) => s + num(x.cuota1), 0) };
+  };
+  const aviso = (t, mal) => { const d = document.createElement('div'); d.className = 'toast' + (mal ? ' mal' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 3200); };
+
+  function marco(contenido) {
+    const tab = (id, ico, largo, corto) => `<button type="button" data-p="${id}" class="${pestana === id ? 'on' : ''}">${ic(ico)}<span class="l">${largo}</span><span class="s">${corto}</span></button>`;
+    app.innerHTML = `<div class="q-cab"><div><h1>${COORD ? 'Hoja de producción' : 'Quinielas'}</h1><p>${COORD ? 'Rellena los números de cada una, día a día. Se guarda solo.' : TODAS ? (JEFE ? 'Seguimiento diario de tu equipo (' + esc(K.equipoJefe || 'sin equipo') + ') y su producción' : 'Seguimiento diario de los equipos y producción de la semana') : 'Rellena tu quiniela durante el día y fírmala al terminar'}</p></div>
+      ${TODAS ? `<div class="pestanas" role="tablist">${ADMIN || JEFE ? tab('mia', 'mia', 'Mi quiniela', 'Mía') : ''}${tab('dia', 'dia', 'Quinielas del día', 'Del día')}${tab('hoja', 'hoja', 'Hoja de producción', 'Hoja')}</div>` : ''}</div>${contenido}`;
+    app.querySelectorAll('.pestanas button').forEach(b => b.onclick = () => { location.hash = '#/' + b.dataset.p; });
+  }
+  window.addEventListener('hashchange', () => { pestana = pestanaValida(location.hash.replace(/^#\/?/, '')); pinta(); });
+  window.addEventListener('beforeunload', e => { if (cambios) { guarda(false, true); e.preventDefault(); e.returnValue = ''; } });
+  function pinta() { document.querySelector('.barra-q')?.remove(); if (pestana === 'dia') return vistaDia(); if (pestana === 'hoja') return vistaHoja(); return vistaMia(); }
+
+  /* =================== MI QUINIELA =================== */
+  const borradorClave = () => 'qn_borrador_' + CARP + '_' + fecha;
+  async function cargaMia() {
+    clearTimeout(tAuto); Q = null; shaQ = null; cambios = false; ultimoGuardado = null;
+    app.querySelector('#cuerpo').innerHTML = '<p class="cargando">Cargando la quiniela…</p>';
+    try {
+      const r = await lee(`q/${CARP}/${fecha}.json`);
+      shaQ = r.sha; Q = r.dato; if (Q) ultimoGuardado = Q.guardada;
+      if (r.sha && !r.dato) { app.querySelector('#cuerpo').innerHTML = '<div class="aviso-q">' + ic('info') + '<span>Esta quiniela existe, pero no se puede abrir con tu llave. Avisa a Claude.</span></div>'; return; }
+    } catch (e) { aviso(e.message, true); }
+    const b = Hub.lee(borradorClave());   // lo que quedó sin subir en este aparato (por ejemplo, sin conexión)
+    if (b && bloqueada(Q)) Hub.guarda(borradorClave(), null);   // firmada hace más de 24 h: lo que quedara en el aparato no se sube
+    else if (b) { try { const x = JSON.parse(b); if (!Q || (x.guardada || '') > (Q.guardada || '')) { Q = x; cambios = true; programaGuardado(); } else Hub.guarda(borradorClave(), null); } catch (e) {} }
+    if (!Q) Q = nueva();
+    if (!Q.tipo) Q.tipo = tipoDe();
+    if (!Q.equipo) Q.equipo = equipoDueno();
+    pintaMia();
+    avisoAnterior();
+  }
+  // Aviso dentro del Hub: si la quiniela del día laborable anterior no está firmada, se avisa al abrir la de hoy.
+  async function avisoAnterior() {
+    if (fecha !== hoyISO() || PARA) return;
+    let d = sumaDias(fecha, -1); while ([0, 6].includes(new Date(d + 'T12:00:00').getDay())) d = sumaDias(d, -1);
+    let q = null; try { q = (await lee(`q/${CARP}/${d}.json`)).dato; } catch (e) { return; }
+    if (q && q.firmada) return;
+    // Solo desde que empezó a usar la quiniela digital: antes la rellenaba en papel y no se pasa (Juan, 23/11)
+    const mias = (await rutas(true)).filter(x => x.startsWith(`q/${CARP}/`)).map(x => x.slice(-15, -5)).sort();
+    if (!mias.length || d < mias[0]) return;
+    const c = app.querySelector('#cuerpo'); if (!c || fecha !== hoyISO() || PARA) return;
+    const div = document.createElement('div'); div.className = 'aviso-q';
+    div.innerHTML = `${ic('info')}<span>${q ? 'Tu quiniela del ' : 'No has enviado la quiniela del '}<b>${esc(fechaLarga(d).toLowerCase())}</b>${q ? ' está sin firmar.' : '.'} <a href="#" id="irAnt">Ir a ese día</a></span>`;
+    c.prepend(div);
+    div.querySelector('#irAnt').onclick = e => { e.preventDefault(); cambiaDia(d); };
+  }
+  function vistaMia() {
+    // Admin: puede rellenar la de cualquier usuario y también la de los jefes de equipo (Juan, 24/11)
+    const equipo = ADMIN ? (K.equipo || []).concat((K.jefes || []).filter(j => !(K.equipo || []).some(m => m.uid === j.uid)).map(j => ({ ...j, esJefe: true }))) : [];
+    marco(`<div class="card bloque" style="animation-delay:40ms"><h2>${ic('dia')}Día y ruta</h2>
+        <div class="fila dr">
+          ${ADMIN ? `<label class="c">Quiniela de<select class="campo" id="para"><option value="">Yo (${esc(K.nombreCompleto || Hub.sesion().nombre)})</option>${equipo.map((m, i) => `<option value="${i}" ${PARA && PARA.uid === m.uid ? 'selected' : ''}>${esc(m.nombre)}${m.esJefe ? ' (jefe de equipo)' : ''}</option>`).join('')}</select></label>` : ''}
+          <label class="c">Fecha<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Día anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${fecha}" max="${hoyISO()}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Día siguiente">${ic('der')}</button></div></label>
+          <label class="c">Delegación<select class="campo" id="deleg"><option value="">Elige…</option>${DELEGACIONES.map(d => `<option>${d}</option>`).join('')}</select></label>
+          <label class="c">Ruta<input class="campo mayus" id="ruta" placeholder="PUEBLO - PUEBLO - PUEBLO" autocomplete="off" autocapitalize="characters"></label>
+        </div>${ADMIN && !equipo.length ? '<p class="muted" style="font-size:12.5px;margin-top:8px">Para rellenar la de otra persona, primero dale «Usuario» (o «Jefe») en Quinielas desde ACCESOS.</p>' : ''}</div>
+      <div id="cuerpo"></div>`);
+    const f = app.querySelector('#fecha');
+    f.onchange = () => cambiaDia(f.value);
+    app.querySelector('#ant').onclick = () => cambiaDia(sumaDias(fecha, -1));
+    app.querySelector('#sig').onclick = () => { if (fecha < hoyISO()) cambiaDia(sumaDias(fecha, 1)); };
+    app.querySelector('#deleg').onchange = e => { Q.delegacion = e.target.value; if (!PARA) Hub.guarda('qn_deleg', e.target.value); toca(); };
+    formatoVivo(app.querySelector('#ruta'), limpiaRuta);
+    app.querySelector('#ruta').oninput = e => { Q.ruta = limpiaRuta(e.target.value).trim(); toca(); };
+    const sp = app.querySelector('#para');
+    if (sp) sp.onchange = async () => { await guardaYa(); PARA = sp.value === '' ? null : equipo[+sp.value]; CARP = PARA ? await carpeta(PARA.uid) : MIA; cargaMia(); };
+    cargaMia();
+  }
+  async function cambiaDia(nuevaFecha) {
+    if (!nuevaFecha || nuevaFecha === fecha) return;
+    await guardaYa();
+    fecha = nuevaFecha; app.querySelector('#fecha').value = fecha; cargaMia();
+  }
+  // Cada cambio se guarda solo, a los pocos segundos (y en el propio aparato al momento, por si no hay conexión).
+  function toca(quitaFirma = true) {
+    if (bloqueada(Q)) { aviso('Esta quiniela se firmó hace más de 24 horas y ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.', true); pintaMia(); return; }
+    cambios = true;
+    // Un administrador que corrige la quiniela de otra persona no le quita la firma (Juan, 26/11): queda apuntado quién la cambió y cuándo
+    if (quitaFirma && Q.firma && ADMIN && PARA) { Q.corregida = new Date().toISOString(); Q.corregidaPor = K.nombreCompleto || Hub.sesion().nombre; }
+    else if (quitaFirma && Q.firma) { Q.firma = null; Q.firmada = null; Q.firmadaPor = null; Q.corregida = null; Q.corregidaPor = null; }
+    Q.guardada = new Date().toISOString();
+    Hub.guarda(borradorClave(), JSON.stringify(Q));
+    programaGuardado(); pintaEstado();
+  }
+  function programaGuardado() { clearTimeout(tAuto); tAuto = setTimeout(() => guarda(false, true), 5000); }   // 5 s: menos escrituras cuando lo usan muchos a la vez
+  async function guardaYa() { clearTimeout(tAuto); while (guardando) await new Promise(z => setTimeout(z, 200)); if (cambios) await guarda(false, true); }   // espera a que acabe el guardado en curso
+  function pintaEstado() {
+    const e = app.querySelector('#estadoG'); if (!e) return;
+    const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    e.className = 'estado-g' + (sinRed ? ' mal' : '');
+    e.innerHTML = guardando ? 'Guardando…' : !Q.delegacion && cambios ? 'Elige la delegación para que se guarde' : sinRed ? 'Sin conexión: guardado en este dispositivo. Se subirá al volver la conexión.'
+      : cambios ? 'Cambios pendientes de guardar…' : ultimoGuardado ? `${ic('ok')}Guardado a las ${hora(ultimoGuardado)}` : 'Todavía sin datos';
+  }
+  function pintaMia() {
+    const cerrada = bloqueada(Q);
+    app.querySelector('#deleg').value = Q.delegacion || '';
+    app.querySelector('#ruta').value = Q.ruta || '';
+    app.querySelector('#deleg').disabled = app.querySelector('#ruta').disabled = cerrada;
+    const r = resumen(Q), c = app.querySelector('#cuerpo');
+    c.innerHTML = `${PARA ? `<div class="aviso-q info">${ic('info')}<span>Estás rellenando la quiniela de <b>${esc(PARA.nombre)}</b>. Se guarda en la suya y quedará firmada por ti en su nombre.</span></div>` : ''}
+      ${Q.firmada ? `<div class="aviso-q bien">${ic('ok')}<span>Firmada el ${new Date(Q.firmada).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${Q.firmadaPor ? ' por ' + esc(Q.firmadaPor) : ''}.${Q.corregida ? ` Corregida después por ${esc(Q.corregidaPor || 'un administrador')} el ${new Date(Q.corregida).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.` : ''} ${cerrada ? 'Han pasado más de 24 horas, así que ya no se puede cambiar. Si hay que corregir algo, pídeselo a un administrador.' : ADMIN && PARA ? 'Puedes corregirla: la firma se mantiene y queda apuntado que la has cambiado tú.' : 'Si cambias algo, habrá que volver a firmarla.' + (ADMIN ? '' : ' Se puede cambiar hasta 24 horas después de firmarla.')}</span></div>` : ''}
+      <div class="card bloque" style="animation-delay:80ms"><h2>${ic('hoja')}Resumen</h2><div class="resumen">
+        <div><small>Visitas</small><b>${Q.visitas.length}</b></div>${esInst(Q) ? `<div class="ven"><small>Realizadas</small><b>${r.hechas}</b></div><div><small>Nulas</small><b>${r.nulos}</b></div><div><small>Pendientes</small><b>${r.pte}</b></div>
+        <div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>` : `${conConf(Q) || r.confirmados ? `<div class="cnf"><small>Confirmados</small><b>${r.confirmados}</b></div>` : ''}<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div>
+        <div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Ventas cerradas</small><b>${r.conf}</b></div>`}
+        <div><small>Importe total</small><b style="font-size:17px">${euros(r.importe)}</b></div><div><small>1.ª cuota</small><b style="font-size:17px">${euros(r.cuota)}</b></div></div></div>
+      ${conConf(Q) ? `<div class="card bloque" id="cocheCard" style="animation-delay:100ms"><div class="coche-q${Q.coche ? '' : ' falta'}">
+        <div class="coche-anim" aria-hidden="true"><i class="viento" style="top:18px;width:16px"></i><i class="viento" style="top:30px;width:22px;animation-delay:.3s"></i><i class="viento" style="top:40px;width:12px;animation-delay:.6s"></i>
+          <svg viewBox="0 0 92 40"><path d="M5 28 L5 19 Q5 15 10 14.5 L17 14 L27 5 Q29 3 32 3 L57 3 Q61 3 64 6 L72 14 L83 15.5 Q88 16.5 88 21 L88 28 Z" fill="var(--brand)"/>
+            <path d="M30 7 L43 7 L43 14 L22 14 Z M47 7 L57 7 Q59 7 61 9 L66 14 L47 14 Z" fill="var(--brand-soft)"/><rect x="82" y="18.5" width="5" height="3" rx="1.5" fill="#ffd66b"/><rect x="5" y="18" width="3" height="3" rx="1" fill="#ff6b6b"/>
+            <g class="rueda"><circle cx="19" cy="29" r="8" fill="var(--ink)"/><circle cx="19" cy="29" r="3.4" fill="var(--surface)"/><rect x="18" y="22.5" width="2" height="13" fill="var(--surface)" opacity=".55"/></g>
+            <g class="rueda"><circle cx="72" cy="29" r="8" fill="var(--ink)"/><circle cx="72" cy="29" r="3.4" fill="var(--surface)"/><rect x="71" y="22.5" width="2" height="13" fill="var(--surface)" opacity=".55"/></g></svg>
+          <i class="carretera"></i></div>
+        <div class="preg">¿Es tu coche?<small>Obligatorio para firmar la quiniela</small></div>
+        <div class="seg coche">${[['si', 'Sí'], ['no', 'No']].map(([k, t]) => `<label><input type="radio" name="coche" value="${k}" ${Q.coche === k ? 'checked' : ''} ${cerrada ? 'disabled' : ''}><span>${t}</span></label>`).join('')}</div></div></div>` : ''}
+      <div class="card bloque" style="animation-delay:120ms"><h2>${ic('mia')}Visitas del día</h2>
+        <div class="visitas">${Q.visitas.length ? Q.visitas.map((v, i) => tarjetaVisita(v, i)).join('') : '<p class="vacio-q">Todavía no hay visitas. Añádelas según las vayas haciendo.</p>'}
+        ${cerrada ? '' : `<button class="anadir" type="button" id="anadir">${ic('mas')}Añadir visita</button>`}</div></div>
+      <div class="card bloque" style="animation-delay:160ms"><h2>${ic('firma')}Firma</h2>
+        <div class="firma-caja">${Q.firma ? `<img class="firma-img" src="${Q.firma}" alt="Firma">` : '<p class="muted" style="font-size:14px">Sin firmar. Puedes ir rellenándola durante el día (se guarda sola) y firmarla al terminar.</p>'}</div>
+        <div class="botones-q">${cerrada ? '' : `<button class="btn chico" type="button" id="firmar2">${ic('firma')}${Q.firmada ? 'Volver a firmar' : 'Firmar y enviar'}</button>`}
+          ${shaQ || Q.visitas.length ? `<button class="btn chico sec" type="button" id="pdf2">${ic('excel')}Descargar PDF</button>` : ''}</div>
+        <p class="estado-g" id="estadoG"></p></div>
+      ${PARA ? '' : '<div class="card bloque no-imprimir" id="avisos" style="animation-delay:200ms"></div>'}`;
+    if (cerrada) c.querySelectorAll('.visita').forEach(b => { b.disabled = true; b.style.cursor = 'default'; });
+    else {
+      c.querySelectorAll('.visita').forEach(b => b.onclick = () => editaVisita(+b.dataset.i));
+      c.querySelector('#anadir').onclick = () => editaVisita(null);
+      c.querySelector('#firmar2').onclick = pideFirma;
+    }
+    c.querySelectorAll('input[name="coche"]').forEach(x => x.onchange = () => { Q.coche = x.value; c.querySelector('.coche-q').classList.remove('falta'); toca(); });
+    const bp = c.querySelector('#pdf2'); if (bp) bp.onclick = () => pdfQuiniela(Q, bp);
+    pintaEstado(); pintaAvisos();
+  }
+  function tarjetaVisita(v, i) {
+    const arts = (v.articulos || []).filter(a => a.nombre).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · ');
+    if (esInst(Q)) return `<button type="button" class="visita ${v.resultado === 'hecha' ? 'venta' : v.resultado === 'pte' ? 'demo' : v.resultado}" data-i="${i}" style="animation-delay:${i * 40}ms"><span class="n">${i + 1}</span>
+      <span class="t"><b>${esc(v.cliente || 'Sin nombre')}</b><small>${esc([v.poblacion, v.trabajo].filter(Boolean).join(' · '))}</small>${arts ? `<small>${esc(arts)}</small>` : ''}
+      <span class="estado ${v.resultado === 'hecha' ? 'venta' : v.resultado === 'pte' ? 'pte' : 'nulo'}">${RES_INST[v.resultado] || '—'}</span>${v.demo ? ' <span class="estado demo">Demo</span>' : ''}${v.ventaMant ? ' <span class="estado venta">Venta de mantenimiento</span>' : ''}</span>
+      ${num(v.importe) ? `<span class="imp">${euros(num(v.importe))}</span>` : ''}</button>`;
+    return `<button type="button" class="visita ${v.resultado}" data-i="${i}" style="animation-delay:${i * 40}ms"><span class="n">${i + 1}</span>
+      <span class="t"><b>${esc(v.cliente || 'Sin nombre')}</b><small>${esc([v.poblacion, v.origen, v.oferta].filter(Boolean).join(' · '))}</small>${arts ? `<small>${esc(arts)}</small>` : ''}
+      ${resultadosDe(v).map(r => `<span class="estado ${r}">${RES[r]}</span>`).join(' ') || '<span class="estado">—</span>'}${v.resultado === 'venta' ? ` <span class="estado ${v.estado === 'pte' ? 'pte' : 'venta'}">${v.estado === 'pte' ? 'Pendiente' : 'Cerrada'}</span>` : ''}</span>
+      ${v.resultado === 'venta' ? `<span class="imp">${euros(num(v.importe))}</span>` : ''}</button>`;
+  }
+  const pintaBarra = pintaEstado;
+
+  /* ---------- Avisos en el móvil (Juan, 23/11): a las 20:00, de lunes a viernes, a quien no la haya registrado ---------- */
+  const esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const instalada = () => Hub.enIcono();
+  const disp = () => { let d = Hub.lee('qn_disp'); if (!d) { d = [...crypto.getRandomValues(new Uint8Array(6))].map(x => x.toString(16).padStart(2, '0')).join(''); Hub.guarda('qn_disp', d); } return d; };
+  const b64url = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
+  async function pintaAvisos() {
+    const el = app.querySelector('#avisos'); if (!el) return;
+    const cab = `<h2>${ic('info')}Avisos en este dispositivo</h2>`;
+    if (!K.vapid) { el.remove(); return; }
+    if (esIOS && !instalada()) {
+      el.innerHTML = cab + `<p style="font-size:14px">Para recibir un aviso a las 20:00 si todavía no has registrado tu quiniela, en el iPhone primero hay que añadir el Hub a la pantalla de inicio (una sola vez) y abrirlo desde ese icono. Luego vuelve aquí y pulsa «Activar avisos».</p>
+        <p class="muted" style="font-size:13px">¿Ya lo tienes en la pantalla de inicio? Ciérralo aquí y ábrelo desde el icono del Hub.</p>
+        <div class="botones-q"><button class="btn chico" type="button" id="inicioIOS">${ic('info')}Añadir a la pantalla de inicio</button></div>`;
+      el.querySelector('#inicioIOS').onclick = Hub.anadirInicio;
+      return;
+    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { el.innerHTML = cab + '<p class="muted" style="font-size:14px">Este navegador no admite avisos. Prueba con Chrome (Android) o Safari (iPhone).</p>'; return; }
+    let activo = false;
+    try { const reg = await navigator.serviceWorker.getRegistration(Hub.raiz); activo = !!(reg && await reg.pushManager.getSubscription()) && Notification.permission === 'granted' && Hub.lee('qn_avisos') === MIA; } catch (e) {}
+    el.innerHTML = cab + (activo
+      ? `<p style="font-size:14px;display:flex;gap:8px;align-items:center"><span class="luz si"></span>Activados. Si a las 20:00 (de lunes a viernes) todavía no has registrado tu quiniela, te llegará un aviso a este dispositivo.</p>`
+      : Notification.permission === 'denied'
+        ? '<p style="font-size:14px">Los avisos están bloqueados en este dispositivo. Actívalos en los ajustes del navegador (notificaciones de biofy-hub.github.io) y vuelve aquí.</p>'
+        : `<p style="font-size:14px">Si a las 20:00 (de lunes a viernes) todavía no has registrado tu quiniela, te llega un aviso a este dispositivo. Solo hay que activarlo una vez.</p>
+           <div class="botones-q"><button class="btn chico" type="button" id="activar">${ic('info')}Activar avisos</button></div>`);
+    const b = el.querySelector('#activar'); if (b) b.onclick = () => activaAvisos(b);
+  }
+  async function activaAvisos(boton) {
+    boton.disabled = true; boton.textContent = 'Activando…';
+    try {
+      if (await Notification.requestPermission() !== 'granted') throw new Error('Sin permiso: hay que aceptar las notificaciones.');
+      const reg = await navigator.serviceWorker.register(Hub.raiz + 'sw.js', { scope: Hub.raiz });
+      await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64url(K.vapid) });
+      const j = sub.toJSON(), ruta = `avisos/${MIA}/${disp()}.json`;
+      let sha = null; try { const x = await fetch(`${API}/contents/${ruta}?t=${Date.now()}`, { headers: H, cache: 'no-store' }); if (x.ok) sha = (await x.json()).sha; } catch (e) {}
+      const r = await fetch(`${API}/contents/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Avisos: dispositivo activado', content: b64(new TextEncoder().encode(JSON.stringify({ endpoint: j.endpoint, keys: j.keys, alta: new Date().toISOString() }))), ...(sha ? { sha } : {}) }) });
+      if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + ').');
+      Hub.guarda('qn_avisos', MIA);
+      aviso('Avisos activados en este dispositivo.');
+    } catch (e) { aviso(e.message || 'No se han podido activar los avisos.', true); }
+    pintaAvisos();
+  }   // (antes había una barra abajo; ahora el estado va junto a la firma)
+  async function guarda(conFirma, silencioso) {
+    if (!Q || !cambios && !conFirma) return true;
+    if (bloqueada(Q) && !conFirma) { cambios = false; return true; }
+    if (!Q.delegacion) { if (!silencioso) aviso('Elige la delegación antes de firmar.', true); pintaEstado(); return false; }
+    if (guardando) { if (!conFirma) { programaGuardado(); return false; } while (guardando) await new Promise(z => setTimeout(z, 200)); }
+    guardando = true; pintaEstado();
+    Q.disp = DISP;
+    const ruta = `q/${CARP}/${fecha}.json`, copia = JSON.stringify(Q), QQ = Q, msg = `Quiniela ${fecha}${conFirma ? ' (firmada)' : ''}`;
+    try {
+      let sha;
+      try { sha = await escribe(ruta, QQ, shaQ, msg); }
+      catch (e) {
+        if (!e.conflicto) throw e;
+        // Conflicto: si lo que hay guardado lo guardó esta misma pestaña o es anterior a lo nuestro (el almacén aún no daba la última), se vuelve a guardar.
+        // Si alguien la ha cambiado después (otro dispositivo, un administrador), se avisa y no se pisa.
+        const r = await lee(ruta);
+        if (r.dato && r.dato.disp !== DISP && (r.dato.guardada || '') > (ultimoGuardado || '')) throw e;
+        sha = await escribe(ruta, QQ, r.sha, msg);
+      }
+      guardando = false; sinRed = false;
+      if (ruta !== `q/${CARP}/${fecha}.json` || QQ !== Q) return true;   // mientras se guardaba se cambió de fecha o de persona: lo de ahora no se toca
+      shaQ = sha; ultimoGuardado = Q.guardada;
+      if (JSON.stringify(Q) === copia) { cambios = false; Hub.guarda(borradorClave(), null); } else programaGuardado();
+      if (conFirma) { aviso('Quiniela firmada y enviada.'); pintaMia(); } else pintaEstado();
+      return true;
+    } catch (e) {
+      guardando = false; sinRed = !navigator.onLine || /conexión/i.test(e.message);
+      if (!silencioso || conFirma) aviso(e.message, true);
+      if (sinRed) setTimeout(programaGuardado, 15000);
+      pintaEstado(); return false;
+    }
+  }
+  window.addEventListener('online', () => { if (cambios) programaGuardado(); });
+
+  /* ---------- Una visita ---------- */
+  // Artículos: lista cerrada de las fichas y, al final, «Otro…» para escribir uno que no esté (Juan, 24/11)
+  const OTRO = '__otro';
+  const esOtro = val => !!val && !ARTICULOS.includes(val);
+  const opcionesArt = val => `<option value="">— Ninguno —</option>`
+    + CATEGORIAS.map(([c, ps]) => `<optgroup label="${esc(c)}">${ps.map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</optgroup>`).join('')
+    + `<option value="${OTRO}" ${esOtro(val) ? 'selected' : ''}>Otro… (escribirlo)</option>`;
+  const TRABAJOS = ['Instalación', 'Mantenimiento', 'Incidencia'];
+  const RES_INST = { hecha: 'Realizada', nulo: 'Nula', pte: 'Pendiente' };
+  function editaVisita(i) {
+    if (bloqueada(Q)) return toca();
+    const inst = esInst(Q);
+    const v = i === null ? { cliente: '', poblacion: '', origen: '', oferta: '', trabajo: '', resultado: '', estado: 'conf', articulos: [{}, {}, {}, {}], importe: '', cuota1: '', cobro: '', cuotas: '' } : JSON.parse(JSON.stringify(Q.visitas[i]));
+    while ((v.articulos || (v.articulos = [])).length < 4) v.articulos.push({});
+    const radios = (n, ops, val, cls = '') => `<div class="seg ${cls}">${ops.map(([k, t]) => `<label><input type="radio" name="${n}" value="${esc(k)}" ${val === k ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div>`;
+    const casillas = (n, ops, vals, cls = '') => `<div class="seg ${cls}">${ops.map(([k, t]) => `<label><input type="checkbox" name="${n}" value="${esc(k)}" ${vals.includes(k) ? 'checked' : ''}><span>${esc(t)}</span></label>`).join('')}</div>`;
+    const articulos = v.articulos.map((a, k) => `<div class="art"><label class="c">Artículo ${k + 1}<select class="campo" name="art${k}">${opcionesArt(a.nombre)}</select>
+        <input class="campo mayus otro-art" name="otro${k}" placeholder="ESCRIBE EL PRODUCTO" autocomplete="off" autocapitalize="characters" value="${esOtro(a.nombre) ? esc(a.nombre) : ''}" ${esOtro(a.nombre) ? '' : 'hidden'}></label>
+        <label class="ent"><input type="checkbox" name="ent${k}" ${a.entrega ? 'checked' : ''}>Entrega</label></div>`).join('');
+    const cobro = `<div class="fila"><label class="c">Importe total (€)<input class="campo" name="importe" inputmode="decimal" value="${esc(conPuntos(v.importe))}"></label>
+          <label class="c">1.ª cuota (€)<input class="campo" name="cuota1" inputmode="decimal" value="${esc(conPuntos(v.cuota1))}"></label>
+          <label class="c">N.º de cuotas<input class="campo" name="cuotas" inputmode="numeric" value="${esc(v.cuotas)}"></label></div>
+        <div class="c">Forma de cobro (1.ª cuota)${radios('cobro', COBROS.map(o => [o, o]), v.cobro)}</div>`;
+    dlg.innerHTML = `<form class="dc ${!inst && v.resultado === 'venta' ? 'es-venta' : ''}" id="fv" novalidate>
+      <h2>${i === null ? 'Nueva visita' : 'Visita ' + (i + 1)}</h2>
+      <div class="fila"><label class="c">Cliente<input class="campo mayus" name="cliente" value="${esc(v.cliente)}" autocomplete="off" autocapitalize="characters" required></label>
+        <label class="c">Población<input class="campo mayus" name="poblacion" value="${esc(v.poblacion)}" autocomplete="off" autocapitalize="characters"></label></div>
+      ${inst ? `
+      <div class="c">Tipo de trabajo${radios('trabajo', TRABAJOS.map(o => [o, o]), v.trabajo)}</div>
+      <div class="c">Resultado${radios('resultado', Object.entries(RES_INST), v.resultado, 'res')}</div>
+      <div class="c">Además<div class="seg"><label><input type="checkbox" name="demo" ${v.demo ? 'checked' : ''}><span>Ha hecho demo</span></label><label><input type="checkbox" name="ventaMant" ${v.ventaMant ? 'checked' : ''}><span>Ha vendido mantenimiento</span></label></div></div>
+      <div class="c">Dispositivos (lo que instala o entrega)</div><div class="solo-inst" style="margin-top:0">${articulos.replace(/>Artículo (\d)</g, '>Dispositivo $1<')}</div>
+      <details class="extra-inst" ${v.importe || v.cobro ? 'open' : ''}><summary>Cobro (si lo hay)</summary><div class="solo-inst">${cobro}</div></details>`
+      : `
+      <div class="c">Origen del cliente${radios('origen', origenesDe().concat(v.origen && !origenesDe().includes(v.origen) ? [v.origen] : []).map(o => [o, o]), v.origen)}</div>
+      <div class="c">Tipo de oferta${radios('oferta', OFERTAS.map(o => [o, o]), v.oferta)}</div>
+      <div class="c">Resultado${conConf(Q) ? ' <small class="muted" style="font-weight:500">(Confirmado y Demo se pueden marcar juntos)</small>' : ''}${casillas('resultado', Object.entries(RES).filter(([k]) => k !== 'conf' || conConf(Q) || tiene(v, 'conf')), resultadosDe(v), 'res')}</div>
+      <div class="solo-venta">
+        <div class="c">Estado de la venta${radios('estado', [['conf', 'Cerrada'], ['pte', 'Pendiente']], v.estado || 'conf')}</div>
+        ${articulos}${cobro}
+      </div>`}
+      <p class="error-q" id="errv"></p>
+      <div class="acciones">${i !== null ? `<button class="btn chico peligro" type="button" id="quitar">${ic('borrar')}Quitar</button>` : ''}
+        <div class="der"><button class="btn chico sec" type="button" id="cancelar">Cancelar</button><button class="btn chico" type="submit">${i === null ? 'Añadir' : 'Guardar visita'}</button></div></div></form>`;
+    dlg.showModal();
+    const f = dlg.querySelector('#fv');
+    f.querySelectorAll('.mayus').forEach(x => formatoVivo(x, limpia));
+    ['importe', 'cuota1'].forEach(n => formatoVivo(f.elements[n], conPuntos));
+    formatoVivo(f.elements.cuotas, x => String(x).replace(/\D/g, ''));
+    // «Otro…»: aparece el recuadro para escribir el producto
+    [0, 1, 2, 3].forEach(k => { const sel = f.elements['art' + k], tx = f.elements['otro' + k]; sel.onchange = () => { tx.hidden = sel.value !== OTRO; if (!tx.hidden) tx.focus(); }; });
+    if (!inst) f.querySelectorAll('input[name="resultado"]').forEach(x => x.onchange = () => {
+      // Solo se pueden juntar Confirmado y Demo (Juan, 26/11); Nulo y Venta van siempre solos
+      if (x.checked) f.querySelectorAll('input[name="resultado"]:checked').forEach(o => { if (o !== x && !(DOBLE.includes(o.value) && DOBLE.includes(x.value))) o.checked = false; });
+      f.classList.toggle('es-venta', !!f.querySelector('input[name="resultado"][value="venta"]:checked'));
+    });
+    dlg.querySelector('#cancelar').onclick = () => dlg.close();
+    const q = dlg.querySelector('#quitar'); if (q) q.onclick = () => { if (!confirm('¿Quitar esta visita?')) return; Q.visitas.splice(i, 1); dlg.close(); toca(); pintaMia(); };
+    f.onsubmit = e => {
+      e.preventDefault();
+      const d = new FormData(f), g = k => (d.get(k) || '').toString().trim();
+      const arts = () => [0, 1, 2, 3].map(k => ({ nombre: g('art' + k) === OTRO ? limpia(g('otro' + k)).trim() : g('art' + k), entrega: d.get('ent' + k) === 'on' })).filter(a => a.nombre);
+      const otroVacio = [0, 1, 2, 3].some(k => g('art' + k) === OTRO && !limpia(g('otro' + k)).trim());
+      const nv = { cliente: limpia(g('cliente')).trim(), poblacion: limpia(g('poblacion')).trim(), resultado: g('resultado') };
+      let falta;
+      if (inst) {
+        Object.assign(nv, { trabajo: g('trabajo'), demo: d.get('demo') === 'on', ventaMant: d.get('ventaMant') === 'on', articulos: arts(), importe: conPuntos(g('importe')), cuota1: conPuntos(g('cuota1')), cuotas: g('cuotas'), cobro: g('cobro') });
+        falta = [!nv.cliente && 'el cliente', !nv.trabajo && 'el tipo de trabajo', !nv.resultado && 'el resultado'].filter(Boolean);
+      } else {
+        const rs = d.getAll('resultado').map(String).sort((a, b) => ORDEN_RES.indexOf(a) - ORDEN_RES.indexOf(b)).slice(-2);
+        nv.resultado = rs[rs.length - 1] || ''; if (rs.length === 2) nv.resultado2 = rs[0];   // el principal es el más avanzado
+        Object.assign(nv, { origen: g('origen'), oferta: g('oferta') });
+        falta = [!nv.cliente && 'el cliente', !nv.origen && 'el origen', !nv.resultado && 'el resultado'].filter(Boolean);
+        if (nv.resultado === 'venta') {
+          Object.assign(nv, { estado: g('estado') || 'conf', articulos: arts(), importe: conPuntos(g('importe')), cuota1: conPuntos(g('cuota1')), cuotas: g('cuotas'), cobro: g('cobro') });
+          if (!nv.articulos.length) falta.push('al menos un artículo');
+          if (!nv.importe) falta.push('el importe');
+        }
+      }
+      if (otroVacio) falta.push('escribir el producto de «Otro»');
+      if (falta.length) { dlg.querySelector('#errv').textContent = 'Falta ' + falta.join(', ') + '.'; return; }
+      if (i === null) Q.visitas.push(nv); else Q.visitas[i] = nv;
+      dlg.close(); toca(); pintaMia();
+    };
+  }
+
+  /* ---------- Firma con el dedo ---------- */
+  function pideFirma() {
+    if (bloqueada(Q)) return toca();
+    if (!Q.delegacion) { aviso('Elige tu delegación antes de firmar.', true); return; }
+    if (conConf(Q) && !Q.coche) { aviso('Marca si es tu coche (Sí o No) antes de firmar.', true); const cc = app.querySelector('#cocheCard'); if (cc) cc.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (!Q.visitas.length && !confirm('No hay visitas. ¿Firmar la quiniela vacía?')) return;
+    dlg.innerHTML = `<div class="dc"><h2>Firma tu quiniela</h2><p class="muted" style="font-size:14px">${esc(fechaLarga(fecha))} · ${Q.visitas.length} visita${Q.visitas.length === 1 ? '' : 's'}. Firma con el dedo (o el ratón) dentro del recuadro.</p>
+      <canvas class="lienzo" id="lienzo"></canvas>
+      <div class="acciones"><button class="btn chico sec" type="button" id="limpiar">${ic('borrar')}Borrar</button>
+        <div class="der"><button class="btn chico sec" type="button" id="cancelar">Cancelar</button><button class="btn chico" type="button" id="ok" disabled>${ic('ok')}Firmar y enviar</button></div></div></div>`;
+    dlg.showModal();
+    const cv = dlg.querySelector('#lienzo'), ctx = cv.getContext('2d'), ok = dlg.querySelector('#ok');
+    const dpr = window.devicePixelRatio || 1, r = cv.getBoundingClientRect();
+    cv.width = r.width * dpr; cv.height = r.height * dpr; ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1b1d23';
+    let dibuja = false, trazos = 0, ult = null;
+    const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+    cv.onpointerdown = e => { dibuja = true; ult = pos(e); cv.setPointerCapture(e.pointerId); ctx.beginPath(); ctx.arc(ult[0], ult[1], 1.2, 0, 7); ctx.fillStyle = '#1b1d23'; ctx.fill(); };
+    cv.onpointermove = e => { if (!dibuja) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(ult[0], ult[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); ult = p; trazos++; if (trazos > 8) ok.disabled = false; };
+    cv.onpointerup = cv.onpointercancel = () => { dibuja = false; };
+    dlg.querySelector('#limpiar').onclick = () => { ctx.clearRect(0, 0, cv.width, cv.height); trazos = 0; ok.disabled = true; };
+    dlg.querySelector('#cancelar').onclick = () => dlg.close();
+    ok.onclick = async () => {
+      ok.disabled = true; ok.textContent = 'Enviando…';
+      // la firma, recortada a lo dibujado y en PNG
+      Q.firma = cv.toDataURL('image/png'); Q.firmada = new Date().toISOString(); Q.firmadaPor = PARA ? (K.nombreCompleto || Hub.sesion().nombre) : null; Q.corregida = null; Q.corregidaPor = null; cambios = true;
+      if (await guarda(true)) dlg.close(); else { ok.disabled = false; ok.innerHTML = ic('ok') + 'Firmar y enviar'; Q.firma = null; Q.firmada = null; }
+    };
+  }
+
+  /* =================== QUINIELAS DEL DÍA (ver todas) =================== */
+  let RUTAS = null, SHAS = {}, CACHE = {};
+  async function rutas(forzar) { if (!RUTAS || forzar) RUTAS = await lista(); return RUTAS; }
+  // Se guarda en memoria por versión del archivo: si no ha cambiado, no se vuelve a pedir (menos esperas al ver un mes entero).
+  async function quinielaDe(ruta) { const k = ruta + '@' + (SHAS[ruta] || ''); if (!CACHE[k]) CACHE[k] = lee(ruta).then(r => r.dato).catch(() => { delete CACHE[k]; return null; }); return CACHE[k]; }
+  async function variasDe(rs) {   // de 8 en 8, para no saturar
+    const out = {}; let i = 0;
+    await Promise.all(Array.from({ length: Math.min(8, rs.length) }, async () => { while (i < rs.length) { const r = rs[i++]; out[r] = await quinielaDe(r); } }));
+    return out;
+  }
+
+  /* Filtros (Juan, 24/11): por fechas (un día, una semana, un mes…) y por comercial. */
+  const finDeMes = iso => { const d = new Date(iso.slice(0, 7) + '-01T12:00:00'); d.setMonth(d.getMonth() + 1); d.setDate(0); return d.toISOString().slice(0, 10); };
+  const mesEntero = (a, b) => a.endsWith('-01') && b === finDeMes(a);
+  const laborable = iso => ![0, 6].includes(new Date(iso + 'T12:00:00').getDay());
+  const diasEntre = (a, b) => { const t = []; for (let d = a; d <= b && t.length < 400; d = sumaDias(d, 1)) t.push(d); return t; };
+  const ATAJOS = {
+    hoy: () => [hoyISO(), hoyISO()],
+    ayer: () => { let d = sumaDias(hoyISO(), -1); while (!laborable(d)) d = sumaDias(d, -1); return [d, d]; },
+    semana: () => [lunesDe(hoyISO()), sumaDias(lunesDe(hoyISO()), 6)],
+    mes: () => [hoyISO().slice(0, 8) + '01', finDeMes(hoyISO())],
+    mesPasado: () => { const d = new Date(hoyISO().slice(0, 8) + '01T12:00:00'); d.setDate(0); const f = d.toISOString().slice(0, 10); return [f.slice(0, 8) + '01', f]; }
+  };
+  let desde = hoyISO(), hasta = hoyISO(), comFiltro = '', tipoFiltro = '';
+  function mueve(n) {   // flechas: un día, una semana o un mes, según lo que se esté viendo
+    if (mesEntero(desde, hasta)) { const d = new Date(desde + 'T12:00:00'); d.setMonth(d.getMonth() + n); desde = d.toISOString().slice(0, 10); hasta = finDeMes(desde); }
+    else { const l = diasEntre(desde, hasta).length; desde = sumaDias(desde, n * l); hasta = sumaDias(hasta, n * l); }
+    vistaDia();
+  }
+  const fechaCortaL = iso => new Date(iso + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+  const tituloPeriodo = () => desde === hasta ? fechaLarga(desde) : mesEntero(desde, hasta)
+    ? (t => t.charAt(0).toUpperCase() + t.slice(1))(new Date(desde + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }))
+    : `Del ${fechaCortaL(desde)} al ${fechaCortaL(hasta)}`;
+
+  async function vistaDia() {
+    if (hasta < desde) [desde, hasta] = [hasta, desde];
+    // Quien ve todos los equipos ve también a los jefes de equipo (Juan, 24/11)
+    const lista = (K.equipo || []).concat(GLOBAL ? (K.jefes || []).filter(j => !(K.equipo || []).some(m => m.uid === j.uid)) : [])
+      .concat(JEFE && K.uid ? [{ uid: K.uid, nombre: K.nombreCompleto, tipo: K.tipo || '', rol: '', equipo: K.equipoJefe }] : []);   // el jefe se ve también a sí mismo
+    const equipo = await Promise.all(lista.map(async m => ({ ...m, carpeta: await carpeta(m.uid) })));
+    const atajo = Object.keys(ATAJOS).find(k => { const [a, b] = ATAJOS[k](); return a === desde && b === hasta; }) || '';
+    const chip = (k, t) => `<button type="button" class="filtro-f ${atajo === k ? 'on' : ''}" data-a="${k}">${t}</button>`;
+    marco(`<div class="card bloque no-imprimir">
+        <div class="atajos">${chip('hoy', 'Hoy')}${chip('ayer', 'Día anterior')}${chip('semana', 'Esta semana')}${chip('mes', 'Este mes')}${chip('mesPasado', 'Mes pasado')}</div>
+        <div class="fila dr">
+        <label class="c">Desde<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Anterior">${ic('izq')}</button><input class="campo" type="date" id="desde" value="${desde}"></div></label>
+        <label class="c">Hasta<div class="dia"><input class="campo" type="date" id="hasta" value="${hasta}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Siguiente">${ic('der')}</button></div></label>
+        <label class="c">Delegación<select class="campo" id="deleg">${['Todas'].concat(DELEGACIONES).map(d => `<option ${d === delegFiltro ? 'selected' : ''}>${d}</option>`).join('')}</select></label>
+        ${GLOBAL ? `<label class="c">Tipo<select class="campo" id="tipoF"><option value="">Todos</option>${[...new Set(equipo.map(m => m.tipo).filter(Boolean))].sort().map(t => `<option ${t === tipoFiltro ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>` : ''}
+        <label class="c">Persona<select class="campo" id="com"><option value="">Todas</option>${[...new Set(equipo.filter(m => !tipoFiltro || m.tipo === tipoFiltro).map(m => m.nombre).concat(comFiltro ? [comFiltro] : []))].sort((a, b) => a.localeCompare(b)).map(n => `<option ${n === comFiltro ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label></div></div>
+      <div id="cuerpo"><p class="cargando">Abriendo las quinielas…</p></div>`);
+    app.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { [desde, hasta] = ATAJOS[b.dataset.a](); vistaDia(); });
+    app.querySelector('#desde').onchange = e => { if (!e.target.value) return; desde = e.target.value; if (hasta < desde) hasta = desde; vistaDia(); };
+    app.querySelector('#hasta').onchange = e => { if (!e.target.value) return; hasta = e.target.value; if (hasta < desde) desde = hasta; vistaDia(); };
+    app.querySelector('#ant').onclick = () => mueve(-1);
+    app.querySelector('#sig').onclick = () => mueve(1);
+    app.querySelector('#deleg').onchange = e => { delegFiltro = e.target.value; vistaDia(); };
+    app.querySelector('#com').onchange = e => { comFiltro = e.target.value; vistaDia(); };
+    const tf = app.querySelector('#tipoF'); if (tf) tf.onchange = e => { tipoFiltro = e.target.value; comFiltro = ''; vistaDia(); };
+
+    const todas = await rutas(true);
+    const primera = {}; for (const p of todas) { const [, cp, f] = p.split('/'), d = f.slice(0, 10); if (!primera[cp] || d < primera[cp]) primera[cp] = d; }
+    // Personas: las de la lista (quien tiene que rellenarla) y cualquier otra que haya enviado en esas fechas
+    const enRango = todas.filter(p => { const d = p.slice(-15, -5); return d >= desde && d <= hasta; });
+    const personas = equipo.map(m => ({ nombre: m.nombre, tipo: m.tipo || '', rol: [m.tipo, m.rol].filter(Boolean).join(' · '), carpeta: m.carpeta }));
+    // quien envía sin estar en la lista: solo lo ven quienes ven todos los equipos (un jefe no puede abrir las de otros equipos)
+    if (GLOBAL) for (const p of enRango) { const cp = p.split('/')[1]; if (!personas.some(x => x.carpeta === cp)) personas.push({ nombre: null, tipo: '', rol: '', carpeta: cp }); }
+    const elegidas = personas.filter(x => (!comFiltro || x.nombre === comFiltro) && (!tipoFiltro || x.tipo === tipoFiltro || (!x.tipo && !x.nombre)));
+    const qsDe = await variasDe(enRango.filter(p => elegidas.some(x => x.carpeta === p.split('/')[1])));
+    for (const x of personas) if (!x.nombre) { const r = Object.keys(qsDe).find(p => p.split('/')[1] === x.carpeta && qsDe[p]); x.nombre = r ? qsDe[r].comercial : '¿?'; }
+    const dias = diasEntre(desde, hasta);
+    // Un registro por persona y día: con quiniela, o día laborable (hasta hoy) en que ya la usaba y no la envió
+    const registros = [];
+    for (const x of elegidas) for (const d of dias) {
+      const ruta = `q/${x.carpeta}/${d}.json`, q = qsDe[ruta] || null;
+      const antes = !primera[x.carpeta] || d < primera[x.carpeta];
+      if (q || desde === hasta || (laborable(d) && d <= hoyISO() && !antes)) registros.push({ x, d, q, antes });
+    }
+    const delegDe = x => { const q = registros.find(r => r.x === x && r.q); return (q && q.q.delegacion) || DELEGACIONES.find(d => (x.rol || '').toLowerCase().includes(d.toLowerCase())) || ''; };
+    const vale = r => delegFiltro === 'Todas' || !delegDe(r.x) || delegDe(r.x) === delegFiltro;
+    const vis = registros.filter(vale);
+    const estado = r => r.q ? (r.q.firmada ? 'si' : 'medio') : r.antes ? 'antes' : 'no';
+    const TXT = { si: 'Enviada y firmada', medio: 'Guardada, sin firmar', no: 'Sin enviar', antes: 'Aún no usaba la digital' };
+    const suma = rs => rs.filter(r => r.q).reduce((t, r) => { const s = resumen(r.q); for (const k in s) t[k] = (t[k] || 0) + s[k]; return t; }, {});
+    const cuenta = (rs, e) => rs.filter(r => estado(r) === e).length;
+    const tot = suma(vis), c = app.querySelector('#cuerpo');
+    const cabecera = `<div class="card bloque"><h2>${ic('hoja')}${esc(tituloPeriodo())}${tipoFiltro ? ' · ' + esc(tipoFiltro) : ''}${comFiltro ? ' · ' + esc(comFiltro) : ''}</h2><div class="resumen">
+        <div class="ven"><small>Firmadas</small><b>${cuenta(vis, 'si')}</b></div><div class="dem"><small>Sin firmar</small><b>${cuenta(vis, 'medio')}</b></div><div><small>Sin enviar</small><b style="color:var(--bad)">${cuenta(vis, 'no')}</b></div>
+        <div class="cnf"><small>Confirmados</small><b>${tot.confirmados || 0}</b></div><div><small>Nulos</small><b>${tot.nulos || 0}</b></div><div><small>Demos</small><b>${tot.demos || 0}</b></div><div><small>Ventas</small><b>${tot.ventas || 0}</b></div><div><small>Importe</small><b style="font-size:17px">${euros(tot.importe)}</b></div></div></div>`;
+    const avatar = n => `<span class="avq" data-n="${esc(n)}">${esc((n || '?').trim()[0])}</span>`;
+    // Confirmados (25/11): siempre a los comerciales de Córdoba y Alicante; a los demás, solo si tienen alguno
+    const mini = (s, conf) => s ? `${conf || s.confirmados ? `<span class="c">${s.confirmados || 0} confirmados</span>` : ''}<span>${s.nulos || 0} nulos</span><span class="d">${s.demos || 0} demos</span><span class="v">${s.ventas || 0} ventas</span>` : '';
+    let filas = [], html = '';
+    if (desde === hasta || comFiltro) {
+      // Un día (todas las personas) o una persona (todos sus días): una fila por quiniela
+      filas = vis.slice().sort((a, b) => desde === hasta ? a.x.nombre.localeCompare(b.x.nombre) : b.d.localeCompare(a.d));
+      html = filas.map((r, i) => { const e = estado(r), s = r.q ? resumen(r.q) : null; return `<button type="button" class="fila-c ${e}" data-i="${i}" ${r.q ? '' : 'disabled'} style="animation-delay:${Math.min(i, 20) * 30}ms">
+          <span class="luz ${e}" title="${TXT[e]}"></span>${desde === hasta ? avatar(r.x.nombre) : `<span class="avq fecha-q">${new Date(r.d + 'T12:00:00').getDate()}</span>`}
+          <span class="t"><b>${esc(desde === hasta ? r.x.nombre : fechaLarga(r.d))}</b><small>${esc([delegDe(r.x), r.q && r.q.ruta].filter(Boolean).join(' · ') || r.x.rol || '')}</small></span>
+          <span class="mini-res">${mini(s, r.q && conConf(r.q))}<span class="est ${e}">${TXT[e]}</span></span>${r.q ? ic('der') : ''}</button>`; }).join('');
+    } else {
+      // Varios días y todos los comerciales: una fila por persona con lo de todo el periodo; al tocarla, se ven sus días
+      filas = [...new Set(vis.map(r => r.x))].sort((a, b) => a.nombre.localeCompare(b.nombre)).map(x => ({ x, rs: vis.filter(r => r.x === x) }));
+      html = filas.map((f, i) => { const s = suma(f.rs), n = { si: cuenta(f.rs, 'si'), medio: cuenta(f.rs, 'medio'), no: cuenta(f.rs, 'no') };
+        const e = n.no ? 'no' : n.medio ? 'medio' : n.si ? 'si' : 'antes';
+        return `<button type="button" class="fila-c ${e}" data-i="${i}" style="animation-delay:${Math.min(i, 20) * 30}ms">
+          <span class="luz ${e}"></span>${avatar(f.x.nombre)}
+          <span class="t"><b>${esc(f.x.nombre)}</b><small>${esc(delegDe(f.x) || f.x.rol || '')}</small></span>
+          <span class="mini-res">${mini(s, conConf({ tipo: f.x.tipo }))}<span class="est si">${n.si} firmadas</span>${n.medio ? `<span class="est medio">${n.medio} sin firmar</span>` : ''}${n.no ? `<span class="est no">${n.no} sin enviar</span>` : ''}</span>${ic('der')}</button>`; }).join('');
+    }
+    // «Descargar todo» e «Imprimir todo» (Juan, 25/11): solo administradores y «Ver todas» (dirección y administración)
+    const conQ = vis.filter(r => r.q).sort((a, b) => a.d.localeCompare(b.d) || a.x.nombre.localeCompare(b.x.nombre)).map(r => r.q);
+    const todo = (ADMIN || VER) && conQ.length ? `<div class="botones-q no-imprimir" style="margin:-4px 0 14px"><button class="btn chico" type="button" id="todoPdf">${ic('excel')}Descargar todo (${conQ.length})</button><button class="btn chico sec" type="button" id="todoImp">${ic('imprimir')}Imprimir todo</button></div>` : '';
+    c.innerHTML = cabecera + todo + (filas.length ? `<div class="card lista-c">${html}</div>`
+      : `<p class="vacio-q">${equipo.length ? 'No hay quinielas en estas fechas.' : JEFE ? 'Todavía no hay nadie de tu equipo (' + esc(K.equipoJefe || 'sin equipo') + ') con «Usuario» en QUINIELAS. Se pone en ACCESOS.' : 'Todavía no hay nadie con «Rellenar su quiniela». Dalo en ACCESOS a los comerciales y aquí aparecerá la lista de cada día.'}</p>`);
+    const bt = c.querySelector('#todoPdf');
+    if (bt) {
+      const nombre = `Quinielas ${desde === hasta ? desde : desde + ' a ' + hasta}${tipoFiltro ? ' ' + tipoFiltro : ''}${comFiltro ? ' ' + comFiltro : ''}${delegFiltro !== 'Todas' ? ' ' + delegFiltro : ''}.pdf`;
+      bt.onclick = () => pdfVarias(conQ, nombre, bt);
+      c.querySelector('#todoImp').onclick = e => imprimeQuinielas(conQ, e.currentTarget);
+    }
+    c.querySelectorAll('.fila-c').forEach(b => b.onclick = () => { const f = filas[+b.dataset.i]; if (f.rs) { comFiltro = f.x.nombre; vistaDia(); } else if (f.q) detalle(f.q); });
+    c.querySelectorAll('.avq[data-n]').forEach(a => Hub.foto(a.dataset.n).then(u => { if (u) a.innerHTML = `<img src="${u}" alt="">`; }));
+  }
+  const resTexto = (q, v) => esInst(q) ? [RES_INST[v.resultado] || '', v.demo && 'demo', v.ventaMant && 'venta de mantenimiento'].filter(Boolean).join(' · ')
+    : resultadosDe(v).map(r => RES[r]).join(' + ') + (v.resultado === 'venta' ? (v.estado === 'pte' ? ' · Pendiente' : ' · Cerrada') : '');
+  function detalle(q) {
+    const r = resumen(q);
+    app.innerHTML = `<button class="volver-q" type="button" id="volver">${ic('izq')}Volver a la lista</button>
+      <div class="q-cab"><div><h1>${esc(q.comercial)}</h1><p>Quiniela diaria · ${esc(fechaLarga(q.fecha))} · ${esc(q.delegacion)}${q.ruta ? ' · Ruta: ' + esc(q.ruta) : ''}${q.coche ? ' · Su coche: ' + (q.coche === 'si' ? 'Sí' : 'No') : ''}</p></div>
+        <div class="no-imprimir" style="display:flex;gap:8px"><button class="btn chico" type="button" id="pdfq">${ic('excel')}Descargar PDF</button><button class="btn chico sec" type="button" id="impq">${ic('imprimir')}Imprimir</button></div></div>
+      <div class="tabla-c"><table class="t"><thead><tr><th>#</th><th>Cliente</th><th>Población</th><th>${esInst(q) ? 'Trabajo' : 'Oferta'}</th><th>Origen</th><th>Artículos (entrega)</th><th>Importe</th><th>1.ª cuota</th><th>Cobro</th><th class="n">Cuotas</th><th>Resultado</th></tr></thead><tbody>
+      ${q.visitas.map((v, i) => `<tr><td>${i + 1}</td><td>${esc(v.cliente)}</td><td>${esc(v.poblacion)}</td><td>${esc(v.oferta || v.trabajo || '')}</td><td>${esc(v.origen)}</td>
+        <td>${esc((v.articulos || []).map(a => a.nombre + (a.entrega ? ' ✓' : '')).join(' · '))}</td><td>${v.resultado === 'venta' || num(v.importe) ? euros(num(v.importe)) : ''}</td><td>${v.resultado === 'venta' || num(v.cuota1) ? euros(num(v.cuota1)) : ''}</td>
+        <td>${esc(v.cobro || '')}</td><td class="n">${esc(v.cuotas || '')}</td><td>${resTexto(q, v)}</td></tr>`).join('') || '<tr><td colspan="11" class="cero">Sin visitas</td></tr>'}
+      <tr class="tot"><td colspan="6">Total</td><td>${euros(r.importe)}</td><td>${euros(r.cuota)}</td><td colspan="3"></td></tr></tbody></table></div>
+      <div class="card bloque" style="margin-top:14px"><h2>Resumen</h2><div class="resumen">${esInst(q) ? `<div><small>Nulos</small><b>${r.nulos}</b></div><div><small>Realizadas</small><b>${r.conf}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas mant.</small><b>${r.ventas}</b></div>`
+        : `${conConf(q) || r.confirmados ? `<div class="cnf"><small>Confirmados</small><b>${r.confirmados}</b></div>` : ''}<div><small>Nulos</small><b>${r.nulos}</b></div><div class="dem"><small>Demos</small><b>${r.demos}</b></div><div class="ven"><small>Ventas</small><b>${r.ventas}</b></div><div><small>Ventas cerradas</small><b>${r.conf}</b></div>`}</div></div>
+      <div class="card bloque"><h2>Firma</h2>${q.firma ? `<img class="firma-img" src="${q.firma}" alt="Firma de ${esc(q.comercial)}"><p class="muted" style="font-size:13px;margin-top:6px">Firmada el ${new Date(q.firmada).toLocaleString('es-ES')}${q.firmadaPor ? ' por ' + esc(q.firmadaPor) + ', en nombre del comercial' : ''}${q.corregida ? `. Corregida después por ${esc(q.corregidaPor || 'un administrador')} el ${new Date(q.corregida).toLocaleString('es-ES')}` : ''}</p>` : '<p class="muted">Sin firmar todavía.</p>'}</div>`;
+    app.querySelector('#volver').onclick = () => vistaDia();
+    app.querySelector('#pdfq').onclick = e => pdfQuiniela(q, e.currentTarget);
+    app.querySelector('#impq').onclick = e => imprimeQuinielas([q], e.currentTarget);
+    scrollTo(0, 0);
+  }
+
+  /* =================== HOJAS DE PRODUCCIÓN (Juan, 24/11): una por equipo, con las columnas de su hoja en papel ===================
+     Comerciales, VIP, consultores técnicos e instaladores salen solas de las quinielas.
+     Teleoperadoras y mailing las rellena a mano su coordinadora (como el papel, pero digital). */
+  const contar = (q, f) => q ? q.visitas.filter(f).length : 0;
+  const hojaOrigenes = (os, conf) => os.flatMap(o => (conf ? [['conf', 'Conf']] : []).concat([['nulo', 'Nul'], ['demo', 'Demo'], ['venta', 'Vent']]).map(([r, t]) => ({ g: o, s: t, v: q => contar(q, x => x.origen === o && tiene(x, r)) })))
+    .concat([{ g: 'Total ventas', s: '', v: q => contar(q, x => tiene(x, 'venta')) }]);
+  const pct = (g, a, b) => ({ g, s: '%', pct: [a, b] });
+  const MANUAL_TEL = ['Registros móviles', 'MKT'].flatMap(o => ['CED', 'NUL', 'ERR', 'NO LOC', 'PROD'].map(t => ({ g: o, s: t, m: true })));
+  const MANUAL_MAIL = ['MKT', 'Demos com'].flatMap(o => ['CED', 'NUL', 'ERR', 'NO LOC', 'DEMO', 'VENT'].map(t => ({ g: o, s: t, m: true })));
+  const HOJAS_DEF = {
+    com: { nombre: 'Comerciales', deleg: true, cols: () => hojaOrigenes(ORIGENES_COM, true), texto: 'Sale sola de las quinielas: confirmados, nulos, demos y ventas de cada comercial por origen del cliente.' },
+    vip: { nombre: 'VIP', cols: () => hojaOrigenes(ORIGENES_VIP), texto: 'Sale sola de las quinielas de los VIP, por sus orígenes.' },
+    tec: { nombre: 'Consultores técnicos', cols: () => hojaOrigenes(ORIGENES_COM), texto: 'Sale sola de las quinielas de los consultores técnicos.' },
+    inst: { nombre: 'Instaladores', texto: 'Sale sola de las quinielas de los instaladores, con las columnas de su cuadro.', cols: () => [
+      { g: 'Instalaciones', s: '', v: q => q ? q.visitas.length : 0 },
+      { g: 'Nulos', s: 'N.º', v: q => contar(q, x => x.resultado === 'nulo') }, pct('Nulos', 1, 0),
+      { g: 'Realizadas', s: 'N.º', v: q => contar(q, x => x.resultado === 'hecha') }, pct('Realizadas', 3, 0),
+      { g: 'Dispositivos', s: '', v: q => q ? q.visitas.reduce((t, x) => t + (x.articulos || []).filter(a => a.nombre).length, 0) : 0 },   // como en el cuadro (allí se escribe el aparato: Voqua…)
+      { g: 'Demos', s: 'N.º', v: q => contar(q, x => x.demo) }, pct('Demos', 6, 0),
+      { g: 'Venta mantenimiento', s: 'N.º', v: q => contar(q, x => x.ventaMant) }, pct('Venta mantenimiento', 8, 0)] },
+    tel: { nombre: 'Teleoperadoras', manual: true, cols: () => MANUAL_TEL.concat([{ g: 'Total', s: '', suma: [4, 9] }]), texto: 'La rellena la coordinadora de teleoperadoras. Total = producidas de Registros móviles + MKT.' },
+    mail: { nombre: 'Mailing', manual: true, cols: () => MANUAL_MAIL.concat([{ g: 'Total', s: '', suma: [5, 11] }]), texto: 'La rellena la coordinadora de mailing. Total = ventas de MKT + Demos com.' }
+  };
+  // De qué hoja es cada quiniela: por el equipo de su dueño (o, en las antiguas, por su tipo)
+  const hojaDeQ = q => { const e = q.equipo || ''; const t = q.tipo || '';
+    return e === 'VIP' || /VIP/i.test(t) ? 'vip' : e === 'Instaladores' || /Instalador/i.test(t) ? 'inst' : e === 'Consultores técnicos' || /Consultor/i.test(t) ? 'tec' : 'com'; };
+  const hojaDeEquipo = e => ({ 'Córdoba': 'com', 'Alicante': 'com', 'VIP': 'vip', 'Consultores técnicos': 'tec', 'Instaladores': 'inst', 'Teleoperadoras': 'tel', 'Mailing': 'mail' })[e] || 'com';
+  // Qué hojas ve cada uno
+  const hojasVisibles = () => COORD ? [COORD] : GLOBAL ? ['com', 'vip', 'tec', 'inst', 'tel', 'mail'] : JEFE && K.equipoJefe ? [hojaDeEquipo(K.equipoJefe)] : ['com'];
+  const puedeEditar = h => HOJAS_DEF[h].manual && (COORD === h || ADMIN);
+  let hojaSel = null, modoHoja = 'semana', mesHoja = hoyISO().slice(0, 7);
+  // Valor de cada columna en una fila (las de % y total se calculan con las demás)
+  const completa = (cols, vals) => cols.map((c, k) => c.pct ? (vals[c.pct[1]] ? Math.round(100 * vals[c.pct[0]] / vals[c.pct[1]]) : null) : c.suma ? c.suma.reduce((t, i) => t + (vals[i] || 0), 0) : (vals[k] || 0));
+  const sumaFilas = (cols, filas) => completa(cols, cols.map((c, k) => (c.pct || c.suma) ? 0 : filas.reduce((t, f) => t + (f[k] || 0), 0)));
+
+  /* ---- Almacén de las hojas a mano: h/<hoja>/<lunes>.json, cifrado con la llave de las hojas ---- */
+  async function leeHoja(h, lunes) {
+    const r = await fetch(`${API}/contents/h/${h}/${lunes}.json?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (r.status === 404) return { sha: null, dato: { v: 1, hoja: h, semana: lunes, datos: {} } };
+    if (!r.ok) throw new Error('No se puede leer la hoja (' + r.status + ')');
+    const j = await r.json(), env = JSON.parse(new TextDecoder().decode(u8(j.content.replace(/\n/g, ''))));
+    const plano = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: u8(env.i) }, await aes(u8(K.hk), 'decrypt'), u8(env.c));
+    return { sha: j.sha, dato: JSON.parse(new TextDecoder().decode(plano)) };
+  }
+  async function escribeHoja(h, lunes, dato, sha) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aes(u8(K.hk), 'encrypt'), new TextEncoder().encode(JSON.stringify(dato)));
+    const r = await fetch(`${API}/contents/h/${h}/${lunes}.json`, { method: 'PUT', headers: H, body: JSON.stringify({ message: `Hoja ${h} ${lunes}`, content: b64(new TextEncoder().encode(JSON.stringify({ v: 1, i: b64(iv), c: b64(c) }))), ...(sha ? { sha } : {}) }) });
+    if (r.status === 409 || r.status === 422) { const e = new Error('Esta hoja se ha cambiado desde otro dispositivo o por otra persona. Recarga la página para ver la última versión.'); e.conflicto = true; throw e; }
+    if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + '). Revisa la conexión.');
+    return (await r.json()).content.sha;
+  }
+
+  async function vistaHoja() {
+    const visibles = hojasVisibles();
+    if (!visibles.includes(hojaSel)) hojaSel = visibles[0];
+    const D = HOJAS_DEF[hojaSel], cols = D.cols();
+    const semanaDias = [0, 1, 2, 3, 4].map(n => sumaDias(semana, n));
+    const delegFija = JEFE && ['Córdoba', 'Alicante'].includes(K.equipoJefe) ? K.equipoJefe : null;
+    if (delegFija) delegFiltro = delegFija;
+    marco(`<div class="card bloque no-imprimir">
+        ${visibles.length > 1 ? `<div class="atajos">${visibles.map(h => `<button type="button" class="filtro-f ${h === hojaSel ? 'on' : ''}" data-h="${h}">${esc(HOJAS_DEF[h].nombre)}</button>`).join('')}</div>` : ''}
+        <div class="fila">
+        <label class="c">Ver<select class="campo" id="modo"><option value="semana" ${modoHoja === 'semana' ? 'selected' : ''}>Semana</option><option value="mes" ${modoHoja === 'mes' ? 'selected' : ''}>Resumen del mes</option></select></label>
+        ${modoHoja === 'semana' ? `<label class="c">Semana del<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Semana anterior">${ic('izq')}</button><input class="campo" type="date" id="fecha" value="${semana}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Semana siguiente">${ic('der')}</button></div></label>`
+          : `<label class="c">Mes<div class="dia"><button class="btn chico sec ic" type="button" id="ant" aria-label="Mes anterior">${ic('izq')}</button><input class="campo" type="month" id="fecha" value="${mesHoja}"><button class="btn chico sec ic" type="button" id="sig" aria-label="Mes siguiente">${ic('der')}</button></div></label>`}
+        ${D.deleg && !delegFija ? `<label class="c">Delegación<select class="campo" id="deleg">${['Todas'].concat(DELEGACIONES).map(d => `<option ${d === delegFiltro ? 'selected' : ''}>${d}</option>`).join('')}</select></label>` : ''}</div>
+        <div class="aviso-q info" style="margin:12px 0 0">${ic('info')}<span>${esc(D.texto)}${puedeEditar(hojaSel) && modoHoja === 'semana' ? ' Escribe los números en las casillas: se guarda solo.' : ''}</span></div></div>
+      <div id="cuerpo"><p class="cargando">Preparando la hoja…</p></div>`);
+    app.querySelectorAll('[data-h]').forEach(b => b.onclick = () => { hojaSel = b.dataset.h; vistaHoja(); });
+    app.querySelector('#modo').onchange = e => { modoHoja = e.target.value; vistaHoja(); };
+    const f = app.querySelector('#fecha');
+    const mueveMes = n => { const d = new Date(mesHoja + '-15T12:00:00'); d.setMonth(d.getMonth() + n); mesHoja = d.toISOString().slice(0, 7); vistaHoja(); };
+    f.onchange = () => { if (!f.value) return; if (modoHoja === 'semana') semana = lunesDe(f.value); else mesHoja = f.value; vistaHoja(); };
+    app.querySelector('#ant').onclick = () => modoHoja === 'semana' ? (semana = sumaDias(semana, -7), vistaHoja()) : mueveMes(-1);
+    app.querySelector('#sig').onclick = () => modoHoja === 'semana' ? (semana = sumaDias(semana, 7), vistaHoja()) : mueveMes(1);
+    const dl = app.querySelector('#deleg'); if (dl) dl.onchange = e => { delegFiltro = e.target.value; vistaHoja(); };
+
+    // Días que entran: la semana (lunes a viernes) o los laborables del mes
+    const dias = modoHoja === 'semana' ? semanaDias : diasEntre(mesHoja + '-01', finDeMes(mesHoja + '-01')).filter(laborable);
+    // Filas: [nombre, valores por día]
+    let personas = [], valor = () => null, datosHoja = null;
+    try {
+      if (D.manual) {
+        personas = (K.hojas && K.hojas[hojaSel]) || [];
+        const lunes = [...new Set(dias.map(lunesDe))], semanas = {};
+        await Promise.all(lunes.map(async l => { semanas[l] = await leeHoja(hojaSel, l); }));
+        if (modoHoja === 'semana') datosHoja = semanas[semana];
+        valor = (p, d) => { const x = semanas[lunesDe(d)]; const v = x && x.dato.datos[p.uid] && x.dato.datos[p.uid][d]; return v ? completa(cols, v) : null; };
+      } else {
+        const rs = (await rutas(true)).filter(p => dias.some(d => p.endsWith(`/${d}.json`)));
+        const qs = Object.values(await variasDe(rs)).filter(q => q && hojaDeQ(q) === hojaSel && (!D.deleg || delegFiltro === 'Todas' || q.delegacion === delegFiltro));
+        // En el orden de la lista de ACCESOS (como en el papel) y, detrás, quien no esté en ella
+        const lista = (K.equipo || []).map(m => m.nombre);
+        const nombres = [...new Set(qs.map(q => q.comercial))].sort((a, b) => ((lista.indexOf(a) + 1) || 999) - ((lista.indexOf(b) + 1) || 999) || a.localeCompare(b));
+        personas = nombres.map(n => ({ nombre: n }));
+        valor = (p, d) => { const q = qs.find(x => x.comercial === p.nombre && x.fecha === d); return q ? completa(cols, cols.map(c => c.v ? c.v(q) : 0)) : null; };
+      }
+    } catch (e) { app.querySelector('#cuerpo').innerHTML = `<div class="aviso-q">${ic('info')}<span>${esc(e.message)}</span></div>`; return; }
+
+    const editable = puedeEditar(hojaSel) && modoHoja === 'semana';
+    const vacio = cols.map(() => null);
+    const OG = { 'Registros móviles': 'og-reg', 'MKT': 'og-mkt' }, og = c => D.manual ? (OG[c.g] || '') : '';
+    const celda = (c, x, k, ed, p, d) => ed && c.m ? `<td class="n ${og(c)} ${c.s === cols[0].s || (k && cols[k - 1].g !== c.g) ? 'bl' : ''}"><input class="num-h" inputmode="numeric" data-u="${esc(p.uid)}" data-d="${d}" data-k="${k}" value="${x == null || x === 0 && !((datosHoja.dato.datos[p.uid] || {})[d]) ? '' : x}" aria-label="${esc(p.nombre + ' ' + c.g + ' ' + c.s)}"></td>`
+      : `<td class="n ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''} ${x ? '' : 'cero'}">${x == null ? '' : c.pct ? x + ' %' : x}</td>`;
+    const fila = (p, vals, i, d, ed) => `<tr><td class="n">${i + 1}º</td><td>${esc(p.nombre)}</td>${(vals || vacio).map((x, k) => celda(cols[k], x, k, ed, p, d)).join('')}</tr>`;
+    const totFila = (t, filas) => `<tr class="tot"><td></td><td>${t}</td>${sumaFilas(cols, filas).map((x, k) => celda(cols[k], x, k, false)).join('')}</tr>`;
+    // Cabecera de dos filas: grupos y subcolumnas
+    const grupos = []; cols.forEach(c => { const u = grupos[grupos.length - 1]; if (u && u.g === c.g) u.n++; else grupos.push({ g: c.g, n: 1, s: c.s }); });
+    // Juan, 27/11: en la fila de cada día, los nombres de las columnas (CED, NUL…) encima de cada casilla, para rellenar más fácil
+    const etiqueta = c => grupos.find(g => g.g === c.g).n === 1 && !c.s ? c.g : c.s;
+    // El primer día va justo debajo de la cabecera: sin repetirlos (Juan, 27/11)
+    const filaDia = (d, primero) => primero ? `<tr class="dia"><td colspan="${2 + cols.length}">${esc(fechaLarga(d))}</td></tr>` : `<tr class="dia"><td colspan="2">${esc(fechaLarga(d))}</td>${cols.map((c, k) => `<td class="dl ${og(c)} ${k === 0 || cols[k - 1].g !== c.g ? 'bl' : ''}">${esc(etiqueta(c))}</td>`).join('')}</tr>`;
+    let cuerpo = '';
+    const totalesDia = [];
+    if (modoHoja === 'semana') {
+      for (const d of dias) {
+        const vals = personas.map(p => valor(p, d) || (editable ? cols.map(() => 0) : null));
+        totalesDia.push(sumaFilas(cols, vals.map(v => v || vacio)));
+        cuerpo += filaDia(d, d === dias[0]) + personas.map((p, i) => fila(p, vals[i], i, d, editable)).join('') + totFila('Totales', vals.map(v => v || vacio));
+      }
+    } else {   // mes: una fila por persona con todo el mes
+      const vals = personas.map(p => sumaFilas(cols, dias.map(d => valor(p, d) || vacio)));
+      cuerpo = personas.map((p, i) => fila(p, vals[i], i, null, false)).join('');
+      totalesDia.push(sumaFilas(cols, vals));
+    }
+    const totGeneral = sumaFilas(cols, totalesDia);
+    const c = app.querySelector('#cuerpo');
+    const titulo = `Hoja de producción · ${D.nombre}${D.deleg ? ' · ' + (delegFiltro === 'Todas' ? 'todas las delegaciones' : delegFiltro) : ''}`;
+    const periodo = modoHoja === 'semana' ? 'Semana del ' + fechaLarga(semana) : 'Resumen de ' + new Date(mesHoja + '-15T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    c.innerHTML = `<div class="q-cab" style="margin-top:4px"><div><h1 style="font-size:20px">${esc(titulo)}</h1><p>${esc(periodo)} · ${personas.length ? personas.length + ' personas' : D.manual ? 'todavía no hay nadie en esta hoja (se pone en ACCESOS: «Sale en la hoja de producción de»)' : 'todavía no hay quinielas'}</p></div>
+        <div class="no-imprimir" style="display:flex;gap:8px;align-items:center"><span class="estado-g" id="estadoH"></span><button class="btn chico sec" type="button" id="csv">${ic('excel')}Descargar Excel</button><button class="btn chico sec" type="button" onclick="print()">${ic('imprimir')}Imprimir</button></div></div>
+      <div class="tabla-c"><table class="t hoja-t"><thead><tr><th rowspan="2"></th><th rowspan="2">Nombre</th>${grupos.map(g => g.n === 1 && !g.s ? `<th class="g" rowspan="2">${esc(g.g)}</th>` : `<th class="g ${og(g)}" colspan="${g.n}">${esc(g.g)}</th>`).join('')}</tr>
+        <tr>${cols.map((x, k) => (grupos.find(g => g.g === x.g).n === 1 && !x.s) ? '' : `<th class="n ${og(x)} ${k === 0 || cols[k - 1].g !== x.g ? 'bl' : ''}">${esc(x.s)}</th>`).join('')}</tr></thead>
+        <tbody>${cuerpo}${modoHoja === 'semana' ? `<tr class="dia"><td colspan="${2 + cols.length}">Total semanal</td></tr>` : ''}${totFila(modoHoja === 'semana' ? 'Total' : 'Total del mes', totalesDia)}</tbody></table></div>`;
+    c.querySelector('#csv').onclick = e => excelHoja({ D, cols, personas, dias, valor, titulo, periodo }, e.currentTarget);
+    if (editable) enlazaEdicion(c, datosHoja, cols);
+  }
+
+  // Hoja a mano: cada número se guarda solo, a los pocos segundos
+  function enlazaEdicion(c, x, cols) {
+    let t = null, guardandoH = false, ultimaH = x.dato.guardada || '';
+    const hH = hojaSel, lunesH = semana;   // la hoja y la semana de lo que se está editando (aunque luego se cambie de semana)
+    const est = c.querySelector('#estadoH'), pon = s => { est.textContent = s; };
+    pon(x.dato.guardada ? 'Guardada a las ' + new Date(x.dato.guardada).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '');
+    const guardaH = async () => {
+      if (guardandoH) { t = setTimeout(guardaH, 1500); return; }
+      guardandoH = true; pon('Guardando…');
+      try { x.dato.guardada = new Date().toISOString(); x.dato.quien = (Hub.sesion() || {}).nombre || ''; x.dato.disp = DISP;
+        try { x.sha = await escribeHoja(hH, lunesH, x.dato, x.sha); }
+        catch (e) {   // si lo último guardado es de esta pestaña o anterior a lo nuestro, se vuelve a guardar; si es de otro, se avisa
+          if (!e.conflicto) throw e;
+          const r = await leeHoja(hH, lunesH);
+          if (r.sha && r.dato.disp !== DISP && (r.dato.guardada || '') > ultimaH) throw e;
+          x.sha = await escribeHoja(hH, lunesH, x.dato, r.sha);
+        }
+        ultimaH = x.dato.guardada; pon('Guardada a las ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })); }
+      catch (e) { pon(e.message); aviso(e.message, true); }
+      guardandoH = false;
+    };
+    // Totales de cada fila, de cada día y de la semana, con lo que hay en las casillas
+    const recalcula = () => {
+      const filas = [...c.querySelectorAll('table.hoja-t tbody tr')], tots = filas.filter(tr => tr.classList.contains('tot'));
+      let bloque = []; const dias = [];
+      const pon = (tr, vals) => vals.forEach((v, i) => { const td = tr.children[2 + i]; if (!td.querySelector('input')) { td.textContent = v == null ? '' : cols[i].pct ? v + ' %' : v; td.classList.toggle('cero', !v); } });
+      for (const tr of filas) {
+        if (tr.classList.contains('dia')) continue;
+        const ins = [...tr.querySelectorAll('.num-h')];
+        if (ins.length) { const v = completa(cols, cols.map((col, i) => { const x = tr.children[2 + i].querySelector('input'); return x ? +x.value || 0 : 0; })); pon(tr, v); bloque.push(v); }
+        else if (tr.classList.contains('tot')) {
+          if (tr === tots[tots.length - 1]) pon(tr, sumaFilas(cols, dias));
+          else { const t = sumaFilas(cols, bloque); pon(tr, t); dias.push(t); bloque = []; }
+        }
+      }
+    };
+    recalcula();
+    c.querySelectorAll('.num-h').forEach(inp => {
+      inp.addEventListener('input', () => {
+        inp.value = inp.value.replace(/\D/g, '').slice(0, 4);
+        const u = inp.dataset.u, d = inp.dataset.d, k = +inp.dataset.k;
+        const fila = ((x.dato.datos[u] = x.dato.datos[u] || {})[d] = x.dato.datos[u][d] || cols.map(() => 0));
+        fila[k] = inp.value === '' ? 0 : +inp.value;
+        recalcula();   // totales al momento (sin repintar, para no perder el cursor)
+        clearTimeout(t); t = setTimeout(guardaH, 2500); pon('Cambios sin guardar…');
+      });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const todos = [...c.querySelectorAll('.num-h')]; const n = todos[todos.indexOf(inp) + 1]; if (n) n.focus(); } });
+    });
+    window.addEventListener('beforeunload', ev => { if (t) { guardaH(); ev.preventDefault(); ev.returnValue = ''; } });
+  }
+
+  /* =================== DESCARGAS (Juan, 23/11): PDF de cada quiniela y Excel de la hoja, como los originales =================== */
+  // Librerías conocidas, cargadas solo al descargar y con su huella (integrity): el navegador rechaza cualquier copia cambiada.
+  const LIBS = {
+    jspdf: ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk'],
+    tabla: ['https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', 'sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3'],
+    excel: ['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js', 'sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz']
+  };
+  const cargadas = {};
+  const carga = n => cargadas[n] || (cargadas[n] = new Promise((ok, mal) => {
+    const sc = document.createElement('script'); sc.src = LIBS[n][0]; sc.integrity = LIBS[n][1]; sc.crossOrigin = 'anonymous';
+    sc.onload = ok; sc.onerror = () => { delete cargadas[n]; mal(new Error('No se ha podido preparar la descarga. Revisa la conexión.')); };
+    document.head.appendChild(sc);
+  }));
+  const bajaBlob = (blob, nombre) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); };
+  const fechaCorta = iso => iso.split('-').reverse().join('/');
+  async function conEspera(boton, fn) {
+    const t = boton.innerHTML; boton.disabled = true; boton.innerHTML = 'Preparando…';
+    try { await fn(); } catch (e) { aviso(e.message || 'No se ha podido descargar.', true); }
+    boton.disabled = false; boton.innerHTML = t;
+  }
+  // Logo en PNG (el PDF no admite SVG)
+  let LOGO = null;
+  async function logoPng() {
+    if (LOGO) return LOGO;
+    const img = new Image(); img.src = Hub.raiz + 'comun/marca/logo-horizontal-blue.svg';
+    await img.decode();
+    const cv = document.createElement('canvas'); cv.width = 1200; cv.height = Math.round(1200 * img.naturalHeight / img.naturalWidth);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    return (LOGO = { url: cv.toDataURL('image/png'), r: cv.height / cv.width });
+  }
+
+  // PDF de una quiniela, con la forma de la «Quiniela diaria» en papel (A4 apaisado)
+  // Dibuja una quiniela en la página actual del PDF (sirve para una sola, para «Descargar todo» y para imprimir)
+  async function dibujaQuiniela(doc, q, pie) {
+      const N = '#000000', G = [217, 217, 217];
+      // Cabecera: recuadros como en el papel y el logo a la derecha
+      doc.setDrawColor(N); doc.setLineWidth(0.3);
+      doc.rect(10, 10, 140, 8); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('QUINIELA DIARIA', 80, 15.6, { align: 'center' });
+      doc.setFontSize(9);
+      const fila = (y, et, val, w) => { doc.rect(10, y, w, 6.5); doc.setFont('helvetica', 'bold'); doc.text(et, 11.5, y + 4.5); doc.setFont('helvetica', 'normal'); doc.text(String(val || ''), 11.5 + doc.getTextWidth(et) + 2, y + 4.5); };
+      fila(19, 'COMERCIAL:', q.comercial + (q.delegacion ? ' (' + q.delegacion + ')' : ''), 140);
+      fila(26.5, 'FECHA:', fechaCorta(q.fecha), 80);
+      if (conConf(q)) { doc.rect(92, 26.5, 58, 6.5); doc.setFont('helvetica', 'bold'); doc.text('¿ES TU COCHE?', 93.5, 31); doc.setFont('helvetica', 'normal'); doc.text(q.coche === 'si' ? 'SÍ' : q.coche === 'no' ? 'NO' : '', 93.5 + doc.getTextWidth('¿ES TU COCHE?') + 2, 31); }   // solo comerciales (Juan, 26/11)
+      fila(34, 'RUTA:', q.ruta, 140);
+      try { const L = await logoPng(); doc.addImage(L.url, 'PNG', 210, 11, 75, 75 * L.r); } catch (e) {}
+      // Tabla de visitas (como mínimo 10 filas, igual que el papel)
+      const X = b => b ? 'X' : '';
+      const inst = esInst(q);
+      const filas = q.visitas.map(v => {
+        const a = v.articulos || [], art = k => (a[k] && a[k].nombre) || '', ent = k => X(a[k] && a[k].entrega), venta = v.resultado === 'venta';
+        if (inst) return [v.cliente, v.poblacion, v.trabajo || '', '', art(0), ent(0), art(1), ent(1), art(2), ent(2), art(3), ent(3),
+          num(v.importe) ? euros(num(v.importe)) : '', num(v.cuota1) ? euros(num(v.cuota1)) : '', v.cobro || '', v.cuotas || '',
+          X(v.resultado === 'hecha'), X(v.resultado === 'nulo'), X(v.demo), X(v.ventaMant), X(v.resultado === 'pte')];
+        return [v.cliente, v.poblacion, v.oferta, v.origen, art(0), ent(0), art(1), ent(1), art(2), ent(2), art(3), ent(3),
+          venta ? euros(num(v.importe)) : '', venta ? euros(num(v.cuota1)) : '', venta ? v.cobro || '' : '', venta ? v.cuotas || '' : '',
+          X(tiene(v, 'conf')), X(tiene(v, 'nulo')), X(tiene(v, 'demo')), X(venta), X(venta && v.estado === 'pte')];
+      });
+      while (filas.length < 10) filas.push(new Array(21).fill(''));
+      const r = resumen(q);
+      filas.push([{ content: 'TOTAL', colSpan: 12, styles: { halign: 'right', fontStyle: 'bold' } }, { content: euros(r.importe), styles: { fontStyle: 'bold' } }, { content: euros(r.cuota), styles: { fontStyle: 'bold' } }, { content: '', colSpan: 7 }]);
+      doc.autoTable({
+        startY: 44, margin: { left: 10, right: 10 }, theme: 'grid',
+        head: [['NOMBRE', 'POBLACIÓN', inst ? 'TRABAJO' : 'TIPO\nOFERTA', inst ? '' : 'ORIGEN\nCLIENTE', 'ARTÍCULO 1', 'ENTREGA', 'ARTÍCULO 2', 'ENTREGA', 'ARTÍCULO 3', 'ENTREGA', 'ARTÍCULO 4', 'ENTREGA', 'IMPORTE\nTOTAL', '1ª CUOTA', 'FORMA\nCOBRO', 'Nº\nCUOTAS', inst ? 'REALIZ.' : 'CONF', 'NULO', 'DEMO', inst ? 'V.\nMANT.' : 'VENTA', 'PTE']],
+        body: filas,
+        styles: { font: 'helvetica', fontSize: 6.6, cellPadding: 1.1, lineColor: N, lineWidth: 0.2, textColor: N, valign: 'middle', minCellHeight: 6.2 },
+        headStyles: { fillColor: G, textColor: N, fontStyle: 'bold', halign: 'center', fontSize: 5.8, cellPadding: 0.7 },
+        columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 17 }, 2: { cellWidth: 11, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' }, 5: { cellWidth: 12.5, halign: 'center' }, 7: { cellWidth: 12.5, halign: 'center' }, 9: { cellWidth: 12.5, halign: 'center' }, 11: { cellWidth: 12.5, halign: 'center' }, 12: { cellWidth: 15, halign: 'right' }, 13: { cellWidth: 13, halign: 'right' }, 14: { cellWidth: 12, halign: 'center' }, 15: { cellWidth: 11, halign: 'center' }, 16: { cellWidth: 8.5, halign: 'center' }, 17: { cellWidth: 8.5, halign: 'center' }, 18: { cellWidth: 8.5, halign: 'center' }, 19: { cellWidth: 8.5, halign: 'center' }, 20: { cellWidth: 8.5, halign: 'center' } }
+      });
+      // Resumen y firma
+      let y = doc.lastAutoTable.finalY + 8;
+      if (y > 170) { doc.addPage(); y = 20; }
+      doc.autoTable({ startY: y, margin: { left: 95 }, tableWidth: 107, theme: 'grid',
+        head: [[{ content: 'RESUMEN', colSpan: 8, styles: { halign: 'center' } }]],
+        body: [inst ? ['NULOS', r.nulos, 'REALIZ.', r.conf, 'DEMOS', r.demos, 'V. MANT.', r.ventas] : ['CONF', r.confirmados, 'NULOS', r.nulos, 'DEMOS', r.demos, 'VENTAS', r.ventas]],
+        styles: { fontSize: 8, lineColor: N, lineWidth: 0.2, textColor: N, halign: 'center' }, headStyles: { fillColor: [255, 255, 255], textColor: N, fontStyle: 'normal', fontSize: 9 } });
+      y = doc.lastAutoTable.finalY + 10;
+      if (q.firma) { try { doc.addImage(q.firma, 'PNG', 222, y - 6, 55, 18); } catch (e) {} }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text('Fdo.:', 210, y + 13); doc.line(219, y + 13.5, 287, y + 13.5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(110);
+      doc.text(q.firmada ? 'Firmada con el dedo en el Biofy Hub el ' + new Date(q.firmada).toLocaleString('es-ES') + (q.firmadaPor ? ' por ' + q.firmadaPor + ', en nombre del comercial' : '') : 'Sin firmar', 219, y + 17);
+      if (q.firmada && q.corregida) doc.text('Corregida después por ' + (q.corregidaPor || 'un administrador') + ' el ' + new Date(q.corregida).toLocaleString('es-ES'), 219, y + 20.5);
+      doc.text('Biofy Hub · Quiniela diaria · ' + pie + ' el ' + new Date().toLocaleString('es-ES'), 10, 203);
+      doc.setTextColor(0);
+  }
+  const nuevoPdf = async () => { await carga('jspdf'); await carga('tabla'); return new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); };
+  function pdfQuiniela(q, boton) {
+    return conEspera(boton, async () => {
+      const doc = await nuevoPdf(); await dibujaQuiniela(doc, q, 'descargada');
+      bajaBlob(doc.output('blob'), `Quiniela ${q.comercial} ${q.fecha}.pdf`);
+    });
+  }
+  // «Descargar todo» (Juan, 25/11): todas las quinielas de la lista en un solo PDF, una detrás de otra (cada una en su página)
+  function pdfVarias(qs, nombre, boton) {
+    return conEspera(boton, async () => {
+      const doc = await nuevoPdf();
+      for (let i = 0; i < qs.length; i++) { if (i) doc.addPage(); await dibujaQuiniela(doc, qs[i], 'descargada'); }
+      bajaBlob(doc.output('blob'), nombre);
+    });
+  }
+  // Imprimir (Juan, 25/11): con el diseño de la quiniela en papel (el mismo del PDF), no con el de la pantalla.
+  // En el ordenador se abre el cuadro de imprimir; en el móvil se abre el PDF para imprimirlo o compartirlo desde ahí.
+  const esMovil = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function imprimeQuinielas(qs, boton) {
+    const w = esMovil() ? window.open('', '_blank') : null;   // se abre ya, al tocar, para que el navegador no la bloquee
+    return conEspera(boton, async () => {
+      const doc = await nuevoPdf();
+      for (let i = 0; i < qs.length; i++) { if (i) doc.addPage(); await dibujaQuiniela(doc, qs[i], 'impresa'); }
+      const url = URL.createObjectURL(doc.output('blob'));
+      if (w) { w.location.href = url; return; }
+      document.getElementById('qn-imprimir')?.remove();
+      const f = document.createElement('iframe'); f.id = 'qn-imprimir'; f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+      f.onload = () => setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(url, '_blank'); } }, 300);
+      f.src = url; document.body.appendChild(f);
+    });
+  }
+
+  // Excel de cualquier hoja de producción, con la estructura del papel: título, semana, cabecera de dos filas,
+  // un bloque por día con su fila de totales y el total semanal (o, en el resumen del mes, una fila por persona). Con fórmulas.
+  function excelHoja({ D, cols, personas, dias, valor, titulo, periodo }, boton) {
+    return conEspera(boton, async () => {
+      await carga('excel');
+      const wb = new window.ExcelJS.Workbook(); wb.creator = 'Biofy Hub';
+      const ws = wb.addWorksheet(D.nombre.toUpperCase().slice(0, 30), { pageSetup: { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } } });
+      const DIAS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+      const col = n => { let t = ''; while (n > 0) { const m = (n - 1) % 26; t = String.fromCharCode(65 + m) + t; n = Math.floor((n - 1) / 26); } return t; };
+      const C0 = 4, ult = C0 + cols.length - 1;   // A día, B nº, C nombre, luego las columnas
+      const fino = { style: 'thin', color: { argb: 'FF000000' } }, borde = { top: fino, left: fino, bottom: fino, right: fino };
+      const gris = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } }, gris2 = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+      ws.columns = [{ width: 12 }, { width: 5 }, { width: 26 }].concat(cols.map(c => ({ width: c.g.length > 14 && cols.filter(x => x.g === c.g).length === 1 ? 14 : 8 })));
+      ws.mergeCells(1, 1, 1, ult); ws.getCell(1, 1).value = 'HOJA DE PRODUCCIÓN ' + D.nombre.toUpperCase(); ws.getCell(1, 1).font = { bold: true, size: 14 }; ws.getCell(1, 1).alignment = { horizontal: 'center' };
+      ws.mergeCells(2, 1, 2, 3); ws.getCell(2, 1).value = titulo.replace(/^Hoja de producción · /, '').toUpperCase(); ws.getCell(2, 1).font = { bold: true };
+      ws.mergeCells(2, 4, 2, ult); ws.getCell(2, 4).value = periodo.toUpperCase(); ws.getCell(2, 4).font = { bold: true };
+      // cabecera
+      ws.mergeCells(3, 1, 4, 2); ws.mergeCells(3, 3, 4, 3); ws.getCell(3, 3).value = 'NOMBRE';
+      let k = 0;
+      while (k < cols.length) {
+        let n = 1; while (k + n < cols.length && cols[k + n].g === cols[k].g) n++;
+        const c1 = C0 + k;
+        if (n === 1 && !cols[k].s) { ws.mergeCells(3, c1, 4, c1); ws.getCell(3, c1).value = cols[k].g.toUpperCase(); }
+        else { if (n > 1) ws.mergeCells(3, c1, 3, c1 + n - 1); ws.getCell(3, c1).value = cols[k].g.toUpperCase(); for (let j = 0; j < n; j++) ws.getCell(4, c1 + j).value = cols[k + j].s.toUpperCase(); }
+        k += n;
+      }
+      for (let rr = 3; rr <= 4; rr++) for (let cc = 1; cc <= ult; cc++) { const ce = ws.getCell(rr, cc); ce.fill = gris; ce.font = { bold: true, size: 9 }; ce.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; ce.border = borde; }
+      // fórmulas de las columnas calculadas en una fila
+      const calcula = fila => cols.forEach((c, i) => {
+        const L = col(C0 + i);
+        if (c.pct) { ws.getCell(fila, C0 + i).value = { formula: `IFERROR(${col(C0 + c.pct[0])}${fila}/${col(C0 + c.pct[1])}${fila},"")` }; ws.getCell(fila, C0 + i).numFmt = '0%'; }
+        if (c.suma) ws.getCell(fila, C0 + i).value = { formula: `IF(COUNT(${c.suma.map(j => col(C0 + j) + fila).join(',')})=0,"",SUM(${c.suma.map(j => col(C0 + j) + fila).join(',')}))` };
+        void L;
+      });
+      const sumaRango = (fila, desde, hasta) => cols.forEach((c, i) => { if (c.pct || c.suma) return; const L = col(C0 + i); ws.getCell(fila, C0 + i).value = { formula: `IF(COUNT(${L}${desde}:${L}${hasta})=0,"",SUM(${L}${desde}:${L}${hasta}))` }; });
+      const sumaLista = (fila, filas) => cols.forEach((c, i) => { if (c.pct || c.suma) return; const L = col(C0 + i), refs = filas.map(f => L + f).join(','); ws.getCell(fila, C0 + i).value = { formula: `IF(COUNT(${refs})=0,"",SUM(${refs}))` }; });
+      const pinta = (fila, gr) => { for (let cc = 1; cc <= ult; cc++) { ws.getCell(fila, cc).fill = gr; ws.getCell(fila, cc).font = { bold: true }; } };
+      let fila = 5; const totales = [];
+      const ponFila = (p, i, vals) => {
+        ws.getCell(fila, 2).value = p ? (i + 1) + 'º' : ''; ws.getCell(fila, 3).value = p ? p.nombre : '';
+        cols.forEach((c, j) => { if (!c.pct && !c.suma) ws.getCell(fila, C0 + j).value = vals && vals[j] ? vals[j] : null; });
+        calcula(fila);
+      };
+      const semanal = dias.length <= 5;
+      if (semanal) {
+        dias.forEach((d, n) => {
+          const ini = fila, filasDia = Math.max(personas.length, 1);
+          for (let i = 0; i < filasDia; i++, fila++) ponFila(personas[i], i, personas[i] ? valor(personas[i], d) : null);
+          ws.mergeCells(ini, 1, fila - 1, 1); ws.getCell(ini, 1).value = DIAS[n] + '\n' + fechaCorta(d);
+          ws.getCell(ini, 1).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; ws.getCell(ini, 1).font = { bold: true };
+          ws.getCell(fila, 1).value = 'TOTALES'; sumaRango(fila, ini, fila - 1); calcula(fila); pinta(fila, gris2); ws.mergeCells(fila, 1, fila, 3);
+          totales.push(fila); fila++;
+        });
+        ws.getCell(fila, 1).value = 'TOTAL SEMANAL'; sumaLista(fila, totales);
+      } else {
+        const ini = fila;
+        personas.forEach((p, i) => { const tot = cols.map((c, j) => dias.reduce((t, d) => t + ((valor(p, d) || [])[j] || 0), 0)); ponFila(p, i, tot); fila++; });
+        ws.getCell(fila, 1).value = 'TOTAL DEL MES'; if (personas.length) sumaRango(fila, ini, fila - 1);
+      }
+      calcula(fila); ws.mergeCells(fila, 1, fila, 3); pinta(fila, gris);
+      for (let rr = 5; rr <= fila; rr++) for (let cc = 1; cc <= ult; cc++) { const ce = ws.getCell(rr, cc); ce.border = borde; if (cc > 3) ce.alignment = { horizontal: 'center', vertical: 'middle' }; }
+      ws.views = [{ state: 'frozen', ySplit: 4 }];
+      const buf = await wb.xlsx.writeBuffer();
+      bajaBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `Hoja de produccion ${D.nombre} ${semanal ? 'semana ' + dias[0] : dias[0].slice(0, 7)}.xlsx`);
+    });
+  }
+
+  pinta();
+});
+</script>
+</body>
+</html>
