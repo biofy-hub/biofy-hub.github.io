@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Comunidad · Biofy Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../comun/estilo.css?v=mwyy1bur">
+<script src="../comun/config.js?v=mwyy1bur"></script>
+<script src="../comun/perfiles.js?v=mwyy1bur"></script>
+<script src="../comun/nucleo.js?v=mwyy1bur"></script>
+<script src="../comun/volver.js?v=mwyy1bur"></script>
+<style>
+/* Comunidad (Juan, 26/11/2026): opción C, portada y pestañas. Cada pestaña con su color. */
+#app{padding-bottom:90px}
+.cm-tabs{position:sticky;top:64px;z-index:15;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.cm-tabs .in{max-width:1000px;margin:0 auto;display:flex;gap:4px;padding:0 10px;overflow-x:auto;scrollbar-width:none}
+.cm-tabs .in::-webkit-scrollbar{display:none}
+.cm-tab{flex:none;display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:13px 12px 11px;font-weight:700;font-size:14px;color:var(--ink-3);border-bottom:3px solid transparent;cursor:pointer;transition:color .2s,border-color .2s}
+.cm-tab svg{width:17px;height:17px}
+.cm-tab .pt{width:8px;height:8px;border-radius:50%;background:var(--c1)}
+.cm-tab.on{color:var(--c1);border-color:var(--c1)}
+.cm-tab.oculta{opacity:.5}
+.cm-tab .ojo{width:14px;height:14px}
+.cm{max-width:1000px;margin:0 auto;padding:18px 16px 40px}
+.cm-ed{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sw{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:13.5px;color:var(--ink-2);cursor:pointer;user-select:none}
+.sw input{display:none}
+.sw i{width:40px;height:24px;border-radius:99px;background:var(--line-2);position:relative;transition:background .2s}
+.sw i:after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw input:checked+i{background:var(--brand)}
+.sw input:checked+i:after{transform:translateX(16px)}
+.b2{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.b2:hover{background:var(--surface-3)}
+.b2 svg{width:16px;height:16px}
+.b2.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.b2.pri:hover{filter:brightness(1.07);background:var(--brand)}
+.b2.pel{color:var(--bad)}
+.hola2{margin:2px 0 14px;animation:entra .5s var(--ease) both}
+.hola2 h1{font-size:clamp(22px,4vw,28px);font-weight:800}
+.hola2 p{color:var(--ink-3);font-size:14px}
+/* ---------- Bloque de color (cabecera de cada pestaña y destacado del Inicio) ---------- */
+.banda{position:relative;overflow:hidden;border-radius:26px;color:#fff;padding:24px 22px;background:radial-gradient(ellipse at 75% 0%,var(--c1) 0%,var(--c1) 30%,var(--c2) 100%);box-shadow:0 18px 40px color-mix(in srgb,var(--c2) 35%,transparent);animation:entra .55s var(--ease) both;margin-bottom:16px}
+.banda>*{position:relative;z-index:2}
+.banda .k{font-size:11.5px;letter-spacing:.28em;font-weight:800;color:#ffe08a;text-transform:uppercase}
+.banda h2{font-size:clamp(26px,5vw,40px);font-weight:900;line-height:1.05;margin:6px 0 6px;letter-spacing:-.5px}
+.banda p.s{font-size:15px;opacity:.92;font-weight:600;max-width:560px}
+.decor{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.decor i{position:absolute;top:-20px;color:#fff;opacity:.55;font-style:normal;animation:cae linear infinite}
+.decor.confeti i{width:8px;height:12px;border-radius:2px;opacity:.85}
+@keyframes cae{to{transform:translateY(420px) rotate(260deg)}}
+.brillo{position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.12);z-index:1}
+.nums{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}
+.nums span{width:clamp(50px,12vw,66px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff 0%,#fbf6ea 35%,#e8dcc0 75%,#c9b48a 100%);color:#3b2a0e;font-weight:900;font-size:clamp(24px,6vw,32px);display:grid;place-items:center;box-shadow:inset -4px -6px 10px rgba(120,90,30,.25),0 8px 18px rgba(0,0,0,.28);animation:cae-bola .9s cubic-bezier(.3,1.4,.5,1) var(--d,0ms) both,balancea 4.5s ease-in-out calc(var(--d,0ms) + 1.2s) infinite}
+@keyframes cae-bola{0%{opacity:0;transform:translateY(-60px) rotate(-220deg)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes balancea{0%,100%{transform:rotate(0)}50%{transform:rotate(9deg)}}
+.cd{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.cd div{background:rgba(255,255,255,.17);border-radius:14px;padding:8px 12px;text-align:center;min-width:64px}
+.cd b{display:block;font-size:22px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.cd small{font-size:11px;opacity:.9;font-weight:700}
+.chipb{display:inline-flex;align-items:center;gap:7px;background:#ffd66b;color:#5a3d00;font-weight:800;font-size:13.5px;padding:9px 14px;border-radius:12px;margin-top:14px}
+.chipb svg{width:16px;height:16px}
+.ir-a{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:#fff;color:var(--c2);font-weight:800;font-size:14px;padding:10px 16px;border-radius:12px;border:0;cursor:pointer}
+.ir-a svg{width:16px;height:16px}
+/* ---------- Tarjetas del Inicio ---------- */
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.sec-h b{font-size:17px;font-weight:800}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.tile{position:relative;overflow:hidden;border-radius:22px;padding:16px;color:#fff;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(150deg,var(--c1),var(--c2));cursor:pointer;border:0;text-align:left;font:inherit;animation:entra .5s var(--ease) both;transition:transform .2s var(--ease),box-shadow .2s}
+.tile:hover{transform:translateY(-3px);box-shadow:0 14px 30px color-mix(in srgb,var(--c2) 35%,transparent)}
+.tile .ic{position:absolute;top:14px;left:14px;width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.2);display:grid;place-items:center}
+.tile .ic svg{width:23px;height:23px}
+.tile .bd{position:absolute;top:14px;right:14px;background:#fff;color:var(--c2);font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:999px}
+.tile b{font-size:18px;font-weight:800;line-height:1.15}
+.tile small{font-size:12.5px;opacity:.92;font-weight:600}
+.tile.oculta{opacity:.55}
+/* ---------- Contenido ---------- */
+.card.pad{padding:16px}
+.pieza{display:block;width:100%;border-radius:20px;box-shadow:var(--shadow-up);cursor:zoom-in;animation:entra .5s var(--ease) both}
+.texto{font-size:15px;line-height:1.6;color:var(--ink-2)}
+.texto p+p{margin-top:8px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.dos{gap:10px}}
+.part{padding:12px;text-align:center;position:relative;animation:entra .5s var(--ease) both}
+.part b.n{font-size:17px;font-weight:800;display:block;margin-bottom:8px}
+.part .foto{aspect-ratio:4/3;border-radius:16px;background:repeating-linear-gradient(45deg,var(--surface-3),var(--surface-3) 9px,var(--surface-2) 9px,var(--surface-2) 18px);display:grid;place-items:center;color:var(--ink-3);font-size:12.5px;font-weight:700;overflow:hidden;margin-bottom:10px}
+.part .foto img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.part.mio{outline:3px solid var(--c1);outline-offset:-3px}
+.part .corona{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#ffd66b;color:#5a3d00;font-weight:800;font-size:12px;padding:4px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.barra{height:9px;border-radius:9px;background:var(--surface-3);overflow:hidden;margin:4px 0 4px}
+.barra i{display:block;height:100%;border-radius:9px;background:var(--c1);transition:width .8s var(--ease)}
+.mini{font-size:12.5px;color:var(--ink-3);font-weight:700}
+.votar{width:100%;margin-top:8px;height:42px;border-radius:12px;border:0;background:var(--c1);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+.votar.ya{background:var(--surface-3);color:var(--ink-2)}
+.votar:disabled{opacity:.6;cursor:wait}
+.aviso{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--c1) 10%,var(--surface));color:var(--ink-2);font-weight:600;font-size:14px;margin:12px 0}
+.aviso svg{width:18px;height:18px;color:var(--c1)}
+.pasos .p{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--line)}
+.pasos .p:last-child{border:0}
+.pasos .p i{width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--c1) 14%,var(--surface));color:var(--c1);font-style:normal;font-weight:800;font-size:13px;display:grid;place-items:center;flex:none}
+.pasos .p span{font-size:14.5px;font-weight:600;padding-top:3px}
+.datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.dato{padding:14px;display:flex;gap:12px;align-items:center}
+.dato .di{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c1) 13%,var(--surface));color:var(--c1);flex:none}
+.dato .di svg{width:20px;height:20px}
+.dato small{display:block;color:var(--ink-3);font-size:12px;font-weight:600}
+.dato b{font-size:15px;font-weight:800;overflow-wrap:anywhere}
+.lista .it{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);color:var(--ink)}
+.lista .it:last-child{border:0}
+.lista .it .di{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c1) 13%,var(--surface));color:var(--c1);flex:none}
+.lista .it .di svg{width:19px;height:19px}
+.lista .it b{font-size:14.5px;display:block}
+.lista .it small{color:var(--ink-3);font-size:12.5px}
+.lista .it .fl{margin-left:auto;color:var(--ink-3)}
+.lista .it .fl svg{width:16px;height:16px}
+.vacio2{padding:18px;text-align:center;color:var(--ink-3);font-weight:600;font-size:14px}
+.carga{display:grid;place-items:center;padding:60px}
+.carga i{width:34px;height:34px;border-radius:50%;border:3px solid var(--line-2);border-top-color:var(--brand);animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+/* Sorteo de personajes (Juan, 27/11) */
+.so{position:relative;overflow:hidden;border-radius:26px;padding:20px 18px 22px;margin-bottom:16px;background:radial-gradient(ellipse at 50% -10%,color-mix(in srgb,var(--c1) 22%,var(--surface)) 0%,var(--surface) 70%);border:1px solid color-mix(in srgb,var(--c1) 25%,var(--line));animation:entra .55s var(--ease) both}
+.so .k{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--c1)}
+.so h3{font-size:22px;font-weight:800;margin:4px 0 12px;letter-spacing:-.3px}
+.so-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--surface-3);margin-bottom:16px}
+.so-tabs button{height:36px;padding:0 14px;border-radius:11px;border:0;background:none;font:inherit;font-weight:700;font-size:13.5px;color:var(--ink-2);cursor:pointer}
+.so-tabs button.on{background:var(--surface);color:var(--c1);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.bombo{display:grid;justify-items:center;gap:14px;padding:4px 0 2px}
+.bombo svg{width:min(250px,72vw);height:auto;overflow:visible}
+.bombo .bolas{transform-origin:110px 96px;animation:gira 7s linear infinite}
+.bombo.rapido .bolas{animation-duration:.45s}
+.bombo.rapido .tambor{animation:tiembla .12s linear infinite}
+@keyframes tiembla{0%,100%{transform:translate(0,0)}25%{transform:translate(1.5px,-1px)}75%{transform:translate(-1.5px,1px)}}
+.bombo .manivela{transform-origin:182px 96px;animation:gira 7s linear infinite}
+.bombo.rapido .manivela{animation-duration:.45s}
+.bola-sale{position:absolute;left:50%;top:205px;width:54px;height:54px;margin-left:-27px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c9,#ffc93c 45%,#e19a00);box-shadow:0 8px 20px rgba(225,154,0,.45);display:grid;place-items:center;font-weight:900;color:#7a4b00;font-size:20px;opacity:0;pointer-events:none}
+.bombo.sale .bola-sale{animation:bola-sale 1.3s var(--ease) forwards}
+@keyframes bola-sale{0%{opacity:0;transform:translateY(-40px) scale(.4)}25%{opacity:1;transform:translateY(0) scale(.7)}60%{transform:translateY(-30px) scale(1.35)}80%{transform:translateY(-18px) scale(1.2)}100%{opacity:1;transform:translateY(-24px) scale(1.6)}}
+.so .tirar{height:52px;padding:0 26px;border-radius:16px;border:0;background:linear-gradient(135deg,var(--c1),var(--c2));color:#fff;font:inherit;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 12px 26px color-mix(in srgb,var(--c1) 40%,transparent);display:inline-flex;align-items:center;gap:9px;animation:late 1.8s ease-in-out infinite}
+.so .tirar svg{width:20px;height:20px;flex:none}
+.so .tirar:disabled{animation:none;opacity:.6;cursor:default}
+@keyframes late{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+.so .pista{font-size:13px;color:var(--ink-3);font-weight:600}
+.toca-te{position:relative;text-align:center;padding:10px 6px 4px}
+.toca-te .emo{font-size:96px;line-height:1;display:inline-grid;place-items:center;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c1) 18%,var(--surface)) 0%,transparent 70%)}
+.toca-te.nuevo .emo{animation:pop .9s cubic-bezier(.2,1.6,.4,1) both}
+.toca-te.nuevo .txt{animation:entra .6s .45s var(--ease) both}
+@keyframes pop{0%{transform:scale(0) rotate(-25deg)}100%{transform:scale(1) rotate(0)}}
+.toca-te small{display:block;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink-3);margin-top:8px}
+.toca-te b{display:block;font-size:34px;font-weight:900;letter-spacing:-.5px;color:var(--c1);margin:2px 0 4px;line-height:1.1}
+.toca-te .quien{font-size:15px;font-weight:700;color:var(--ink-2)}
+.toca-te .nota{font-size:13px;color:var(--ink-3);margin-top:10px;font-weight:600}
+.estallido{position:absolute;left:50%;top:80px;width:0;height:0;pointer-events:none}
+.estallido i{position:absolute;width:9px;height:14px;border-radius:2px;opacity:0;animation:estalla 1.4s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes estalla{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r))}}
+.so-grupo{margin-bottom:14px}
+.so-grupo h4{font-size:14px;font-weight:800;margin:4px 0 8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.so-grupo h4 span{font-size:12px;font-weight:700;color:var(--ink-3)}
+.so-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.so-fila{display:flex;align-items:center;gap:8px;padding:8px 9px;flex-wrap:wrap;border-radius:14px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.so-fila .e{font-size:22px;width:28px;text-align:center;flex:none}
+.so-fila .t{min-width:0;flex:1}
+.so-fila .t b{display:block;font-size:14px;font-weight:800}
+.so-fila .t span{display:block;font-size:12.5px;color:var(--ink-2);line-height:1.3;overflow-wrap:anywhere}
+.so-fila.mio{border-color:var(--c1);background:color-mix(in srgb,var(--c1) 8%,var(--surface))}
+.so-fila.oculta{border-style:dashed;background:transparent}
+.so-fila.oculta .t b{font-size:13.5px}
+.so-fila.oculta .t span{color:var(--ink-3)}
+.so-fila.libre .t span{color:var(--ink-3);font-style:italic}
+.so-fila .ib{height:30px;padding:0 9px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--bad);flex:none}
+.so-fila .ib.vuelve{color:var(--c1)}
+.so-fuera{font-size:13px;color:var(--ink-3);font-weight:600;margin:4px 0 0}
+.etq-o{display:inline-flex;align-items:center;gap:5px;background:var(--warn-soft);color:var(--warn);font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;margin-bottom:10px}
+/* ---------- Ventanas de edición ---------- */
+dialog.dl{margin:auto;border:0;border-radius:22px;padding:0;width:min(560px,calc(100% - 20px));max-height:calc(100% - 30px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up)}
+dialog.dl::backdrop{background:rgba(10,14,25,.5)}
+.dl .hd{position:sticky;top:0;background:var(--surface);padding:18px 20px 10px;border-bottom:1px solid var(--line);z-index:2;display:flex;align-items:center;gap:10px}
+.dl .hd h3{font-size:18px;font-weight:800;margin-right:auto}
+.dl .bd{padding:14px 20px}
+.dl .ft{position:sticky;bottom:0;background:var(--surface);padding:12px 20px 16px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+.fld{display:block;margin-bottom:14px}
+.fld>span{display:block;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+.fld input[type=text],.fld input[type=date],.fld input[type=time],.fld input[type=url],.fld textarea,.fld select{width:100%;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:14.5px}
+.fld textarea{min-height:86px;resize:vertical}
+.fld small{display:block;color:var(--ink-3);font-size:12px;margin-top:4px}
+.colores{display:flex;gap:8px;flex-wrap:wrap}
+.colores label{cursor:pointer}
+.colores input{display:none}
+.colores i{display:block;width:34px;height:34px;border-radius:11px;background:linear-gradient(150deg,var(--c1),var(--c2));border:3px solid transparent;transition:transform .15s}
+.colores input:checked+i{border-color:var(--ink);transform:scale(1.08)}
+.img-ed{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.img-ed .th{width:84px;height:64px;border-radius:10px;background:var(--surface-3);overflow:hidden;display:grid;place-items:center;color:var(--ink-3);font-size:11px;font-weight:700}
+.img-ed .th img{width:100%;height:100%;object-fit:cover}
+.fila-ed{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.fila-ed:last-child{border:0}
+.fila-ed input[type=text],.fila-ed input[type=url]{flex:1;min-width:0;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px}
+.ib{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);flex:none}
+.ib svg{width:16px;height:16px}
+.ib.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.ib:disabled{opacity:.35;cursor:default}
+.org .pt{width:14px;height:14px;border-radius:5px;background:linear-gradient(150deg,var(--c1),var(--c2));flex:none}
+.org .nm{flex:1;font-weight:700;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.org .nm small{display:block;font-weight:600;color:var(--ink-3);font-size:11.5px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;z-index:99;box-shadow:var(--shadow-up);animation:pop .3s var(--ease) both;max-width:calc(100% - 30px)}
+.toast.mal{background:var(--bad);color:#fff}
+dialog.zoom{margin:auto;border:0;background:none;padding:0;max-width:96vw;max-height:94vh}
+dialog.zoom::backdrop{background:rgba(5,8,15,.85)}
+dialog.zoom img{max-width:96vw;max-height:94vh;border-radius:14px;display:block}
+/* ---------- Tarjeta de texto con viñetas (Juan, 26/11: en vez de bloques, «una tarjeta de texto con lo importante») ---------- */
+.texto-card{padding:20px 22px;margin-bottom:18px;border-top:5px solid var(--c1);animation:entra .5s var(--ease) both .1s}
+.texto-card h3{display:flex;gap:9px;align-items:center;font-size:18px;font-weight:800;margin-bottom:8px}
+.texto-card h3 svg{width:20px;height:20px;color:var(--c1)}
+.texto-card .intro{color:var(--ink-2);font-size:15px;line-height:1.55;margin-bottom:14px}
+.puntos{list-style:none;display:grid;gap:11px}
+.puntos li{position:relative;padding-left:26px;font-size:15px;line-height:1.5;color:var(--ink-2);animation:entra .45s var(--ease) both}
+.puntos li:before{content:'';position:absolute;left:3px;top:.45em;width:10px;height:10px;border-radius:50%;background:var(--c1);box-shadow:0 0 0 4px color-mix(in srgb,var(--c1) 18%,transparent)}
+.puntos b{color:var(--ink);font-weight:800}
+.dec-sec{padding:10px 0 30px;text-align:center}
+a.decimo{display:block;text-align:left;text-decoration:none;cursor:pointer;transition:box-shadow .2s}
+a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
+.toca{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:#25d366;color:#fff;font-weight:800;font-size:14px;padding:10px 16px;border-radius:999px;box-shadow:0 8px 20px rgba(37,211,102,.35);text-decoration:none;animation:late 1.8s ease-in-out infinite}
+.toca svg{width:18px;height:18px}
+@keyframes late{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.decimo .wa{position:relative;z-index:2;margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;font-size:12px;font-weight:800;padding:6px 10px;border-radius:999px}
+.decimo .wa svg{width:14px;height:14px}
+/* ---------- Belenes: dos cuentas atrás pequeñas (Juan, 26/11) ---------- */
+.mini-cd{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:18px}
+.mcd{padding:14px 16px;display:flex;gap:14px;align-items:center;animation:entra .5s var(--ease) both}
+.mcd .ic2{width:52px;height:52px;border-radius:16px;flex:none;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--c1),var(--c2));position:relative}
+.mcd .ic2 svg{width:28px;height:28px}
+.mcd .ic2.cam:after{content:'';position:absolute;inset:0;border-radius:16px;background:#fff;opacity:0;animation:flash 3.2s ease-in-out infinite}
+@keyframes flash{0%,86%,100%{opacity:0}90%{opacity:.85}}
+.mcd .ic2.reg svg{animation:mueve 2.4s ease-in-out infinite;transform-origin:50% 80%}
+@keyframes mueve{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-12deg)}82%{transform:rotate(10deg)}88%{transform:rotate(-6deg)}94%{transform:rotate(3deg)}}
+.mcd small{display:block;color:var(--ink-3);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.mcd .q{font-size:15px;font-weight:800;margin:1px 0 3px}
+.mcd .n{font-size:13px;color:var(--ink-2);font-weight:600}
+.cd-mini{display:flex;gap:6px;font-variant-numeric:tabular-nums;font-weight:800;font-size:13.5px;color:var(--c1);flex-wrap:wrap}
+.cd-mini span{background:color-mix(in srgb,var(--c1) 11%,var(--surface));border-radius:8px;padding:3px 7px}
+/* Cubo de hielo que se va derritiendo y deja ver el premio (Juan, 26/11) */
+.hielo-sec{padding:20px;text-align:center;margin-bottom:18px;overflow:hidden;animation:entra .5s var(--ease) both}
+.hielo-sec h3{font-size:18px;font-weight:800}
+.hielo-sec p{color:var(--ink-2);font-size:14px;margin:4px 0 14px}
+.hielo{position:relative;width:min(250px,70vw);aspect-ratio:1;margin:8px auto 6px}
+.hielo .premio{position:absolute;inset:3% 3% 5%;display:grid;place-items:center;color:var(--c1)}
+.hielo .premio img{width:100%;height:100%;object-fit:cover;border-radius:18px}
+.hielo .premio svg{width:100%;height:100%;stroke-width:1.3;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))}
+.hielo .cubo{position:absolute;left:0;right:0;bottom:0;height:calc(100% * (1 - var(--m) * .85));border-radius:26px 26px 22px 22px;
+  background:linear-gradient(135deg,rgba(255,255,255,.75),rgba(190,232,255,.55) 40%,rgba(150,210,245,.6));border:2px solid rgba(255,255,255,.85);
+  box-shadow:inset 0 0 30px rgba(255,255,255,.8),inset -10px -14px 24px rgba(80,160,220,.35),0 14px 30px rgba(60,140,200,.25);
+  backdrop-filter:blur(calc((1 - var(--m)) * 12px + 1px));-webkit-backdrop-filter:blur(calc((1 - var(--m)) * 12px + 1px));opacity:calc(1 - var(--m) * .6);transition:height 1.5s var(--ease)}
+.hielo .cubo:before{content:'';position:absolute;left:14%;top:10%;width:22%;height:46%;border-radius:40px;background:linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,0));transform:rotate(18deg)}
+.hielo .cubo:after{content:'';position:absolute;right:16%;top:22%;width:30%;height:2px;background:rgba(255,255,255,.9);transform:rotate(-28deg);box-shadow:-8px 14px 0 rgba(255,255,255,.7)}
+.hielo .charco{position:absolute;left:-8%;right:-8%;bottom:-12px;height:24px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(120,195,240,.45),rgba(120,195,240,0) 70%);transform:scaleX(calc(.4 + var(--m) * .8))}
+.hielo .gota{position:absolute;bottom:8%;width:7px;height:10px;border-radius:50%;background:rgba(130,200,245,.9);animation:gotea 2.6s ease-in infinite;opacity:0}
+@keyframes gotea{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(34px);opacity:0}}
+.derrite{display:flex;align-items:center;gap:10px;max-width:320px;margin:10px auto 0;font-size:13px;font-weight:700;color:var(--ink-2)}
+.derrite svg{width:16px;height:16px}
+.derrite .barra{flex:1;margin:0}
+.derrite .barra i{background:linear-gradient(90deg,#7cc8f5,var(--c1))}
+/* Décimo animado */
+.decimo{position:relative;margin:0 auto;max-width:520px;border-radius:20px;padding:20px 22px 20px 34px;background:linear-gradient(135deg,#fff8e1,#ffe7a3);color:#5a3d00;box-shadow:0 18px 40px rgba(150,100,0,.22);overflow:hidden;animation:flota-d 5s ease-in-out infinite}
+.decimo:before{content:'';position:absolute;left:12px;top:10px;bottom:10px;border-left:3px dashed rgba(120,80,0,.3)}
+.decimo:after{content:'';position:absolute;top:0;bottom:0;width:60%;left:-70%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);animation:brilla 3.6s ease-in-out infinite 1s}
+@keyframes brilla{to{left:130%}}
+@keyframes flota-d{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}
+.decimo .t1{font-size:11px;letter-spacing:.25em;font-weight:800;opacity:.75}
+.decimo .num{font-size:clamp(40px,11vw,60px);font-weight:900;letter-spacing:.12em;line-height:1.05;margin:4px 0;color:#7a5200}
+.decimo .fila{display:flex;gap:18px;flex-wrap:wrap;font-weight:800;font-size:14px}
+.decimo .fila small{display:block;font-size:10.5px;letter-spacing:.15em;opacity:.7;font-weight:700}
+.decimo .sello{position:absolute;right:18px;top:18px;width:64px;height:64px;border-radius:50%;border:3px solid rgba(160,110,0,.45);display:grid;place-items:center;font-size:12px;font-weight:900;color:rgba(130,85,0,.8);transform:rotate(-14deg);text-align:center;line-height:1.05}
+.cd-et{font-size:13px;font-weight:700;opacity:.9;margin:4px 0 8px;display:flex;align-items:center;gap:6px}
+.cd-et svg{width:16px;height:16px}
+.recuerda{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;border:2px dashed var(--warn);background:var(--warn-soft);color:var(--ink);margin-bottom:14px;font-size:14px}
+.recuerda svg{width:20px;height:20px;color:var(--warn);flex:none;margin-top:1px}
+.recuerda b{display:block}
+.recuerda q{display:block;color:var(--ink-2);font-style:italic;margin:3px 0 8px}
+@media (prefers-reduced-motion:reduce){.decor{display:none}*{animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(async function () {
+  await Hub.listo;
+  if (!Hub.sesion() || !Hub.puede('comunidad')) { location.replace('../index.html'); return; }
+  Hub.cabecera('Comunidad', 'comunidad');
+  const app = document.getElementById('app'), esc = Hub.esc, ic = Hub.icono;
+  const K = Hub.llave('comunidad');
+  if (!K || !K.t || !K.k) { app.innerHTML = '<main class="cm"><div class="card vacio"><h1>Comunidad</h1><p>Falta la llave de Comunidad. Vuelve a entrar en el Hub.</p></div></main>'; return; }
+  const ED = Hub.permiso('comunidad') === 'editar';
+
+  /* ---------- Iconos propios ---------- */
+  const SV = {
+    casa:'<path d="M3 11l9-7 9 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/>',
+    ticket:'<path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M14 7v10" stroke-dasharray="2 2"/>',
+    comida:'<path d="M6 3v8a2 2 0 0 0 2 2v8M10 3v8a2 2 0 0 1-2 2M8 3v6"/><path d="M18 21V3c-2.5 1.5-3 5-3 8h3"/>',
+    mega:'<path d="M3 10v4h3l7 4V6L6 10z"/><path d="M16 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/>',
+    inicio:'<path d="M3 11l9-7 9 7v9h-6v-6H9v6H3z"/>',
+    lapiz:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    ojo:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    ojoNo:'<path d="M3 3l18 18M10.6 6.1A10 10 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3.2 3.8M6.6 6.6C3.8 8.3 2 12 2 12s3.5 6 10 6a10 10 0 0 0 4.4-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+    arriba:'<path d="M12 19V5M6 11l6-6 6 6"/>', abajo:'<path d="M12 5v14M6 13l6 6 6-6"/>',
+    estrella:'<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/>',
+    mas:'<path d="M12 5v14M5 12h14"/>', papelera:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+    reloj:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+    euro:'<path d="M17.5 6.5A7 7 0 1 0 17.5 17.5M4 10.5h9M4 13.5h9"/>', persona:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4-6.5 8-6.5s7 2 8 6.5"/>',
+    play:'<circle cx="12" cy="12" r="9"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/>', estrellas:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>', foto:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.5" r="3.5"/>',
+    flecha:'<path d="M9 6l6 6-6 6"/>', corona:'<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/>', cruz:'<path d="M6 6l12 12M18 6L6 18"/>',
+    corazon:'<path d="M12 20s-7-4.4-9-8.8C1.6 8 3.6 4.5 7 4.5c2 0 3.5 1 5 2.8 1.5-1.8 3-2.8 5-2.8 3.4 0 5.4 3.5 4 6.7C19 15.6 12 20 12 20z"/>',
+    regalo:'<rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 13h18M12 9v12"/><path d="M12 9C10 5 6.5 5 7 7.5 7.4 9 12 9 12 9zM12 9c2-4 5.5-4 5-1.5-.4 1.5-5 1.5-5 1.5z"/>',
+    jurado:'<path d="M14 4l6 6M12 6l6 6M9 9l6 6"/><path d="M11 13l-7 7"/><path d="M3 21h8"/>'
+  };
+  const s = (n, c = '') => `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SV[n] || ''}</svg>`;
+  const ICONO_TIPO = { concurso:'casa', loteria:'ticket', evento:'comida', libre:'mega' };
+
+  /* ---------- Colores (Juan, 26/11: «varios colores, para que sea más llamativo») ---------- */
+  const COLORES = { rojo:['#e3263c','#9b0c22'], azul:['#3b78ff','#1d4fd0'], verde:['#22a861','#0f6b3c'], dorado:['#f2a516','#b87400'],
+    morado:['#8b5cf6','#5326bd'], naranja:['#ff8a3d','#d24c12'], rosa:['#f0509b','#b0215f'], turquesa:['#17b3c2','#0a6f7a'] };
+  const cv = c => { const x = COLORES[c] || COLORES.azul; return `--c1:${x[0]};--c2:${x[1]}`; };
+
+  /* ---------- Contenido de partida (si aún no hay nada guardado) ---------- */
+  // Juan, 26/11 (2.1 y 2.2): sin imágenes, tarjeta de texto con lo importante, cuenta atrás de la lotería hasta el 4/12, comida oculta
+  const TARJETA = 'Novedades para el personal: el concurso de belenes y la lotería de Navidad.';
+  const PARTIDA = () => ({ v: 1, destacada: 'loteria', tarjeta: TARJETA, pestanas: [
+    { id: 'belenes', tipo: 'concurso', titulo: 'Belenes', color: 'rojo', decor: 'nieve', oculta: false, k: 'Navidad 2026',
+      cab: 'Concurso de belenes', sub: 'Córdoba y Alicante se juegan el mejor belén de la casa', imagen: null,
+      participantes: [{ id: 'cordoba', nombre: 'Córdoba', foto: null }, { id: 'alicante', nombre: 'Alicante', foto: null }],
+      votacion: 'cerrada', premio: '', puntosTitulo: 'Así funciona',
+      intro: 'Cada delegación monta su belén y lo enseñamos aquí. Un jurado elige el ganador y, además, todos podemos votar a nuestro favorito.',
+      puntos: ['Participan | Córdoba y Alicante, con un belén por delegación', 'La foto | se hace a primera hora de la mañana; después, cada uno sigue con su jornada normal', 'Jurado | Javier y José Luis eligen el belén ganador',
+        'Tu voto | elige aquí el que más te guste (un voto por persona): así sale el favorito del público',
+        'Premio | es para la delegación ganadora, no individual', 'Cuándo se sabe | el ganador y el premio se anuncian en la comida de empresa'] },
+    { id: 'loteria', tipo: 'loteria', titulo: 'Lotería', color: 'azul', decor: 'nieve', oculta: false, k: 'Lotería de Navidad 2026',
+      cab: '¡Este año jugamos juntos!', numero: '29480', sorteo: '2026-12-22', precio: '20', reservas: 'Inmaculada, de Administración', texto: 'Cada uno con su décimo y todos con el mismo número. ¿Ya tienes el tuyo?', imagen: null,
+      cuenta: '2026-12-04', cuentaTexto: 'Quedan para reservar tu décimo', puntosTitulo: 'Lo que tienes que saber',
+      intro: 'Cada uno reserva su propio décimo y todos jugamos al mismo número. Resérvalo a tiempo y, el 22 de diciembre, a cruzar los dedos.',
+      puntos: ['Nuestro número | 29480', 'Precio | 20 € el décimo', 'Cómo reservarlo | toca el décimo de abajo y escribe por WhatsApp a Inmaculada, de Administración',
+        'Fecha límite | viernes 4 de diciembre', 'Sorteo | martes 22 de diciembre'] },
+    { id: 'comida', tipo: 'evento', titulo: 'Comida', color: 'verde', decor: 'confeti', oculta: true, k: 'Navidad 2026',
+      cab: 'Comida de empresa', sub: 'Vídeos, actividades y todo lo que estamos preparando', fecha: '', hora: '', lugar: '', texto: '', actividades: [], videos: [], imagen: null }
+  ] });
+
+  /* ---------- Almacén: carpeta c/ del almacén privado, todo cifrado ---------- */
+  const API = `https://api.github.com/repos/${K.o}/${K.r}/contents`, H = { Authorization: 'Bearer ' + K.t, Accept: 'application/vnd.github+json' };
+  const u8 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+  const b64 = b => { let t = ''; const a = new Uint8Array(b); for (let i = 0; i < a.length; i += 8192) t += String.fromCharCode(...a.subarray(i, i + 8192)); return btoa(t); };
+  const RUTA = 'c/datos.json';
+  let D = null, SHA = null;
+  async function leeDatos() {
+    const r = await fetch(`${API}/${RUTA}?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (r.status === 404) { D = PARTIDA(); SHA = null; return; }
+    if (!r.ok) throw new Error('No se puede leer Comunidad (' + r.status + ')');
+    const j = await r.json(), t = await Hub.cifra.abre(K.k, JSON.parse(new TextDecoder().decode(u8(j.content.replace(/\n/g, '')))));
+    if (!t) throw new Error('No se puede abrir el contenido de Comunidad');
+    D = JSON.parse(t); SHA = j.sha;
+  }
+  async function guardaDatos(nuevo, msg) {
+    const sobre = await Hub.cifra.cierra(K.k, JSON.stringify(nuevo));
+    const r = await fetch(`${API}/${RUTA}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Comunidad: ' + msg, content: b64(new TextEncoder().encode(JSON.stringify(sobre))), ...(SHA ? { sha: SHA } : {}) }) });
+    if (r.status === 409 || r.status === 422) throw new Error('Otra persona ha cambiado Comunidad mientras tanto. Recarga la página y vuelve a hacerlo.');
+    if (!r.ok) throw new Error('No se ha podido guardar (' + r.status + '). Revisa la conexión.');
+    SHA = (await r.json()).content.sha; D = nuevo;
+  }
+  // Imágenes: se reducen (como mucho 1600 px), se pasan a JPEG y se guardan cifradas con un nombre al azar
+  const IMG = {};
+  function imagen(ruta) {
+    if (!ruta) return Promise.resolve(null);
+    if (!IMG[ruta]) IMG[ruta] = (async () => {
+      const r = await fetch(`${API}/${ruta}`, { headers: { Authorization: H.Authorization, Accept: 'application/vnd.github.raw' }, cache: 'force-cache' });
+      if (!r.ok) return null;
+      return URL.createObjectURL(new Blob([await Hub.cifra.abreBinario(K.k, await r.arrayBuffer())], { type: 'image/jpeg' }));
+    })().catch(() => null);
+    return IMG[ruta];
+  }
+  async function subeImagen(archivo) {
+    const bm = await createImageBitmap(archivo), esc2 = Math.min(1, 1600 / Math.max(bm.width, bm.height)), c = document.createElement('canvas');
+    c.width = Math.round(bm.width * esc2); c.height = Math.round(bm.height * esc2);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bm, 0, 0, c.width, c.height);
+    const jpg = new Uint8Array(await (await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.86))).arrayBuffer());
+    const key = await crypto.subtle.importKey('raw', u8(K.k), 'AES-GCM', false, ['encrypt']), iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, jpg)), todo = new Uint8Array(12 + ct.length);
+    todo.set(iv); todo.set(ct, 12);
+    const ruta = 'c/img/' + [...crypto.getRandomValues(new Uint8Array(10))].map(x => x.toString(16).padStart(2, '0')).join('') + '.bin';
+    const r = await fetch(`${API}/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Comunidad: imagen nueva', content: b64(todo) }) });
+    if (!r.ok) throw new Error('No se ha podido subir la imagen (' + r.status + ')');
+    IMG[ruta] = Promise.resolve(URL.createObjectURL(new Blob([jpg], { type: 'image/jpeg' })));
+    return ruta;
+  }
+  // Votos: un archivo por persona y concurso (c/v/<pestaña>/<código de la persona>-<participante>). No dice quién es.
+  let YO = null;
+  const miCodigo = async () => YO || (YO = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-comunidad/' + (K.uid || Hub.sesion().nombreCompleto))))].slice(0, 8).map(x => x.toString(16).padStart(2, '0')).join(''));
+  async function leeVotos(pid) {
+    const r = await fetch(`${API}/c/v/${pid}?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (r.status === 404) return [];
+    if (!r.ok) throw new Error('No se pueden leer los votos (' + r.status + ')');
+    return (await r.json()).filter(f => f.type === 'file').map(f => { const m = f.name.match(/^([0-9a-f]{16})-(.+)$/); return m ? { quien: m[1], a: m[2], sha: f.sha, nombre: f.name } : null; }).filter(Boolean);
+  }
+  async function vota(pid, aQuien) {
+    const yo = await miCodigo(), votos = await leeVotos(pid);
+    for (const v of votos.filter(v => v.quien === yo)) {
+      if (v.a === aQuien) return;
+      const r = await fetch(`${API}/c/v/${pid}/${v.nombre}`, { method: 'DELETE', headers: H, body: JSON.stringify({ message: 'Comunidad: cambio de voto', sha: v.sha }) });
+      if (!r.ok && r.status !== 404) throw new Error('No se ha podido cambiar el voto (' + r.status + ')');
+    }
+    const r = await fetch(`${API}/c/v/${pid}/${yo}-${aQuien}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Comunidad: voto', content: btoa('1') }) });
+    if (!r.ok && r.status !== 422) throw new Error('No se ha podido guardar el voto (' + r.status + ')');
+  }
+
+  /* ---------- Utilidades ---------- */
+  const toast = (t, mal) => { document.querySelectorAll('.toast').forEach(x => x.remove()); const d = document.createElement('div'); d.className = 'toast' + (mal ? ' mal' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), mal ? 6000 : 2800); };
+  const parrafos = t => String(t || '').split(/\n+/).map(x => x.trim()).filter(Boolean).map(x => `<p>${esc(x)}</p>`).join('');
+  const fechaLarga = f => { if (!f) return ''; const d = new Date(f + 'T12:00:00'); return isNaN(d) ? f : d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }); };
+  const diasHasta = (f, h = '09:00') => { if (!f) return null; const d = new Date(`${f}T${h || '09:00'}:00`); return isNaN(d) ? null : d - Date.now(); };
+  const decor = tipo => {
+    if (tipo === 'ninguna') return '<span class="brillo"></span>';
+    const n = 16, cols = ['#ffd66b', '#ffffff', '#7ef0b0', '#ff9fb2', '#9fc3ff'];
+    let h = '';
+    for (let i = 0; i < n; i++) {
+      const x = (i * 61) % 100, dur = 7 + (i * 37) % 7, del = -((i * 13) % 9), tam = 10 + (i * 7) % 10;
+      h += tipo === 'confeti' ? `<i style="left:${x}%;background:${cols[i % cols.length]};animation-duration:${dur}s;animation-delay:${del}s"></i>`
+        : `<i style="left:${x}%;font-size:${tam}px;animation-duration:${dur + 3}s;animation-delay:${del}s">❄</i>`;
+    }
+    return `<span class="brillo"></span><div class="decor ${tipo === 'confeti' ? 'confeti' : ''}">${h}</div>`;
+  };
+  const visibles = () => D.pestanas.filter(p => !p.oculta);
+  const deId = id => D.pestanas.find(p => p.id === id);
+  let modoEd = ED && Hub.lee('cm_ed') === '1';
+  const mostrables = () => modoEd ? D.pestanas : visibles();
+  let actual = 'inicio', reloj = null;
+
+  /* ---------- Pestañas ---------- */
+  function barra() {
+    let b = document.querySelector('.cm-tabs');
+    if (!b) { b = document.createElement('nav'); b.className = 'cm-tabs'; document.querySelector('header.top').after(b); }
+    b.innerHTML = `<div class="in" role="tablist">
+      <button class="cm-tab ${actual === 'inicio' ? 'on' : ''}" style="--c1:var(--brand)" data-t="inicio">${s('inicio')}Inicio</button>
+      ${mostrables().map(p => `<button class="cm-tab ${actual === p.id ? 'on' : ''} ${p.oculta ? 'oculta' : ''}" style="${cv(p.color)}" data-t="${esc(p.id)}">${s(ICONO_TIPO[p.tipo] || 'mega')}${esc(p.titulo)}${p.oculta ? s('ojoNo', 'ojo') : ''}</button>`).join('')}
+    </div>`;
+    b.onclick = e => { const t = e.target.closest('[data-t]'); if (t) ir(t.dataset.t); };
+    const on = b.querySelector('.on'); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }
+  function ir(id) { location.hash = id === 'inicio' ? '' : '#/' + id; }
+  function desdeHash() {
+    const h = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
+    actual = h && mostrables().some(p => p.id === h) ? h : 'inicio';
+    pinta();
+  }
+  window.addEventListener('hashchange', desdeHash);
+
+  /* ---------- Pintar ---------- */
+  function cabEd(extra = '') {
+    if (!ED) return '';
+    return `<div class="cm-ed">${extra}<label class="sw"><input type="checkbox" id="swEd" ${modoEd ? 'checked' : ''}><i></i>Modo edición</label></div>`;
+  }
+  function pinta() {
+    clearInterval(reloj);
+    barra();
+    const main = document.createElement('main'); main.className = 'cm';
+    const p = deId(actual);
+    if (!p) main.innerHTML = vistaInicio();
+    else { main.setAttribute('style', cv(p.color)); main.innerHTML = vistaPestana(p); }
+    app.innerHTML = ''; app.appendChild(main);
+    const sw = main.querySelector('#swEd');
+    if (sw) sw.onchange = () => { modoEd = sw.checked; Hub.guarda('cm_ed', modoEd ? '1' : null); desdeHash(); };
+    main.onclick = clic;
+    // imágenes
+    main.querySelectorAll('img[data-src]').forEach(async im => { const u = await imagen(im.dataset.src); if (u) { im.src = u; im.closest('.foto')?.classList.add('lista'); } else im.remove(); });
+    // cuentas atrás
+    const cds = main.querySelectorAll('[data-cd]');
+    const hs = main.querySelectorAll('.hielo');
+    if (cds.length || hs.length) { const t = () => { cds.forEach(pintaCuenta); hs.forEach(pintaHielo); }; t(); reloj = setInterval(t, 1000); }
+    if (p && p.tipo === 'concurso') { pintaVotos(p, main); activaSorteo(p, main); }
+    window.scrollTo({ top: 0 });
+  }
+  function pintaCuenta(el) {
+    const ms = diasHasta(el.dataset.cd, el.dataset.h), fin = el.dataset.fin || '¡Ya ha llegado!';
+    if (el.classList.contains('cd-mini')) {   // pequeña: «12 d · 4 h · 30 min · 05 s»
+      if (ms == null) { el.innerHTML = '<span>Fecha por confirmar</span>'; return; }
+      if (ms <= 0) { el.innerHTML = `<span>${esc(fin)}</span>`; return; }
+      el.innerHTML = `<span>${Math.floor(ms / 864e5)} d</span><span>${Math.floor(ms / 36e5) % 24} h</span><span>${Math.floor(ms / 6e4) % 60} min</span><span>${String(Math.floor(ms / 1e3) % 60).padStart(2, '0')} s</span>`; return;
+    }
+    if (ms == null) { el.innerHTML = ''; return; }
+    if (ms <= 0) { el.innerHTML = `<div><b>${esc(fin)}</b></div>`; return; }
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60, sg = Math.floor(ms / 1e3) % 60;
+    el.innerHTML = `<div><b>${d}</b><small>${d === 1 ? 'día' : 'días'}</small></div><div><b>${h}</b><small>horas</small></div><div><b>${m}</b><small>min</small></div><div><b>${String(sg).padStart(2, '0')}</b><small>seg</small></div>` + (el.dataset.extra || '');
+  }
+  // Lotería: la cuenta atrás va hasta el último día para reservar (Juan, 26/11: el 4/12); pasado ese día, hasta el sorteo
+  const metaLot = p => p.cuenta && diasHasta(p.cuenta, '23:59') > 0 ? { f: p.cuenta, h: '23:59', et: p.cuentaTexto || 'Quedan para reservar tu décimo', corto: 'para reservar' }
+    : { f: p.sorteo, h: '09:00', et: 'Quedan para el sorteo', corto: 'para el sorteo' };
+  const cuentaLot = (p, extra = '') => { const m = metaLot(p); return `<div class="cd-et">${s('reloj')}${esc(m.et)}</div><div class="cd" data-cd="${esc(m.f)}" data-h="${m.h}" data-fin="¡Hoy es el sorteo!" data-extra="${esc(extra)}"></div>`; };
+  // Tarjeta de texto: título, una introducción y viñetas «Etiqueta | texto» (Juan, 26/11)
+  const punto = t => { const [a, ...b] = String(t).split('|'); return b.length ? { e: a.trim(), t: b.join('|').trim() } : { e: '', t: a.trim() }; };
+  const tarjetaTexto = p => !(p.intro || (p.puntos || []).length) ? '' : `<section class="card texto-card"><h3>${s('info')}${esc(p.puntosTitulo || 'Lo importante')}</h3>${p.intro ? `<p class="intro">${esc(p.intro)}</p>` : ''}`
+    + `<ul class="puntos">${(p.puntos || []).map(punto).map((x, i) => `<li style="animation-delay:${200 + i * 90}ms">${x.e ? `<b>${esc(x.e)}:</b> ` : ''}${esc(x.t)}</li>`).join('')}</ul></section>`;
+  const bolas = p => `<div class="nums" aria-label="Número ${esc(p.numero || '')}">${String(p.numero || '').split('').map((d, i) => `<span style="--d:${i * 120}ms">${esc(d)}</span>`).join('')}</div>`;
+  // Fecha y hora de una cuenta atrás: «sábado 19 de diciembre, 8:00»
+  const cuando = (f, h) => f ? fechaLarga(f) + (h ? ', ' + h : '') : 'Fecha por confirmar';
+  const fechasConcurso = p => `<div class="mini-cd">
+    <div class="card mcd"><span class="ic2 cam">${s('foto')}</span><div><small>Día de la foto</small><div class="q">${esc(cuando(p.fotoFecha, p.fotoHora))}</div>
+      <div class="cd-mini" data-cd="${esc(p.fotoFecha || '')}" data-h="${esc(p.fotoHora || '08:00')}" data-fin="¡Hoy es el día de la foto!"></div>${p.fotoNota ? `<div class="n" style="margin-top:4px">${esc(p.fotoNota)}</div>` : ''}</div></div>
+    <div class="card mcd" style="animation-delay:90ms"><span class="ic2 reg">${s('regalo')}</span><div><small>Ganador y premio</small><div class="q">${esc(cuando(p.revelaFecha, p.revelaHora))}</div>
+      <div class="cd-mini" data-cd="${esc(p.revelaFecha || '')}" data-h="${esc(p.revelaHora || '14:00')}" data-fin="¡Hoy se conoce el ganador!"></div>${p.revelaNota ? `<div class="n" style="margin-top:4px">${esc(p.revelaNota)}</div>` : ''}</div></div></div>`;
+  // Cubo de hielo: se derrite poco a poco desde «hieloDesde» hasta el día del ganador; entonces se ve el premio entero
+  const fraccionHielo = el => { if (!el.dataset.hasta) return 0; const a = new Date((el.dataset.desde || '2026-11-26') + 'T00:00:00'), b = new Date(el.dataset.hasta + 'T' + (el.dataset.h || '14:00') + ':00'); if (isNaN(b) || b <= a) return 0; return Math.max(0, Math.min(1, (Date.now() - a) / (b - a))); };
+  function pintaHielo(el) {
+    const m = fraccionHielo(el), pc = Math.floor(m * 100);
+    el.style.setProperty('--m', m.toFixed(4));
+    const t = el.parentElement.querySelector('.derrite'); if (t) { t.querySelector('.barra i').style.width = pc + '%'; t.querySelector('b').textContent = pc + '%'; }
+  }
+  const hielo = p => `<section class="card hielo-sec"><h3>${esc(p.hieloTitulo || 'El premio está congelado')}</h3><p>${esc(p.hieloTexto || 'Se irá descongelando poco a poco hasta el día en que se anuncie el ganador.')}</p>
+    <div class="hielo" data-desde="${esc(p.hieloDesde || '2026-11-26')}" data-hasta="${esc(p.revelaFecha || '')}" data-h="${esc(p.revelaHora || '14:00')}" style="--m:0">
+      <div class="premio">${p.premioImagen ? `<img data-src="${esc(p.premioImagen)}" alt="El premio">` : s('regalo')}</div>
+      <div class="cubo"></div><span class="charco"></span><span class="gota" style="left:30%"></span><span class="gota" style="left:62%;animation-delay:1.3s"></span></div>
+    <div class="derrite">${s('reloj')}<div class="barra"><i style="width:0"></i></div><span><b>0%</b> derretido</span></div></section>`;
+  // Lotería: el décimo lleva a WhatsApp para reservar (Juan, 26/11). El número va solo en los datos cifrados, nunca en el código.
+  const enlaceWA = p => { const n = String(p.whatsapp || '').replace(/\D/g, ''); return n ? `https://wa.me/${n}?text=${encodeURIComponent(p.waTexto || `Hola, quiero reservar un décimo del ${p.numero || ''}`)}` : ''; };
+  const decimo = p => `<${enlaceWA(p) ? `a href="${esc(enlaceWA(p))}" target="_blank" rel="noopener"` : 'div'} class="decimo">
+    <span class="sello">22<br>DIC</span><div class="t1">SORTEO DE NAVIDAD · 2026</div><div class="num">${esc(p.numero || '')}</div>
+    <div class="fila">${p.precio ? `<div><small>EL DÉCIMO</small>${esc(p.precio)} €</div>` : ''}${p.sorteo ? `<div><small>SORTEO</small>${esc(fechaLarga(p.sorteo))}</div>` : ''}</div>${enlaceWA(p) ? `<span class="wa">${ic('chat')}Reservar el mío</span>` : ''}</${enlaceWA(p) ? 'a' : 'div'}>`;
+  const resumen = p => {
+    if (p.tipo === 'loteria') { const m = metaLot(p), ms = diasHasta(m.f, m.h); return ms > 0 ? `Faltan ${Math.ceil(ms / 864e5)} días ${m.corto}` : `Nº ${p.numero}`; }
+    if (p.tipo === 'concurso') return p.votacion === 'abierta' ? '¡Ya se puede votar!' : p.votacion === 'resultados' ? 'Mira el favorito del público' : p.sub;
+    if (p.tipo === 'evento') return p.fecha ? fechaLarga(p.fecha) : (p.sub || 'Próximamente');
+    return p.sub || '';
+  };
+  const badge = p => { if (p.tipo === 'loteria') { const m = metaLot(p), ms = diasHasta(m.f, m.h); return ms > 0 ? `${Math.ceil(ms / 864e5)} días` : ''; } return p.tipo === 'concurso' && p.votacion === 'abierta' ? 'Vota' : ''; };
+  // Recordatorio (Juan, 26/11): el texto de la tarjeta de Comunidad en la portada del Hub habla de lo de ahora; al cambiar los eventos, cambiarlo también
+  const recuerda = () => `<div class="recuerda">${s('info')}<div><b>Recuerda: el texto de la tarjeta de Comunidad en la portada del Hub</b><q>${esc(D.tarjeta || TARJETA)}</q>Si cambias lo que se anuncia, cámbialo también.<div><button class="b2" data-a="tarjeta" style="height:34px;margin-top:8px">${s('lapiz')}Cambiar el texto</button></div></div></div>`;
+
+  function vistaInicio() {
+    const s0 = Hub.sesion(), vis = mostrables();
+    const dest = vis.find(p => p.id === D.destacada && !p.oculta) || visibles()[0];
+    const resto = vis.filter(p => p !== dest);
+    return `${cabEd(modoEd ? `<button class="b2" data-a="nueva">${s('mas')}Nueva pestaña</button><button class="b2 pri" data-a="organizar">${s('estrellas')}Organizar pestañas</button>` : '')}
+      ${modoEd ? recuerda() : ''}<div class="hola2"><h1>Hola, ${esc(s0.nombre)}</h1><p>Lo que pasa en Culligan Biofy</p></div>
+      ${dest ? destacado(dest) : '<div class="card vacio2">Todavía no hay nada publicado.</div>'}
+      ${resto.length ? `<div class="sec-h"><b>Más en Comunidad</b></div><div class="tiles">${resto.map((p, i) => `<button class="tile ${p.oculta ? 'oculta' : ''}" style="${cv(p.color)};animation-delay:${i * 60}ms" data-t="${esc(p.id)}">
+        <span class="ic">${s(ICONO_TIPO[p.tipo] || 'mega')}</span>${badge(p) ? `<span class="bd">${esc(badge(p))}</span>` : ''}${p.oculta ? '<span class="bd">Oculta</span>' : ''}
+        <b>${esc(p.cab || p.titulo)}</b><small>${esc(resumen(p))}</small></button>`).join('')}</div>` : ''}`;
+  }
+  function destacado(p) {
+    const cuerpo = p.tipo === 'loteria'
+      ? `${bolas(p)}
+         ${cuentaLot(p, p.precio ? `<div><b>${esc(p.precio)} €</b><small>el décimo</small></div>` : '')}`
+      : p.tipo === 'evento' && p.fecha ? `<div class="cd" data-cd="${esc(p.fecha)}" data-h="${esc(p.hora || '14:00')}" data-fin="¡Es hoy!"></div>` : '';
+    return `<section class="banda" style="${cv(p.color)}">${decor(p.decor)}
+      <div class="k">${esc(p.k || p.titulo)}</div><h2>${esc(p.cab || p.titulo)}</h2>${p.sub && p.tipo !== 'loteria' ? `<p class="s">${esc(p.sub)}</p>` : p.tipo === 'loteria' && p.texto ? `<p class="s">${esc(p.texto)}</p>` : ''}
+      ${cuerpo}<button class="ir-a" data-t="${esc(p.id)}">Ver ${esc(p.titulo.toLowerCase())}${s('flecha')}</button></section>`;
+  }
+  function vistaPestana(p) {
+    // Ocultar o volver a mostrar la pestaña con un botón (Juan, 26/11)
+    const ed = modoEd ? `<button class="b2" data-a="visible">${s(p.oculta ? 'ojo' : 'ojoNo')}${p.oculta ? 'Mostrar esta pestaña' : 'Ocultar esta pestaña'}</button><button class="b2 pri" data-a="editar">${s('lapiz')}Editar esta pestaña</button>` : '';
+    const oc = p.oculta ? `<div class="etq-o">${s('ojoNo')} Oculta: solo la ven quienes editan</div>` : '';
+    const banda = (extra = '') => `<section class="banda">${decor(p.decor)}<div class="k">${esc(p.k || '')}</div><h2>${esc(p.cab || p.titulo)}</h2>${p.sub ? `<p class="s">${esc(p.sub)}</p>` : ''}${extra}</section>`;
+    const pieza = p.imagen ? `<img class="pieza" data-src="${esc(p.imagen)}" alt="${esc(p.cab || p.titulo)}" style="margin-bottom:16px">` : '';
+    let h = cabEd(ed) + oc;
+    if (p.tipo === 'loteria') {
+      h += `<section class="banda">${decor(p.decor)}<div class="k">${esc(p.k || 'Lotería de Navidad')}</div><h2>${esc(p.cab || 'Nuestro número')}</h2>
+        ${bolas(p)}
+        ${cuentaLot(p)}
+        ${p.texto ? `<p class="s" style="margin-top:14px">${esc(p.texto)}</p>` : ''}</section>
+        ${tarjetaTexto(p)}
+        <div class="sec-h"><b>Nuestro décimo</b></div><div class="dec-sec">${decimo(p)}${enlaceWA(p) ? `<a class="toca" href="${esc(enlaceWA(p))}" target="_blank" rel="noopener">${ic('chat')}${esc(p.tocaTexto || 'Toca el décimo para reservar el tuyo por WhatsApp')}</a>` : ''}</div>${pieza}`;
+    } else if (p.tipo === 'concurso') {
+      h += banda() + sorteoSec(p) + fechasConcurso(p) + tarjetaTexto(p) + hielo(p) + pieza + (p.premio ? `<div class="aviso">${s('corona')}<span>${esc(p.premio)}</span></div>` : '')
+        + `<div class="sec-h"><b>Los belenes</b></div><div id="votos"><div class="carga"><i></i></div></div>`;
+    } else if (p.tipo === 'evento') {
+      h += banda(p.fecha ? `<div class="cd" style="margin-top:14px" data-cd="${esc(p.fecha)}" data-h="${esc(p.hora || '14:00')}" data-fin="¡Es hoy!"></div>` : '')
+        + `<div class="datos" style="margin-bottom:16px">
+          <div class="card dato"><span class="di">${s('cal')}</span><div><small>Cuándo</small><b>${p.fecha ? esc(fechaLarga(p.fecha)) + (p.hora ? ', ' + esc(p.hora) : '') : 'Fecha por confirmar'}</b></div></div>
+          <div class="card dato"><span class="di">${s('pin')}</span><div><small>Dónde</small><b>${p.lugar ? esc(p.lugar) : 'Lugar por confirmar'}</b></div></div></div>`
+        + pieza + (p.texto ? `<div class="card pad texto" style="margin-bottom:16px">${parrafos(p.texto)}</div>` : '')
+        + `<div class="sec-h"><b>Actividades</b></div>` + (p.actividades && p.actividades.length ? `<div class="card lista">${p.actividades.map(a => `<div class="it"><span class="di">${s('estrellas')}</span><div><b>${esc(a)}</b></div></div>`).join('')}</div>` : `<div class="card vacio2">Muy pronto contaremos las actividades.</div>`)
+        + `<div class="sec-h"><b>Vídeos</b></div>` + (p.videos && p.videos.length ? `<div class="card lista">${p.videos.map(v => `<a class="it" href="${esc(v.url)}" target="_blank" rel="noopener"><span class="di">${s('play')}</span><div><b>${esc(v.titulo || 'Vídeo')}</b><small>Se abre en otra pestaña</small></div><span class="fl">${s('flecha')}</span></a>`).join('')}</div>` : `<div class="card vacio2">Los vídeos llegarán aquí.</div>`);
+    } else {
+      h += banda() + pieza + (p.texto ? `<div class="card pad texto">${parrafos(p.texto)}</div>` : '');
+    }
+    return h;
+  }
+  async function pintaVotos(p, main) {
+    const caja = main.querySelector('#votos'); if (!caja) return;
+    let votos = [];
+    try { votos = p.votacion === 'cerrada' ? [] : await leeVotos(p.id); } catch (e) { caja.innerHTML = `<div class="aviso">${s('info')}<span>${esc(e.message)}</span></div>`; return; }
+    if (!document.body.contains(caja)) return;
+    const yo = await miCodigo(), mio = (votos.find(v => v.quien === yo) || {}).a, total = votos.length;
+    const n = id => votos.filter(v => v.a === id).length, max = Math.max(0, ...p.participantes.map(x => n(x.id)));
+    const abierta = p.votacion === 'abierta', res = p.votacion === 'resultados';
+    caja.innerHTML = (p.votacion === 'cerrada' ? `<div class="aviso">${s('reloj')}<span>La votación se abrirá cuando estén las fotos de los dos belenes.</span></div>` : '')
+      + `<div class="dos" style="margin-bottom:6px">${p.participantes.map((x, i) => {
+        const v = n(x.id), pc = total ? Math.round(v * 100 / total) : 0, gana = res && v === max && max > 0;
+        return `<div class="card part ${mio === x.id ? 'mio' : ''}" style="animation-delay:${i * 80}ms">${gana ? `<span class="corona">${s('corona')} Favorito del público</span>` : ''}
+          <b class="n">${esc(x.nombre)}</b><div class="foto">${x.foto ? `<img data-src="${esc(x.foto)}" alt="Belén de ${esc(x.nombre)}">` : 'Foto pendiente'}</div>
+          ${p.votacion !== 'cerrada' ? `<div class="barra"><i style="width:${pc}%"></i></div><div class="mini">${v} ${v === 1 ? 'voto' : 'votos'}${total ? ` · ${pc}%` : ''}</div>` : ''}
+          ${abierta ? `<button class="votar ${mio === x.id ? 'ya' : ''}" data-voto="${esc(x.id)}">${mio === x.id ? 'Tu voto' : mio ? 'Cambiar mi voto' : 'Votar'}</button>` : ''}</div>`;
+      }).join('')}</div>`;
+    caja.querySelectorAll('img[data-src]').forEach(async im => { const u = await imagen(im.dataset.src); if (u) im.src = u; });
+    caja.onclick = async e => {
+      const b = e.target.closest('[data-voto]'); if (!b || b.classList.contains('ya')) return;
+      caja.querySelectorAll('.votar').forEach(x => x.disabled = true);
+      try { await vota(p.id, b.dataset.voto); toast('¡Voto guardado!'); } catch (er) { toast(er.message, true); }
+      pintaVotos(p, main);
+    };
+  }
+
+
+  /* ---------- Sorteo de personajes del belén (Juan, 27/11) ----------
+     El reparto ya está hecho y guardado (cifrado) en la pestaña; aquí solo se enseña, a partir de la hora fijada.
+     Quien edita puede quitar a una persona: desaparece de la lista, su personaje queda libre y no ve el bombo. */
+  const EMO = { 'Virgen María': '👩‍🍼', 'San José': '🧔', 'Niño Jesús': '👶', 'Paloma': '🕊️', 'Ángel': '👼', 'Estrella': '🌟', 'Melchor': '👑', 'Gaspar': '👑', 'Baltasar': '👑',
+    'Paje': '🎁', 'Pastor': '🐏', 'Pastora': '🧺', 'Buey': '🐂', 'Mula': '🐴', 'Oveja': '🐑', 'Burro': '🫏', 'Caganer': '💩', 'Gallina': '🐔', 'Campesino': '🧑‍🌾' };
+  const emo = n => EMO[n] || '🎄';
+  const BOMBOS = { cordoba: 'Belén de Córdoba', alicante: 'Belén de Alicante' };
+  const sorteoListo = so => !!so && Date.now() >= new Date(so.desde).getTime();
+  const quitado = (so, uid) => (so.quitados || []).includes(uid);
+  function miPersonaje(so) { for (const [b, l] of Object.entries(so.bombos || {})) { const x = l.find(y => y.uid === K.uid); if (x) return { ...x, bombo: b }; } return null; }
+  let vistaSo = 'mio', sorteoTimer = null, SACADOS = null;
+  const CODS = {};
+  const codigoDe = async uid => CODS[uid] || (CODS[uid] = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('biofy-sorteo/' + uid)))].slice(0, 8).map(x => x.toString(16).padStart(2, '0')).join(''));
+  async function leeSacados(pid) {
+    const r = await fetch(`${API}/c/s/${pid}?t=${Date.now()}`, { headers: H, cache: 'no-store' });
+    if (r.status === 404) return new Set();
+    if (!r.ok) throw new Error('No se puede leer el sorteo (' + r.status + ')');
+    return new Set((await r.json()).filter(f => f.type === 'file').map(f => f.name));
+  }
+  async function marcaSacado(pid) {
+    const c = await codigoDe(K.uid);
+    const r = await fetch(`${API}/c/s/${pid}/${c}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Comunidad: bola sacada', content: btoa('1') }) });
+    if (!r.ok && r.status !== 422) throw new Error('No se ha podido guardar tu bola (' + r.status + ')');
+    (SACADOS || (SACADOS = new Set())).add(c);
+  }
+  const yaSacado = uid => !!(SACADOS && CODS[uid] && SACADOS.has(CODS[uid]));
+  function sorteoSec(p) {
+    const so = p.sorteo; if (!so) return '';
+    const listo = sorteoListo(so);
+    if (!listo && !modoEd) return '';
+    const yo = miPersonaje(so), dentro = yo && !quitado(so, yo.uid);
+    if (!dentro) vistaSo = 'lista';
+    const hora = new Date(so.desde).toLocaleString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    return `<section class="so" id="sorteo">
+      ${!listo ? `<div class="etq-o">${s('reloj')} Programado: se activa el ${esc(hora)} · hasta entonces solo lo ven quienes editan</div>` : ''}
+      <div class="k">Sorteo de personajes</div><h3>${esc(so.titulo || '¿Qué personaje te toca en el belén?')}</h3>
+      ${dentro ? `<div class="so-tabs" role="tablist"><button data-so="mio" class="${vistaSo === 'mio' ? 'on' : ''}">Mi personaje</button><button data-so="lista" class="${vistaSo === 'lista' ? 'on' : ''}">Quién es quién</button></div>` : ''}
+      <div class="so-cuerpo">${vistaSo === 'mio' && dentro ? soMio(so, yo) : soLista(so)}</div></section>`;
+  }
+  const vistoKey = () => 'cm_so_' + (K.uid || '');
+  function soResultado(yo, nuevo) {
+    return `<div class="toca-te ${nuevo ? 'nuevo' : ''}">${nuevo ? '<div class="estallido"></div>' : ''}<span class="emo">${emo(yo.personaje)}</span>
+      <div class="txt"><small>¡Te ha tocado!</small><b>${esc(yo.personaje)}</b><div class="quien">${esc(yo.nombre)} · ${esc(BOMBOS[yo.bombo] || '')}</div>
+      <div class="nota">Este será tu papel en la foto del belén. ¡Ve pensando el disfraz!</div></div></div>`;
+  }
+  function soMio(so, yo) {
+    if (Hub.lee(vistoKey()) === '1' || yaSacado(yo.uid)) return soResultado(yo, false);
+    const bolas = [[78,70,'#ff5a7a'],[120,58,'#ffd23f'],[150,90,'#3fa7ff'],[96,112,'#7ee08a'],[132,124,'#ff9f43'],[70,104,'#b388ff'],[112,90,'#ffd23f'],[146,62,'#ff5a7a'],[86,136,'#3fa7ff'],[126,100,'#7ee08a'],[60,84,'#ff9f43'],[104,140,'#ff5a7a']];
+    return `<div class="bombo" id="bombo"><div style="position:relative">
+      <svg viewBox="0 0 220 240" aria-hidden="true">
+        <path d="M70 160 L50 228 M150 160 L170 228" stroke="var(--c2)" stroke-width="8" stroke-linecap="round"/>
+        <rect x="34" y="224" width="152" height="10" rx="5" fill="var(--c2)"/>
+        <g class="tambor">
+          <circle cx="110" cy="96" r="72" fill="color-mix(in srgb,var(--c1) 10%,#ffffff)" fill-opacity=".85" stroke="var(--c1)" stroke-width="7"/>
+          <g class="bolas">${bolas.map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="11" fill="${c}" stroke="rgba(0,0,0,.12)" stroke-width="1"/>`).join('')}
+            <path d="M110 24 V168 M38 96 H182" stroke="var(--c1)" stroke-opacity=".25" stroke-width="3"/></g>
+          <path d="M62 50 A64 64 0 0 1 104 30" stroke="#fff" stroke-width="7" stroke-linecap="round" fill="none" opacity=".7"/>
+          <rect x="98" y="164" width="24" height="22" rx="5" fill="var(--c1)"/>
+        </g>
+        <g class="manivela"><path d="M182 96 L200 96 L200 118" stroke="var(--c2)" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="200" cy="120" r="7" fill="var(--c2)"/></g>
+        <circle cx="182" cy="96" r="6" fill="var(--c2)"/>
+      </svg><div class="bola-sale">?</div></div>
+      <button class="tirar" data-a="tirar">${s('estrellas')}Sacar mi bola</button>
+      <div class="pista">Pulsa el botón y descubre tu personaje</div></div>`;
+  }
+  function soLista(so) {
+    const yo = miPersonaje(so), todo = modoEd;
+    if (!todo && !SACADOS) return '<div class="carga"><i></i></div>';
+    const fila = x => {
+      const fuera = quitado(so, x.uid);
+      if (fuera && !todo) return `<div class="so-fila libre"><span class="e">${emo(x.personaje)}</span><div class="t"><b>${esc(x.personaje)}</b><span>Libre</span></div></div>`;
+      return `<div class="so-fila ${yo && yo.uid === x.uid && !fuera ? 'mio' : ''} ${fuera ? 'libre' : ''}"><span class="e">${emo(x.personaje)}</span><div class="t"><b>${esc(x.personaje)}</b><span>${fuera ? 'Libre · quitado: ' + esc(x.nombre) : esc(x.nombre)}${todo && !fuera && SACADOS ? (yaSacado(x.uid) ? ' · ✓ sacada' : ' · sin sacar') : ''}</span></div>
+        ${todo ? `<button class="ib ${fuera ? 'vuelve' : ''}" data-a="${fuera ? 'so-vuelve' : 'so-quita'}" data-u="${esc(x.uid)}">${fuera ? 'Volver a poner' : 'Quitar'}</button>` : ''}</div>`;
+    };
+    const oculta = x => `<div class="so-fila oculta"><span class="e">❓</span><div class="t"><b>${esc(x.nombre)}</b><span>Por descubrir</span></div></div>`;
+    const fuera = yo && quitado(so, yo.uid);
+    const grupos = Object.entries(so.bombos || {}).map(([b, l]) => {
+      const dentro = l.filter(x => !quitado(so, x.uid)), hechos = dentro.filter(x => yaSacado(x.uid)).length;
+      let filas;
+      if (todo) filas = l.map(fila).join('');
+      else {
+        const vistos = l.filter(x => quitado(so, x.uid) || yaSacado(x.uid)), faltan = dentro.filter(x => !yaSacado(x.uid)).sort((a, c) => a.nombre.localeCompare(c.nombre, 'es'));
+        filas = vistos.map(fila).join('') + faltan.map(oculta).join('');
+      }
+      return `<div class="so-grupo"><h4>${esc(BOMBOS[b] || b)} <span>${hechos} de ${dentro.length} ya han sacado su bola</span></h4><div class="so-lista">${filas}</div></div>`;
+    }).join('');
+    return (yo && !fuera ? '' : `<p class="so-fuera" style="margin-bottom:12px">${yo ? 'No participas en el sorteo.' : 'No estás en este sorteo.'} Aquí puedes ver a quién le ha tocado cada personaje.</p>`)
+      + (todo ? `<p class="so-fuera" style="margin-bottom:12px">Modo edición: ves el reparto completo. El resto solo ve a quien ya ha sacado su bola.</p>` : '')
+      + grupos;
+  }
+  function activaSorteo(p, main) {
+    clearTimeout(sorteoTimer);
+    const so = p.sorteo; if (!so) return;
+    const falta = new Date(so.desde).getTime() - Date.now();
+    if (falta > 0 && falta < 864e5) sorteoTimer = setTimeout(() => { if (actual === p.id) pinta(); }, falta + 500);   // aparece sola a la hora, sin recargar
+    const sec = main.querySelector('#sorteo'); if (!sec) return;
+    (async () => {
+      try {
+        await Promise.all(Object.values(so.bombos).flat().map(x => codigoDe(x.uid)));
+        SACADOS = await leeSacados(p.id);
+        const yo = miPersonaje(so), cu = sec.querySelector('.so-cuerpo'); if (!cu || !document.body.contains(cu)) return;
+        if (vistaSo === 'lista' || !yo || quitado(so, yo.uid)) cu.innerHTML = soLista(so);
+        else if (!cu.querySelector('.tirar:disabled') && yaSacado(yo.uid) && !cu.querySelector('.toca-te')) cu.innerHTML = soResultado(yo, false);
+      } catch (e) { const cu = sec.querySelector('.so-cuerpo'); if (cu && vistaSo === 'lista') cu.innerHTML = `<div class="aviso">${s('info')}<span>${esc(e.message)}</span></div>`; }
+    })();
+    sec.querySelectorAll('[data-so]').forEach(b => b.onclick = () => { vistaSo = b.dataset.so; pinta(); requestAnimationFrame(() => document.getElementById('sorteo')?.scrollIntoView({ block: 'start' })); });
+  }
+  function tirar() {
+    const p = deId(actual), so = p && p.sorteo, yo = so && miPersonaje(so), bo = document.getElementById('bombo'); if (!yo || !bo) return;
+    const bt = bo.querySelector('.tirar'); bt.disabled = true; bt.innerHTML = 'Girando…'; bo.querySelector('.pista').textContent = '¡Mucha suerte!';
+    bo.classList.add('rapido');
+    setTimeout(() => { bo.classList.remove('rapido'); bo.classList.add('sale'); }, 2200);
+    const deVerdad = sorteoListo(so);
+    if (deVerdad) marcaSacado(p.id).catch(e => toast(e.message, true));
+    setTimeout(() => {
+      if (deVerdad) Hub.guarda(vistoKey(), '1');
+      else toast('Vista previa: no se guarda ni cuenta como sacada');
+      const c = bo.closest('.so-cuerpo'); c.innerHTML = soResultado(yo, true);
+      const e = c.querySelector('.estallido'), cols = ['#ffd23f', '#ff5a7a', '#3fa7ff', '#7ee08a', '#b388ff', '#ff9f43'];
+      for (let i = 0; i < 60; i++) { const a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 170; e.insertAdjacentHTML('beforeend', `<i style="background:${cols[i % cols.length]};--x:${Math.cos(a) * d}px;--y:${Math.sin(a) * d + 60}px;--r:${Math.random() * 720 - 360}deg;animation-delay:${Math.random() * .15}s"></i>`); }
+    }, 3600);
+  }
+  async function cambiaQuitado(uid, quitar) {
+    const p = deId(actual), so = p && p.sorteo; if (!so) return;
+    const x = Object.values(so.bombos).flat().find(y => y.uid === uid); if (!x) return;
+    if (quitar && !confirm(`¿Quitar a ${x.nombre} del sorteo? Desaparece de la lista, su personaje (${x.personaje}) queda libre y no verá el bombo.`)) return;
+    try {
+      await leeDatos();
+      const n = copia(D), q = n.pestanas.find(y => y.id === p.id), l = new Set(q.sorteo.quitados || []);
+      quitar ? l.add(uid) : l.delete(uid); q.sorteo.quitados = [...l];
+      await guardaDatos(n, (quitar ? 'quitar del sorteo a ' : 'volver a poner en el sorteo a ') + x.nombre);
+      toast(quitar ? 'Quitado del sorteo' : 'De vuelta en el sorteo'); vistaSo = 'lista'; desdeHash();
+    } catch (e) { toast(e.message, true); }
+  }
+
+  /* ---------- Clics ---------- */
+  function clic(e) {
+    const t = e.target.closest('[data-t]'); if (t && !t.closest('.cm-tabs')) { ir(t.dataset.t); return; }
+    const a = e.target.closest('[data-a]')?.dataset.a;
+    if (a === 'editar') editar(deId(actual));
+    if (a === 'organizar') organizar();
+    if (a === 'nueva') nuevaPestana();
+    if (a === 'tarjeta') cambiaTarjeta();
+    if (a === 'visible') cambiaVisible(deId(actual));
+    if (a === 'tirar') tirar();
+    if (a === 'so-quita' || a === 'so-vuelve') cambiaQuitado(e.target.closest('[data-u]').dataset.u, a === 'so-quita');
+    const im = e.target.closest('img.pieza, .part .foto img');
+    if (im && im.src) { const d = document.createElement('dialog'); d.className = 'zoom'; d.innerHTML = `<img src="${im.src}" alt="">`; d.onclick = () => { d.close(); d.remove(); }; document.body.appendChild(d); d.showModal(); }
+  }
+
+  /* ---------- Edición (perfil «Editar») ---------- */
+  const copia = o => JSON.parse(JSON.stringify(o));
+  function ventana(titulo, cuerpo, alGuardar, textoBoton = 'Guardar') {
+    const d = document.createElement('dialog'); d.className = 'dl';
+    d.innerHTML = `<div class="hd"><h3>${esc(titulo)}</h3><button class="ib" data-x="1" aria-label="Cerrar">${s('cruz')}</button></div><form class="bd" onsubmit="return false">${cuerpo}</form>
+      <div class="ft"><button class="b2" data-x="1">Cancelar</button><button class="b2 pri" data-ok="1">${esc(textoBoton)}</button></div>`;
+    document.body.appendChild(d);
+    const cierra = () => { d.close(); d.remove(); };
+    d.addEventListener('click', async e => {
+      if (e.target.closest('[data-x]')) { cierra(); return; }
+      if (e.target.closest('[data-ok]')) {
+        const b = e.target.closest('[data-ok]'); b.disabled = true; b.textContent = 'Guardando…';
+        try { await alGuardar(d); cierra(); } catch (er) { toast(er.message, true); b.disabled = false; b.textContent = textoBoton; }
+      }
+    });
+    d.showModal();
+    return d;
+  }
+  const campo = (et, html, ayuda = '') => `<div class="fld"><span>${esc(et)}</span>${html}${ayuda ? `<small>${esc(ayuda)}</small>` : ''}</div>`;
+  const txt = (n, v, ph = '') => `<input type="text" name="${n}" value="${esc(v || '')}" placeholder="${esc(ph)}">`;
+  const colores = v => `<div class="colores">${Object.keys(COLORES).map(c => `<label title="${c}" style="${cv(c)}"><input type="radio" name="color" value="${c}" ${c === v ? 'checked' : ''}><i></i></label>`).join('')}</div>`;
+  const imgEd = (n, v, et) => `<div class="fld"><span>${esc(et)}</span><div class="img-ed" data-img="${n}" data-v="${esc(v || '')}"><div class="th">${v ? `<img data-src="${esc(v)}" alt="">` : 'Sin imagen'}</div>
+    <label class="b2">${s('foto')}Subir<input type="file" accept="image/*" hidden></label>${v ? `<button class="b2 pel" type="button" data-quita="1">Quitar</button>` : ''}</div></div>`;
+  function activaImagenes(d) {
+    d.querySelectorAll('.img-ed').forEach(box => {
+      const th = box.querySelector('.th'), pon = async ruta => { box.dataset.v = ruta || ''; th.innerHTML = ruta ? `<img src="${await imagen(ruta) || ''}" alt="">` : 'Sin imagen'; };
+      box.querySelectorAll('img[data-src]').forEach(async im => { im.src = await imagen(im.dataset.src) || ''; });
+      box.querySelector('input[type=file]').onchange = async e => {
+        const f = e.target.files[0]; if (!f) return;
+        th.innerHTML = '<i class="carga" style="padding:0"><i></i></i>';
+        try { await pon(await subeImagen(f)); } catch (er) { toast(er.message, true); await pon(box.dataset.v); }
+      };
+      const q = box.querySelector('[data-quita]'); if (q) q.onclick = () => { pon(''); q.remove(); };
+    });
+  }
+  const val = (d, n) => (d.querySelector(`[name="${n}"]`) || {}).value?.trim() ?? '';
+  const imgVal = (d, n) => d.querySelector(`[data-img="${n}"]`)?.dataset.v || null;
+  const lineas = t => String(t || '').split('\n').map(x => x.trim()).filter(Boolean);
+  const comunes = p => campo('Nombre de la pestaña', txt('titulo', p.titulo)) + campo('Color', colores(p.color))
+    + campo('Adorno de la cabecera', `<select name="decor">${[['nieve', 'Copos de nieve'], ['confeti', 'Confeti'], ['ninguna', 'Sin adorno']].map(([v, t]) => `<option value="${v}" ${p.decor === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`)
+    + `<div class="fld"><span>Visibilidad</span><label class="sw"><input type="checkbox" name="oculta" ${p.oculta ? 'checked' : ''}><i></i>Ocultar esta pestaña (solo la ven quienes editan)</label></div>`
+    + campo('Texto pequeño de arriba', txt('k', p.k, 'Ej.: Navidad 2026')) + campo('Título grande', txt('cab', p.cab));
+  function editar(p) {
+    if (!p) return;
+    let cuerpo = comunes(p);
+    if (p.tipo === 'loteria') cuerpo += campo('Número', txt('numero', p.numero)) + campo('Día del sorteo', `<input type="date" name="sorteo" value="${esc(p.sorteo || '')}">`)
+      + campo('Precio del décimo (€)', txt('precio', p.precio)) + campo('Resérvalo con', txt('reservas', p.reservas)) + campo('WhatsApp para reservar', txt('whatsapp', p.whatsapp, '+34 …'), 'Al tocar el décimo se abre WhatsApp con este número. Vacío: el décimo no lleva a ningún sitio')
+      + campo('Mensaje que se escribe solo en WhatsApp', txt('waTexto', p.waTexto, 'Hola, quiero reservar un décimo')) + campo('Aviso debajo del décimo', txt('tocaTexto', p.tocaTexto, 'Toca el décimo para reservar el tuyo por WhatsApp')) + campo('Frase', txt('texto', p.texto))
+      + campo('Cuenta atrás hasta', `<input type="date" name="cuenta" value="${esc(p.cuenta || '')}">`, 'Último día para reservar. Pasado ese día, la cuenta atrás va hasta el sorteo. Vacío: hasta el sorteo')
+      + campo('Texto de la cuenta atrás', txt('cuentaTexto', p.cuentaTexto, 'Quedan para reservar tu décimo'))
+      + campo('Título de la tarjeta de texto', txt('puntosTitulo', p.puntosTitulo, 'Lo importante'))
+      + campo('Introducción', `<textarea name="intro" rows="3">${esc(p.intro || '')}</textarea>`)
+      + campo('Lo importante (una viñeta por línea)', `<textarea name="puntos" rows="6">${esc((p.puntos || []).join('\n'))}</textarea>`, 'Etiqueta | texto. Ej.: «Fecha límite | viernes 4 de diciembre». La etiqueta sale en negrita')
+      + imgEd('imagen', p.imagen, 'Imagen (opcional)');
+    if (p.tipo === 'concurso') {
+      cuerpo += campo('Subtítulo', txt('sub', p.sub)) + imgEd('imagen', p.imagen, 'Imagen del concurso')
+        + campo('Votación', `<select name="votacion">${[['cerrada', 'Cerrada (aún no se vota)'], ['abierta', 'Abierta (todos pueden votar)'], ['resultados', 'Terminada (se ve el ganador)']].map(([v, t]) => `<option value="${v}" ${p.votacion === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`)
+        + `<div class="fld"><span>Participantes y su foto</span><div id="parts">${p.participantes.map(x => filaPart(x)).join('')}</div><button class="b2" type="button" data-addp="1" style="margin-top:8px">${s('mas')}Añadir participante</button></div>`
+        + campo('Día de la foto', `<input type="date" name="fotoFecha" value="${esc(p.fotoFecha || '')}">`) + campo('Hora de la foto', `<input type="time" name="fotoHora" value="${esc(p.fotoHora || '')}">`)
+        + campo('Nota de la foto', txt('fotoNota', p.fotoNota, 'A primera hora, antes de la jornada'))
+        + campo('Día del ganador y el premio', `<input type="date" name="revelaFecha" value="${esc(p.revelaFecha || '')}">`, 'Si está vacío sale «Fecha por confirmar» y el hielo no se derrite') + campo('Hora', `<input type="time" name="revelaHora" value="${esc(p.revelaHora || '')}">`)
+        + campo('Nota del ganador', txt('revelaNota', p.revelaNota, 'En la comida de empresa'))
+        + campo('Título del cubo de hielo', txt('hieloTitulo', p.hieloTitulo, 'El premio está congelado')) + campo('Texto del cubo de hielo', txt('hieloTexto', p.hieloTexto))
+        + imgEd('premioImagen', p.premioImagen, 'Imagen del premio dentro del hielo (opcional; sin imagen sale un regalo)')
+        + campo('Premio', txt('premio', p.premio, 'Ej.: Una cena para el equipo ganador')) 
+        + campo('Título de la tarjeta de texto', txt('puntosTitulo', p.puntosTitulo, 'Lo importante'))
+      + campo('Introducción', `<textarea name="intro" rows="3">${esc(p.intro || '')}</textarea>`)
+      + campo('Lo importante (una viñeta por línea)', `<textarea name="puntos" rows="6">${esc((p.puntos || []).join('\n'))}</textarea>`, 'Etiqueta | texto. Ej.: «Fecha límite | viernes 4 de diciembre». La etiqueta sale en negrita');
+    }
+    if (p.tipo === 'evento') cuerpo += campo('Subtítulo', txt('sub', p.sub)) + campo('Día', `<input type="date" name="fecha" value="${esc(p.fecha || '')}">`, 'Si se deja vacío, sale «Fecha por confirmar»')
+      + campo('Hora', `<input type="time" name="hora" value="${esc(p.hora || '')}">`) + campo('Lugar', txt('lugar', p.lugar)) + campo('Texto', `<textarea name="texto">${esc(p.texto || '')}</textarea>`)
+      + imgEd('imagen', p.imagen, 'Imagen') + campo('Actividades (una por línea)', `<textarea name="actividades">${esc((p.actividades || []).join('\n'))}</textarea>`)
+      + `<div class="fld"><span>Vídeos (título y enlace: YouTube, OneDrive…)</span><div id="vids">${(p.videos || []).map(filaVideo).join('')}</div><button class="b2" type="button" data-addv="1" style="margin-top:8px">${s('mas')}Añadir vídeo</button></div>`;
+    if (p.tipo === 'libre') cuerpo += campo('Subtítulo', txt('sub', p.sub)) + imgEd('imagen', p.imagen, 'Imagen') + campo('Texto', `<textarea name="texto">${esc(p.texto || '')}</textarea>`);
+    cuerpo += `<div class="recuerda" style="margin-top:6px">${s('info')}<div style="flex:1"><b>Recuerda: el texto de la tarjeta de Comunidad en la portada del Hub</b><small style="display:block;color:var(--ink-2);margin:2px 0 6px">Si cambia lo que se anuncia, cámbialo también aquí.</small>${txt('tarjeta', D.tarjeta || TARJETA)}</div></div>`;
+    const d = ventana('Editar «' + p.titulo + '»', cuerpo, async d => {
+      const n = copia(D), q = n.pestanas.find(x => x.id === p.id);
+      if (val(d, 'tarjeta')) n.tarjeta = val(d, 'tarjeta');
+      Object.assign(q, { titulo: val(d, 'titulo') || q.titulo, color: (d.querySelector('[name=color]:checked') || {}).value || q.color, decor: val(d, 'decor'), oculta: d.querySelector('[name=oculta]').checked, k: val(d, 'k'), cab: val(d, 'cab') });
+      if ('imagen' in q || d.querySelector('[data-img=imagen]')) q.imagen = imgVal(d, 'imagen');
+      if (q.tipo === 'loteria') Object.assign(q, { numero: val(d, 'numero').replace(/\D/g, ''), sorteo: val(d, 'sorteo'), precio: val(d, 'precio'), reservas: val(d, 'reservas'), whatsapp: val(d, 'whatsapp'), waTexto: val(d, 'waTexto'), tocaTexto: val(d, 'tocaTexto'), texto: val(d, 'texto'), cuenta: val(d, 'cuenta'), cuentaTexto: val(d, 'cuentaTexto'), puntosTitulo: val(d, 'puntosTitulo'), intro: val(d, 'intro'), puntos: lineas(val(d, 'puntos')) });
+      if (q.tipo === 'concurso') {
+        q.sub = val(d, 'sub'); q.votacion = val(d, 'votacion'); q.premio = val(d, 'premio');
+        Object.assign(q, { fotoFecha: val(d, 'fotoFecha'), fotoHora: val(d, 'fotoHora'), fotoNota: val(d, 'fotoNota'), revelaFecha: val(d, 'revelaFecha'), revelaHora: val(d, 'revelaHora'), revelaNota: val(d, 'revelaNota'),
+          hieloTitulo: val(d, 'hieloTitulo'), hieloTexto: val(d, 'hieloTexto'), premioImagen: imgVal(d, 'premioImagen'), hieloDesde: q.hieloDesde || new Date().toISOString().slice(0, 10) }); Object.assign(q, { puntosTitulo: val(d, 'puntosTitulo'), intro: val(d, 'intro'), puntos: lineas(val(d, 'puntos')) });
+        q.participantes = [...d.querySelectorAll('#parts .fila-ed')].map(f => ({ id: f.dataset.id, nombre: f.querySelector('input[type=text]').value.trim(), foto: f.querySelector('.img-ed').dataset.v || null })).filter(x => x.nombre);
+        if (q.participantes.length < 2) throw new Error('Un concurso necesita al menos dos participantes.');
+      }
+      if (q.tipo === 'evento') Object.assign(q, { sub: val(d, 'sub'), fecha: val(d, 'fecha'), hora: val(d, 'hora'), lugar: val(d, 'lugar'), texto: val(d, 'texto'), actividades: lineas(val(d, 'actividades')),
+        videos: [...d.querySelectorAll('#vids .fila-ed')].map(f => ({ titulo: f.querySelector('[name=vt]').value.trim(), url: f.querySelector('[name=vu]').value.trim() })).filter(v => /^https?:\/\//i.test(v.url)) });
+      if (q.tipo === 'libre') Object.assign(q, { sub: val(d, 'sub'), texto: val(d, 'texto') });
+      await guardaDatos(n, 'cambios en «' + q.titulo + '»');
+      toast('Guardado'); desdeHash();
+    });
+    activaImagenes(d);
+    d.addEventListener('click', e => {
+      if (e.target.closest('[data-addp]')) { const box = d.querySelector('#parts'); box.insertAdjacentHTML('beforeend', filaPart({ id: 'p' + Date.now().toString(36), nombre: '', foto: null })); activaImagenes(box.lastElementChild); }
+      if (e.target.closest('[data-addv]')) d.querySelector('#vids').insertAdjacentHTML('beforeend', filaVideo({ titulo: '', url: '' }));
+      const del = e.target.closest('[data-delf]'); if (del) del.closest('.fila-ed').remove();
+    });
+  }
+  const filaPart = x => `<div class="fila-ed" data-id="${esc(x.id)}"><input type="text" value="${esc(x.nombre)}" placeholder="Nombre (p. ej. Córdoba)">
+    <div class="img-ed" data-img="f_${esc(x.id)}" data-v="${esc(x.foto || '')}"><div class="th" style="width:56px;height:44px">${x.foto ? `<img data-src="${esc(x.foto)}" alt="">` : 'Foto'}</div><label class="ib" title="Subir foto">${s('foto')}<input type="file" accept="image/*" hidden></label></div>
+    <button class="ib" type="button" data-delf="1" title="Quitar">${s('papelera')}</button></div>`;
+  const filaVideo = v => `<div class="fila-ed"><input type="text" name="vt" value="${esc(v.titulo)}" placeholder="Título"><input type="url" name="vu" value="${esc(v.url)}" placeholder="https://…"><button class="ib" type="button" data-delf="1" title="Quitar">${s('papelera')}</button></div>`;
+
+  async function cambiaVisible(p) {
+    if (!p) return;
+    const n = copia(D), q = n.pestanas.find(x => x.id === p.id); q.oculta = !q.oculta;
+    try { await guardaDatos(n, (q.oculta ? 'ocultar' : 'mostrar') + ' «' + q.titulo + '»'); toast(q.oculta ? 'Pestaña oculta: solo la ven quienes editan' : 'Pestaña visible para todos'); desdeHash(); } catch (e) { toast(e.message, true); }
+  }
+  function cambiaTarjeta() {
+    ventana('Texto de la tarjeta en el Hub', campo('Texto que sale en la tarjeta de Comunidad, en la portada del Hub', `<textarea name="tarjeta" rows="3">${esc(D.tarjeta || TARJETA)}</textarea>`, 'Corto: una o dos líneas'), async d => {
+      const t = val(d, 'tarjeta'); if (!t) throw new Error('Escribe el texto de la tarjeta.');
+      const n = copia(D); n.tarjeta = t; await guardaDatos(n, 'texto de la tarjeta del Hub'); toast('Guardado'); desdeHash();
+    });
+  }
+  function organizar() {
+    let L = copia(D.pestanas), dest = D.destacada;
+    const fila = (p, i) => `<div class="fila-ed org" style="${cv(p.color)}" data-i="${i}"><span class="pt"></span><span class="nm">${esc(p.titulo)}<small>${p.oculta ? 'Oculta' : 'Visible'}${dest === p.id ? ' · Destacada en el Inicio' : ''}</small></span>
+      <button class="ib ${dest === p.id ? 'on' : ''}" type="button" data-o="dest" title="Destacar en el Inicio">${s('estrella')}</button>
+      <button class="ib" type="button" data-o="ver" title="${p.oculta ? 'Mostrar' : 'Ocultar'}">${s(p.oculta ? 'ojoNo' : 'ojo')}</button>
+      <button class="ib" type="button" data-o="sube" ${i === 0 ? 'disabled' : ''} title="Subir">${s('arriba')}</button>
+      <button class="ib" type="button" data-o="baja" ${i === L.length - 1 ? 'disabled' : ''} title="Bajar">${s('abajo')}</button>
+      ${p.tipo === 'libre' ? `<button class="ib" type="button" data-o="borra" title="Borrar">${s('papelera')}</button>` : ''}</div>`;
+    const d = ventana('Organizar pestañas', `<p class="mini" style="margin-bottom:8px">Ordena las pestañas, ocúltalas o elige cuál sale en grande en el Inicio.</p><div id="org"></div>`, async () => {
+      const n = copia(D); n.pestanas = L; n.destacada = dest;
+      await guardaDatos(n, 'orden y visibilidad de las pestañas'); toast('Guardado'); desdeHash();
+    });
+    const pinta2 = () => { d.querySelector('#org').innerHTML = L.map(fila).join(''); };
+    pinta2();
+    d.querySelector('#org').onclick = e => {
+      const b = e.target.closest('[data-o]'); if (!b) return;
+      const i = +b.closest('[data-i]').dataset.i, o = b.dataset.o;
+      if (o === 'dest') dest = L[i].id;
+      if (o === 'ver') L[i].oculta = !L[i].oculta;
+      if (o === 'sube' && i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]];
+      if (o === 'baja' && i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]];
+      if (o === 'borra' && confirm('¿Borrar la pestaña «' + L[i].titulo + '»?')) L.splice(i, 1);
+      pinta2();
+    };
+  }
+  function nuevaPestana() {
+    ventana('Nueva pestaña', campo('Nombre de la pestaña', txt('titulo', '', 'Ej.: Avisos')) + campo('Color', colores('morado')), async d => {
+      const t = val(d, 'titulo'); if (!t) throw new Error('Pon un nombre a la pestaña.');
+      const n = copia(D), id = (Hub.slugNombre(t) || 'pestana') + '-' + Date.now().toString(36).slice(-4);
+      n.pestanas.push({ id, tipo: 'libre', titulo: t, color: (d.querySelector('[name=color]:checked') || {}).value || 'morado', decor: 'ninguna', oculta: true, k: '', cab: t, sub: '', texto: '', imagen: null });
+      await guardaDatos(n, 'pestaña nueva «' + t + '»'); toast('Creada (oculta hasta que la muestres)'); ir(id);
+    }, 'Crear');
+  }
+
+  /* ---------- Arranque ---------- */
+  app.innerHTML = '<div class="carga"><i></i></div>';
+  try { await leeDatos(); } catch (e) { app.innerHTML = `<main class="cm"><div class="card vacio"><h1>Comunidad</h1><p>${esc(e.message)}</p></div></main>`; return; }
+  desdeHash();
+})();
+</script>
+</body>
+</html>
