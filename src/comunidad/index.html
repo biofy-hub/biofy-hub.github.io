@@ -176,6 +176,20 @@
 .so-fila .ib{height:30px;padding:0 9px;border-radius:9px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--bad);flex:none}
 .so-fila .ib.vuelve{color:var(--c1)}
 .so-fuera{font-size:13px;color:var(--ink-3);font-weight:600;margin:4px 0 0}
+/* Publicaciones del Inicio (Juan, 27/11) */
+.pubs{display:grid;gap:14px;margin-bottom:6px}
+.pub{display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:18px;padding:14px;border-radius:22px;align-items:center;animation:entra .5s var(--ease) both}
+.pub-media{position:relative;border-radius:16px;overflow:hidden;background:#111;display:grid;place-items:center;min-height:200px;max-height:72vh}
+.pub-media img,.pub-media video{display:block;width:100%;max-height:72vh;object-fit:contain;background:#111}
+.pub-media .play{position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:var(--c1,var(--brand));display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .2s var(--ease)}
+.pub-media .play:hover{transform:scale(1.07)}
+.pub-media .play svg{width:34px;height:34px;margin-left:5px}
+.pub-media .durac{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px}
+.pub-tx small{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3)}
+.pub-tx b{display:block;font-size:20px;font-weight:800;margin:4px 0 6px;letter-spacing:-.2px}
+.pub-tx p{color:var(--ink-2);font-size:15px;line-height:1.5}
+.pub-tx .b2{margin-top:12px}
+@media (max-width:640px){.pub{grid-template-columns:1fr}}
 .etq-o{display:inline-flex;align-items:center;gap:5px;background:var(--warn-soft);color:var(--warn);font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;margin-bottom:10px}
 /* ---------- Ventanas de edición ---------- */
 dialog.dl{margin:auto;border:0;border-radius:22px;padding:0;width:min(560px,calc(100% - 20px));max-height:calc(100% - 30px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-up)}
@@ -543,6 +557,7 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
     return `${cabEd(modoEd ? `<button class="b2" data-a="nueva">${s('mas')}Nueva pestaña</button><button class="b2 pri" data-a="organizar">${s('estrellas')}Organizar pestañas</button>` : '')}
       ${modoEd ? recuerda() : ''}<div class="hola2"><h1>Hola, ${esc(s0.nombre)}</h1><p>Lo que pasa en Culligan Biofy</p></div>
       ${dest ? destacado(dest) : '<div class="card vacio2">Todavía no hay nada publicado.</div>'}
+      ${vistaPubs()}
       ${resto.length ? `<div class="sec-h"><b>Más en Comunidad</b></div><div class="tiles">${resto.map((p, i) => `<button class="tile ${p.oculta ? 'oculta' : ''}" style="${cv(p.color)};animation-delay:${i * 60}ms" data-t="${esc(p.id)}">
         <span class="ic">${s(ICONO_TIPO[p.tipo] || 'mega')}</span>${badge(p) ? `<span class="bd">${esc(badge(p))}</span>` : ''}${p.oculta ? '<span class="bd">Oculta</span>' : ''}
         <b>${esc(p.cab || p.titulo)}</b><small>${esc(resumen(p))}</small></button>`).join('')}</div>` : ''}`;
@@ -750,6 +765,82 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
     } catch (e) { toast(e.message, true); }
   }
 
+
+  /* ---------- Publicaciones del Inicio (Juan, 27/11): foto o vídeo, cifrados en el almacén ---------- */
+  async function subeCifrado(bytes, carpeta, msg) {
+    const key = await crypto.subtle.importKey('raw', u8(K.k), 'AES-GCM', false, ['encrypt']), iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes)), todo = new Uint8Array(12 + ct.length);
+    todo.set(iv); todo.set(ct, 12);
+    const ruta = carpeta + '/' + [...crypto.getRandomValues(new Uint8Array(10))].map(x => x.toString(16).padStart(2, '0')).join('') + '.bin';
+    const r = await fetch(`${API}/${ruta}`, { method: 'PUT', headers: H, body: JSON.stringify({ message: 'Comunidad: ' + msg, content: b64(todo) }) });
+    if (!r.ok) throw new Error('No se ha podido subir el archivo (' + r.status + ')');
+    return ruta;
+  }
+  const VID = {};
+  function video(ruta, tipo) {
+    if (!VID[ruta]) VID[ruta] = (async () => {
+      const r = await fetch(`${API}/${ruta}`, { headers: { Authorization: H.Authorization, Accept: 'application/vnd.github.raw' }, cache: 'force-cache' });
+      if (!r.ok) throw new Error('No se puede cargar el vídeo (' + r.status + ')');
+      return URL.createObjectURL(new Blob([await Hub.cifra.abreBinario(K.k, await r.arrayBuffer())], { type: tipo || 'video/mp4' }));
+    })();
+    VID[ruta].catch(() => delete VID[ruta]);
+    return VID[ruta];
+  }
+  const fechaCorta = f => { const d = new Date(f + 'T12:00:00'); return isNaN(d) ? '' : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }); };
+  function vistaPubs() {
+    const l = (D.publicaciones || []);
+    if (!l.length && !modoEd) return '';
+    return `<div class="sec-h"><b>Publicaciones</b>${modoEd ? `<button class="b2 pri" data-a="pub-nueva">${s('mas')}Nueva publicación</button>` : ''}</div>
+      ${l.length ? `<div class="pubs">${l.map((x, i) => `<article class="card pub" style="animation-delay:${i * 60}ms">
+        <div class="pub-media" ${x.video ? `data-vid="${esc(x.video)}" data-tipo="${esc(x.tipo || 'video/mp4')}"` : ''}>${x.poster || x.foto ? `<img data-src="${esc(x.poster || x.foto)}" alt="${esc(x.titulo || '')}">` : ''}
+          ${x.video ? `<button class="play" data-a="pub-play" aria-label="Ver el vídeo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>${x.dur ? `<span class="durac">${esc(x.dur)}</span>` : ''}` : ''}</div>
+        <div class="pub-tx"><small>${esc(fechaCorta(x.fecha))}</small><b>${esc(x.titulo || '')}</b>${parrafos(x.texto)}
+          ${modoEd ? `<button class="b2 pel" data-a="pub-quita" data-i="${esc(x.id)}">${s('papelera')}Quitar publicación</button>` : ''}</div></article>`).join('')}</div>`
+        : '<div class="card vacio2">Todavía no hay publicaciones. Pulsa «Nueva publicación» para añadir una foto o un vídeo.</div>'}`;
+  }
+  async function pubPlay(b) {
+    const m = b.closest('.pub-media'); b.disabled = true; b.innerHTML = '<i class="carga" style="padding:0"><i></i></i>';
+    try {
+      const u = await video(m.dataset.vid, m.dataset.tipo);
+      m.innerHTML = `<video src="${u}" controls autoplay playsinline></video>`;
+    } catch (e) { toast(e.message, true); b.disabled = false; b.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>'; }
+  }
+  function portada(f) {   // un fotograma del vídeo (al segundo 1) como imagen de portada
+    return new Promise((ok, mal) => {
+      const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = URL.createObjectURL(f);
+      v.onloadeddata = () => { v.currentTime = Math.min(1, (v.duration || 2) / 2); };
+      v.onseeked = () => { const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0); c.toBlob(b => ok({ blob: b, dur: v.duration }), 'image/jpeg', 0.85); };
+      v.onerror = () => mal(new Error('No se puede leer el vídeo. Prueba con un MP4.'));
+    });
+  }
+  function nuevaPub() {
+    ventana('Nueva publicación', campo('Título', txt('titulo', '', 'Ej.: Las compañeras, en modo Navidad'))
+      + campo('Texto', '<textarea name="texto" rows="3"></textarea>', 'Corto: una o dos frases')
+      + campo('Foto o vídeo', '<input type="file" name="archivo" accept="image/*,video/mp4,video/quicktime">', 'Vídeo en MP4, como mucho 40 MB'), async d => {
+      const t = val(d, 'titulo'), f = d.querySelector('[name="archivo"]').files[0];
+      if (!t) throw new Error('Escribe un título.');
+      if (!f) throw new Error('Elige una foto o un vídeo.');
+      const x = { id: 'p' + Date.now().toString(36), titulo: t, texto: val(d, 'texto'), fecha: new Date().toISOString().slice(0, 10) };
+      if (f.type.startsWith('video/')) {
+        if (f.size > 40e6) throw new Error('El vídeo pesa más de 40 MB. Recórtalo o comprímelo.');
+        const pt = await portada(f);
+        x.poster = await subeImagen(pt.blob);
+        x.video = await subeCifrado(new Uint8Array(await f.arrayBuffer()), 'c/vid', 'vídeo nuevo');
+        x.tipo = f.type === 'video/quicktime' ? 'video/mp4' : f.type;
+        if (pt.dur) x.dur = Math.floor(pt.dur / 60) + ':' + String(Math.round(pt.dur % 60)).padStart(2, '0');
+      } else x.foto = await subeImagen(f);
+      await leeDatos();
+      const n = copia(D); n.publicaciones = [x, ...(n.publicaciones || [])];
+      await guardaDatos(n, 'publicación «' + t + '»'); toast('Publicado en el Inicio'); desdeHash();
+    }, 'Publicar');
+  }
+  async function quitaPub(id) {
+    const x = (D.publicaciones || []).find(y => y.id === id); if (!x) return;
+    if (!confirm(`¿Quitar la publicación «${x.titulo}» del Inicio?`)) return;
+    try { await leeDatos(); const n = copia(D); n.publicaciones = (n.publicaciones || []).filter(y => y.id !== id); await guardaDatos(n, 'quitar publicación «' + x.titulo + '»'); toast('Publicación quitada'); desdeHash(); }
+    catch (e) { toast(e.message, true); }
+  }
+
   /* ---------- Clics ---------- */
   function clic(e) {
     const t = e.target.closest('[data-t]'); if (t && !t.closest('.cm-tabs')) { ir(t.dataset.t); return; }
@@ -760,6 +851,9 @@ a.decimo:hover{box-shadow:0 22px 48px rgba(150,100,0,.32)}
     if (a === 'tarjeta') cambiaTarjeta();
     if (a === 'visible') cambiaVisible(deId(actual));
     if (a === 'tirar') tirar();
+    if (a === 'pub-play') pubPlay(e.target.closest('[data-a]'));
+    if (a === 'pub-nueva') nuevaPub();
+    if (a === 'pub-quita') quitaPub(e.target.closest('[data-i]').dataset.i);
     if (a === 'so-quita' || a === 'so-vuelve') cambiaQuitado(e.target.closest('[data-u]').dataset.u, a === 'so-quita');
     const im = e.target.closest('img.pieza, .part .foto img');
     if (im && im.src) { const d = document.createElement('dialog'); d.className = 'zoom'; d.innerHTML = `<img src="${im.src}" alt="">`; d.onclick = () => { d.close(); d.remove(); }; document.body.appendChild(d); d.showModal(); }
